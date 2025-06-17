@@ -1,0 +1,107 @@
+﻿@page
+@model RadiantHomes.Pages.RealEstates.Testimonials.CreateModel
+@{
+    ViewData["Title"] = "Create Testimonial";
+}
+
+<div class="container mt-5">
+    <div class="card shadow rounded-4">
+        <div class="card-header bg-primary text-white rounded-top-4">
+            <h3 class="mb-0"><i class="bi bi-chat-left-text"></i> Create Testimonial</h3>
+        </div>
+
+        <div class="card-body">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="CustomerTestimonial.CustomerId" class="form-label"></label>
+                    <select asp-for="CustomerTestimonial.CustomerId" class="form-select" asp-items="ViewBag.CustomerId">
+                        <option value="">-- Select Customer --</option>
+                    </select>
+                    <span asp-validation-for="CustomerTestimonial.CustomerId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CustomerTestimonial.CompanyId" class="form-label"></label>
+                    <select asp-for="CustomerTestimonial.CompanyId" class="form-select" asp-items="ViewBag.CompanyId">
+                        <option value="">-- Select Company --</option>
+                    </select>
+                    <span asp-validation-for="CustomerTestimonial.CompanyId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CustomerTestimonial.Category" class="form-label"></label>
+                    <input asp-for="CustomerTestimonial.Category" class="form-control" placeholder="e.g. Service, Experience, Support" />
+                    <span asp-validation-for="CustomerTestimonial.Category" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CustomerTestimonial.CustomerName" class="form-label"></label>
+                    <input asp-for="CustomerTestimonial.CustomerName" class="form-control" placeholder="Customer's full name" />
+                    <span asp-validation-for="CustomerTestimonial.CustomerName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CustomerTestimonial.TestimonialText" class="form-label"></label>
+                    <textarea asp-for="CustomerTestimonial.TestimonialText" rows="4" class="form-control" placeholder="Write the testimonial..."></textarea>
+                    <span asp-validation-for="CustomerTestimonial.TestimonialText" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CustomerTestimonial.SubmissionDate" class="form-label"></label>
+                        <input asp-for="CustomerTestimonial.SubmissionDate" type="date" class="form-control" />
+                        <span asp-validation-for="CustomerTestimonial.SubmissionDate" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CustomerTestimonial.Rating" class="form-label"></label>
+                        <input asp-for="CustomerTestimonial.Rating" type="number" min="1" max="5" class="form-control" placeholder="1-5" />
+                        <span asp-validation-for="CustomerTestimonial.Rating" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CustomerTestimonial.CreatedBy" class="form-label"></label>
+                        <input asp-for="CustomerTestimonial.CreatedBy" class="form-control" />
+                        <span asp-validation-for="CustomerTestimonial.CreatedBy" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CustomerTestimonial.CreatedOn" class="form-label"></label>
+                        <input asp-for="CustomerTestimonial.CreatedOn" type="datetime-local" class="form-control" />
+                        <span asp-validation-for="CustomerTestimonial.CreatedOn" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CustomerTestimonial.UpdatedBy" class="form-label"></label>
+                        <input asp-for="CustomerTestimonial.UpdatedBy" class="form-control" />
+                        <span asp-validation-for="CustomerTestimonial.UpdatedBy" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CustomerTestimonial.UpdatedOn" class="form-label"></label>
+                        <input asp-for="CustomerTestimonial.UpdatedOn" type="datetime-local" class="form-control" />
+                        <span asp-validation-for="CustomerTestimonial.UpdatedOn" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-page="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left-circle"></i> Back
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Submit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+}

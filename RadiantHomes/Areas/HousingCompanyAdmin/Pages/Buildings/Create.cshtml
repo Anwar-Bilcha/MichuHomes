@@ -1,0 +1,136 @@
+﻿@page
+@model RadiantHomes.Areas.HousingCompanyAdmin.Pages.Buildings.CreateModel
+
+@{
+    ViewData["Title"] = "Create Building";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">🏗️ Add Building</h2>
+        <a asp-page="Index" class="btn btn-outline-secondary">← Back to List</a>
+    </div>
+
+    <!-- Tabs for Manual vs Bulk Upload -->
+    <ul class="nav nav-tabs mb-4" id="buildingTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">Manual Entry</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="bulk-tab" data-bs-toggle="tab" data-bs-target="#bulk" type="button" role="tab">Bulk Upload (Excel)</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="buildingTabContent">
+        <!-- Manual Entry Form -->
+        <div class="tab-pane fade show active" id="manual" role="tabpanel">
+            <form method="post" class="needs-validation">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Building.ProjectId" class="form-label fw-semibold"></label>
+                        <select asp-for="Building.ProjectId" class="form-select" asp-items="ViewBag.ProjectId"></select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Building.BuildingName" class="form-label fw-semibold"></label>
+                        <input asp-for="Building.BuildingName" class="form-control" />
+                        <span asp-validation-for="Building.BuildingName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Building.NumberOfFloors" class="form-label fw-semibold"></label>
+                        <input type="number" asp-for="Building.NumberOfFloors" class="form-control" />
+                        <span asp-validation-for="Building.NumberOfFloors" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Building.BuildingType" class="form-label fw-semibold"></label>
+                        <select asp-for="Building.BuildingType" class="form-select">
+                            <option value="Residential">Residential</option>
+                            <option value="Commercial">Commercial</option>
+                            <option value="Mixed">Mixed</option>
+
+                        </select>
+                        <span asp-validation-for="Building.BuildingType" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Building.ConstructionStatus" class="form-label fw-semibold"></label>
+                        <input asp-for="Building.ConstructionStatus" class="form-control" />
+                        <span asp-validation-for="Building.ConstructionStatus" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Building.CreatedBy" class="form-label fw-semibold"></label>
+                        <input asp-for="Building.CreatedBy" class="form-control" />
+                        <span asp-validation-for="Building.CreatedBy" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Building.CreatedOn" class="form-label fw-semibold"></label>
+                        <input asp-for="Building.CreatedOn" class="form-control" type="datetime-local" />
+                        <span asp-validation-for="Building.CreatedOn" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Building.UpdatedBy" class="form-label fw-semibold"></label>
+                        <input asp-for="Building.UpdatedBy" class="form-control" />
+                        <span asp-validation-for="Building.UpdatedBy" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Building.UpdatedOn" class="form-label fw-semibold"></label>
+                        <input asp-for="Building.UpdatedOn" class="form-control" type="datetime-local" />
+                        <span asp-validation-for="Building.UpdatedOn" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success px-4">💾 Save Building</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bulk Upload Tab -->
+        <div class="tab-pane fade" id="bulk" role="tabpanel">
+            <div class="card mt-4 shadow-sm rounded-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Bulk Upload Buildings</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Follow these steps to upload buildings in bulk:</p>
+                    <ol class="small text-secondary">
+                        <li>Click the <strong>Download Template</strong> button to get the Excel file format.</li>
+                        <li>Fill in building details in the template. Required fields: Project, Building Name, Floors, etc.</li>
+                        <li>Save the file (must be <code>.xlsx</code> format).</li>
+                        <li>Upload the completed file using the form below.</li>
+                        <li>Click <strong>Upload</strong> to process the buildings.</li>
+                    </ol>
+
+                    <form method="post" enctype="multipart/form-data" asp-page-handler="UploadBuildings">
+                        @Html.AntiForgeryToken();
+                        <div class="form-group mb-3">
+                            <label for="excelFile">Select Excel File</label>
+                            <input type="file" name="file" asp-for="file" class="form-control" required />
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a class="btn btn-outline-primary" asp-page-handler="DownloadTemplate">Download Template</a>
+                            <button type="submit" asp-page-handler="UploadBuildings" class="btn btn-success">Upload</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

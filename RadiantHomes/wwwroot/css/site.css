@@ -1,0 +1,421 @@
+/* === Base Body Styling === */
+body {
+    padding-top:100px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    font-size: 12px;
+}
+
+/* === Navbar Styling === */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 999;
+    background-color: #ebebeb;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: end;
+    font-family:'Palatino Linotype';
+    font-weight:bold;
+}
+
+    .navbar .logo {
+        transition: transform 0.3s ease;
+    }
+
+.profile-pic.dropdown-toggle {
+    cursor: pointer;
+    border: 2px solid #ddd;
+    padding: 2px;
+    transition: transform 0.2s;
+}
+
+    .profile-pic.dropdown-toggle:hover {
+        transform: scale(1.05);
+    }
+
+.navbar.scrolled {
+    background-color: #333;
+    color: white;
+}
+
+    .navbar.scrolled .logo {
+        transform: scale(0.9);
+    }
+
+.navbar .nav-link {
+    transition: color 0.3s ease;
+}
+
+    .navbar .nav-link:hover {
+        color: #FF8A00;
+    }
+
+/* === Main Content === */
+.main-content {
+    font-family:'Palatino Linotype';
+    font-weight: 500;
+}
+
+/* === Button and Input Focus Styling === */
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* === Hero Section === */
+.hero {
+    background: url('https://via.placeholder.com/1200x500') no-repeat center center;
+    background-size: cover;
+    color: white;
+    height: 360px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* === Card Hover Effect === */
+.hover-card:hover {
+    transform: translateY(-5px);
+    transition: transform 0.2s ease-in-out;
+}
+
+/* === Carousel Hero === */
+#heroCarousel {
+    height: 40vh;
+    overflow: hidden;
+    border-radius: 1rem;
+}
+
+    #heroCarousel .carousel-inner,
+    #heroCarousel .carousel-item {
+        height: 100%;
+    }
+
+        #heroCarousel .carousel-item img {
+            object-fit: cover;
+            height: 100%;
+        }
+
+/* === Glassy Background Section === */
+.glassy-bg {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    color: #fff;
+}
+
+/* === Advice Section Titles === */
+.advice-section h2 {
+    font-weight: 600;
+}
+
+/* === Label Styling === */
+label {
+    font-weight: bold;
+}
+
+/* === Media Queries === */
+@media (max-width: 768px) {
+    .navbar .logo {
+        transform: scale(0.7);
+        transition: transform 0.3s ease;
+    }
+}
+
+@media (max-width: 768px) {
+    .carousel-caption {
+        font-size: 0.9rem;
+        padding: 0.5rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    #propertySearch {
+        margin-top: 1rem;
+    }
+}
+@media (max-width: 768px) {
+    .logo {
+        font-size: .5rem; /* Reduce size on smaller screens */
+    }
+        .logo .radiant {
+            font-size: .5rem; /* Adjust homes part size */
+        }
+        .logo .homes {
+            font-size: .5rem; /* Adjust homes part size */
+        }
+}
+
+@media (max-width: 576px) {
+    .logo {
+        font-size: .5rem; /* Further reduction on extra small screens */
+    }
+
+        .logo .homes {
+            font-size: .5rem; /* Adjust homes part size for small screens */
+        }
+}
+.navbar {
+    background-color: #ffffff;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.navbar-nav .nav-link {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+    transition: color 0.1s ease;
+}
+
+    .navbar-nav .nav-link:hover {
+        color: #2980b9;
+    }
+
+/* Logo Styling */
+.logo {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    align-items: start;
+    background: linear-gradient(to right, #666, #666);
+    color: transparent;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 6px #666, 0 1px 3px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
+    transition: transform 0.3s ease-in-out;
+}
+
+    /* Styling for Homes */
+    .logo .homes {
+        font-family: 'Lora', serif;
+        color: #666;
+        text-shadow: 0 1px 3px rgba(20, 20, 40, 0.9);
+        letter-spacing: 1px;
+        font-weight: 500;
+        transition: color 0.1s ease-in-out;
+    }
+
+        .logo .homes:hover {
+            color: #666;
+        }
+
+/* Footer Styling */
+
+/* User Profile Styling in Navbar */
+.navbar-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-pic {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.greeting {
+    font-weight: bold;
+    color: #333;
+}
+.advice-section {
+    /* Adjust background if needed for blur effect to be visible */
+    background: linear-gradient(to bottom right, #f0f8ff, #e0ffff); /* Example light background */
+    padding-top: 3rem; /* Adjust top padding for mobile */
+    padding-bottom: 3rem; /* Adjust bottom padding for mobile */
+}
+
+.backdrop-filter-blur-md {
+    backdrop-filter: blur(10px); /* Adjust blur intensity */
+    -webkit-backdrop-filter: blur(10px); /* For Safari */
+}
+
+.blur-circle {
+    border-radius: 50%;
+    opacity: 0.15;
+    position: absolute;
+    z-index: 0; /* Ensure they stay behind the main content */
+}
+
+    /* Larger circle */
+    .blur-circle:nth-child(2) {
+        background-color: #007bff; /* Primary color */
+        width: 150px;
+        height: 150px;
+        top: 10px;
+        left: 10px;
+    }
+
+    /* Smaller circle */
+    .blur-circle:nth-child(3) {
+        background-color: #ffc107; /* Warning color */
+        width: 100px;
+        height: 100px;
+        bottom: 5px;
+        right: 5%; /* Use percentage for better responsiveness */
+    }
+
+/* Adjustments for smaller screens */
+@media (max-width: 767.98px) {
+    .blur-circle:nth-child(2) {
+        width: 100px;
+        height: 100px;
+        top: -10px;
+        left: -10px;
+        font-size:10px;
+    }
+
+    .blur-circle:nth-child(3) {
+        width: 80px;
+        height: 80px;
+        bottom: -15px;
+        right: 10%;
+    }
+}
+
+.btn-outline-primary {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+    .btn-outline-primary:hover {
+        background-color: #007bff;
+        color: white;
+    }
+
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    color: #666;
+}
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+    }
+
+.hero {
+    background: linear-gradient(to right, rgba(12, 22, 55, 0.7), rgba(12, 22, 25, 0.7)), url('/images/banner1.jpg') center no-repeat;
+    backdrop-filter: blur(6px);
+    border-radius: 1rem;
+}
+
+#propertySearch {
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.modal-content {
+    border-radius: 1rem;
+}
+
+.glassy-bg {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* .text-gradient {
+        background: linear-gradient(to right, #ff8a00, #e52e71);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .glow-icon {
+        text-shadow: 0 0 10px rgba(255, 193, 7, 0.6);
+    } */
+
+#heroCarousel {
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(100, 100, 100, 0.7);
+}
+.section-header {
+    background-color: #000;
+    color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem 0.375rem 0 0;
+    margin-bottom: 0;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.section-card {
+    border: 1px solid #ddd;
+    border-radius: 0.375rem;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+@media (max-width: 576px) {
+    h2.fw-bold {
+        font-size: 1.3rem;
+    }
+
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .section-header {
+        font-size: 0.95rem;
+        padding: 0.6rem 0.9rem;
+    }
+}
+
+.navbar-brand {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    text-decoration: none;
+}
+
+    .navbar-brand:hover {
+        color: #0f1f4b;
+    }
+.hero {
+    height: 84vh;
+    width:94%;
+    overflow: hidden;
+}
+
+.hero-bg img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.hero-overlay {
+    z-index: 2;
+}
+
+.hero-content {
+    z-index: 3;
+    max-width: 1000px;
+}
+
+.search-box .nav-tabs .nav-link.active {
+    border-color: transparent transparent #0d6efd transparent;
+    color: #0d6efd;
+    font-weight: 600;
+}

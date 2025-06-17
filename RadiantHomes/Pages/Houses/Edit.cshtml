@@ -1,0 +1,254 @@
+﻿@page
+@model RadiantHomes.Pages.Houses.EditModel
+
+@{
+    ViewData["Title"] = "Edit House";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow rounded-4">
+                <div class="card-header bg-dark text-white py-3">
+                    <h4 class="mb-0">Edit House</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="House.Id" />
+
+                        <h6 class="mb-3">Basic Information</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6 form-floating">
+                                <input asp-for="House.Title" class="form-control" placeholder="Title" />
+                                <label asp-for="House.Title" class="form-label">Title</label>
+                                <span asp-validation-for="House.Title" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <textarea asp-for="House.Description" class="form-control" placeholder="Description" style="height: 100px;"></textarea>
+                                <label asp-for="House.Description" class="form-label">Description</label>
+                                <span asp-validation-for="House.Description" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <select asp-for="House.HouseOwnerId" class="form-select" asp-items="ViewBag.HouseOwnerId">
+                                    <option value="">-- Select Owner --</option>
+                                </select>
+                                <label asp-for="House.HouseOwnerId" class="form-label">Owner</label>
+                                <span asp-validation-for="House.HouseOwnerId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <input asp-for="House.Price" class="form-control" placeholder="Price" />
+                                <label asp-for="House.Price" class="form-label">Price</label>
+                                <span asp-validation-for="House.Price" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <h6 class="mt-4 mb-3">Property Details</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6 form-floating">
+                                <input asp-for="House.TotalBedRooms" class="form-control" placeholder="Bedrooms" />
+                                <label asp-for="House.TotalBedRooms" class="form-label">Bedrooms</label>
+                                <span asp-validation-for="House.TotalBedRooms" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <input asp-for="House.TotalRooms" class="form-control" placeholder="Total Rooms" />
+                                <label asp-for="House.TotalRooms" class="form-label">Total Rooms</label>
+                                <span asp-validation-for="House.TotalRooms" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <input asp-for="House.TotalArea" class="form-control" placeholder="Area (e.g., sq m)" />
+                                <label asp-for="House.TotalArea" class="form-label">Total Area</label>
+                                <span asp-validation-for="House.TotalArea" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-check align-items-center">
+                                <input class="form-check-input" asp-for="House.HasOwnershipDocument" />
+                                <label class="form-check-label ms-2" asp-for="House.HasOwnershipDocument">@Html.DisplayNameFor(model => model.House.HasOwnershipDocument)</label>
+                            </div>
+                        </div>
+
+                        <h6 class="mt-4 mb-3">Location & Ownership</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6 form-floating">
+                                <select asp-for="House.AddressId" class="form-select" asp-items="ViewBag.AddressId">
+                                    <option value="">-- Select Address --</option>
+                                </select>
+                                <label asp-for="House.AddressId" class="form-label">Address</label>
+                                <span asp-validation-for="House.AddressId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <select asp-for="House.HouseCategoryId" class="form-select" asp-items="ViewBag.HouseCategoryId">
+                                    <option value="">-- Select Category --</option>
+                                </select>
+                                <label asp-for="House.HouseCategoryId" class="form-label">Category</label>
+                                <span asp-validation-for="House.HouseCategoryId" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <select asp-for="House.AvailableFor" class="form-select">
+                                    <option value="">-- Select Availability --</option>
+                                    <option value="Rent" >@(Model.House.AvailableFor == "Rent" ? "selected" : "")>Rent</option>
+                                    <option value="Sale" >@(Model.House.AvailableFor == "Sale" ? "selected" : "")>Sale</option>
+                                </select>
+                                <label asp-for="House.AvailableFor" class="form-label">Available For</label>
+                                <span asp-validation-for="House.AvailableFor" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-floating">
+                                <select asp-for="House.HouseOwnership" class="form-select">
+                                    <option value="">-- Select Ownership Type --</option>
+                                    <option value="Individual" >@(Model.House.HouseOwnership == "Individual" ? "selected" : "")>Individual</option>
+                                    <option value="Couples" >@(Model.House.HouseOwnership == "Couples" ? "selected" : "")>Couples</option>
+                                    <option value="Family" >@(Model.House.HouseOwnership == "Family" ? "selected" : "")>Family</option>
+                                </select>
+                                <label asp-for="House.HouseOwnership" class="form-label">Ownership Type</label>
+                                <span asp-validation-for="House.HouseOwnership" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="House.OwnershipDocumentUrl" class="form-label">Ownership Document</label>
+                                @if (!string.IsNullOrEmpty(Model.House.OwnershipDocumentUrl))
+                                {
+                                    <p><a href="@Model.House.OwnershipDocumentUrl" target="_blank">View Current Document</a></p>
+                                }
+                                <input asp-for="House.OwnershipDocumentUrl" type="file" class="form-control" />
+                                <span asp-validation-for="House.OwnershipDocumentUrl" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="House.ConsentofSaleOrRentDocUrl" class="form-label">Consent Document</label>
+                                @if (!string.IsNullOrEmpty(Model.House.ConsentofSaleOrRentDocUrl))
+                                {
+                                    <p><a href="@Model.House.ConsentofSaleOrRentDocUrl" target="_blank">View Current Document</a></p>
+                                }
+                                <input asp-for="House.ConsentofSaleOrRentDocUrl" type="file" class="form-control" />
+                                <span asp-validation-for="House.ConsentofSaleOrRentDocUrl" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="House.LatestHouseTaxVoucherUrl" class="form-label">Tax Voucher</label>
+                                @if (!string.IsNullOrEmpty(Model.House.LatestHouseTaxVoucherUrl))
+                                {
+                                    <p><a href="@Model.House.LatestHouseTaxVoucherUrl" target="_blank">View Current Document</a></p>
+                                }
+                                <input asp-for="House.LatestHouseTaxVoucherUrl" type="file" class="form-control" />
+                                <span asp-validation-for="House.LatestHouseTaxVoucherUrl" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="MainPhotoUrl" class="form-label">Main Photo</label>
+                                @if (!string.IsNullOrEmpty(Model.House.MainPhotoUrl))
+                                {
+                                    <img src="@Model.House.MainPhotoUrl" alt="Current Main Photo" class="img-thumbnail" style="max-width: 150px; max-height: 150px;" />
+                                }
+                                <input type="file" asp-for="MainPhotoUrl" class="form-control" />
+                                <span asp-validation-for="MainPhotoUrl" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <h6 class="mt-4 mb-3">Edit House Photos</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="FrontCompoundViewPhotoUrl" class="form-label">Front Compound View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.FrontCompoundViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.FrontCompoundViewPhotoUrl" alt="Current Front Compound View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="FrontCompoundViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="OutOfCompoundViewPhotoUrl" class="form-label">Out of Compound View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.OutOfCompoundViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.OutOfCompoundViewPhotoUrl" alt="Current Out of Compound View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="OutOfCompoundViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="HouseInternalViewPhotoUrl" class="form-label">House Internal View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.HouseInternalViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.HouseInternalViewPhotoUrl" alt="Current House Internal View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="HouseInternalViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="MainSalonViewPhotoUrl" class="form-label">Main Salon View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.MainSalonViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.MainSalonViewPhotoUrl" alt="Current Main Salon View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="MainSalonViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="MasterBedRoomViewPhotoUrl" class="form-label">Master Bedroom View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.MasterBedRoomViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.MasterBedRoomViewPhotoUrl" alt="Current Master Bedroom View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="MasterBedRoomViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="KitchenViewPhotoUrl" class="form-label">Kitchen View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.KitchenViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.KitchenViewPhotoUrl" alt="Current Kitchen View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="KitchenViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="RestRoomViewPhotoUrl" class="form-label">Restroom View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.RestRoomViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.RestRoomViewPhotoUrl" alt="Current Restroom View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="RestRoomViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AuxiSalonViewPhotoUrl" class="form-label">Auxiliary Salon View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.AuxiSalonViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.AuxiSalonViewPhotoUrl" alt="Current Auxiliary Salon View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="AuxiSalonViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="SecBedRoomViewPhotoUrl" class="form-label">Second Bedroom View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.SecBedRoomViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.SecBedRoomViewPhotoUrl" alt="Current Second Bedroom View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="SecBedRoomViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="AdditionalViewPhotoUrl" class="form-label">Additional View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.AdditionalViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.AdditionalViewPhotoUrl" alt="Current Additional View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="AdditionalViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="BackyardViewPhotoUrl" class="form-label">Backyard View</label>
+                                @if (!string.IsNullOrEmpty(Model.House.BackyardViewPhotoUrl))
+                                {
+                                    <img src="@Model.House.BackyardViewPhotoUrl" alt="Current Backyard View" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="BackyardViewPhotoUrl" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Additional2PhotoUrl" class="form-label">Additional Photo 2</label>
+                                @if (!string.IsNullOrEmpty(Model.House.Additional2PhotoUrl))
+                                {
+                                    <img src="@Model.House.Additional2PhotoUrl" alt="Current Additional Photo 2" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" />
+                                }
+                                <input type="file" asp-for="Additional2PhotoUrl" class="form-control" />
+                            </div>
+                            <div class="mt-4 d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg rounded-pill">
+                                    <i class="bi bi-check-circle-fill me-2"></i> Save Changes
+                                </button>
+                                <a asp-page="./Index" class="btn btn-outline-secondary btn-lg rounded-pill">
+                                    <i class="bi bi-arrow-left-circle-fill me-2"></i> Back to List
+                                </a>
+                            </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

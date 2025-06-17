@@ -1,0 +1,120 @@
+﻿@page
+@model RadiantHomes.Pages.ApartmentHouses.IndexModel
+
+@{
+    ViewData["Title"] = "Apartment Houses";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<section class="container mx-auto px-4 py-8 justify-content-center">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        <h1 class="text-3xl font-bold text-gray-800 text-center">Featured Apartment Houses</h1>
+
+        <div class="mb-4 text-center">
+            <form method="get" class="w-full lg:w-auto flex flex-wrap gap-2 justify-content-center">
+                <input type="text" name="SearchTerm" value="@Model.SearchTerm" placeholder="Search by title or city..."
+                       class="border border-gray-300 rounded-lg px-4 py-2 w-full lg:w-64 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+
+                <select name="HouseType" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <option value="">All Types</option>
+                    @foreach (var type in Model.HouseTypes)
+                    {
+                        <option value="@type" selected="@(Model.HouseType == type)">
+                            @type
+                        </option>
+                    }
+                </select>
+
+                <select name="HasBalcony" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <option value="">Balcony?</option>
+                    <option value="true" selected="@(Model.HasBalcony == true)">Yes</option>
+                    <option value="false" selected="@(Model.HasBalcony == false)">No</option>
+                </select>
+
+                <!-- Real Estate Name Filter -->
+                <input type="text" asp-for="@Model.RealEstateName" name="RealEstateName" value="@Model.RealEstateName" placeholder="Filter by Real Estate Name"
+                       class="border border-gray-300 rounded-lg px-4 py-2 w-full lg:w-64 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-success fw px-4 py-2 rounded-lg shadow">
+                    Filter
+                </button>
+            </form>
+
+
+        </div>
+          </div>
+
+    <div class="row">
+        @foreach (var house in Model.ApartmentHouse)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card glass-card shadow-sm" data-name="@house.Title.ToLower()">
+                    <img src="~/images/Villa2.jpg" class="card-img-top" alt="Property">
+                    <div class="card-body">
+                        <h5 class="card-title">@house.Title</h5>
+                        <p class="card-text text-muted">
+                            <i class="fa-solid fa-location-dot text-danger"></i>
+                            @house.HouseAddress?.City, @house.HouseAddress?.SubCity
+                        </p>
+                        <p class="card-text">
+                            <i class="fa-solid fa-bed text-primary" style="font-size:1.2rem"></i> @house.Bedrooms Beds |
+                            <i class="fa-solid fa-door-open text-primary" style="font-size:1.2rem"></i> @house.TotalRooms Total Rooms |
+                            <i class="fa-solid fa-bath text-success" style="font-size:1.2rem"></i> @house.Bathrooms Bath Rooms |
+                            <i class="fa-solid fa-taxi text-black" style="font-size:1.2rem"></i> @house.HasParking
+                        </p>
+
+                        
+                        <p class="fw-bold text-success">
+                            <i class="fa-solid fa-coins"></i>
+                            @if (house.SalePrice > 0)
+                            {
+                                @($"{house.SalePrice:N0} {house.Currency}")
+                            }
+                            
+                            else
+                            {
+                                <span class="text-muted">Price not listed</span>
+                            }
+                        </p>
+                        <a href="/ApartmentHouses/Details?id=@house.Id" class="btn btn-outline-primary w-100">
+                            <i class="fa-solid fa-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="mt-6 flex justify-center">
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="inline-flex space-x-2 text-sm text-center">
+                @for (int pageN = 1; pageN <= Model.TotalPages; pageN++)
+                {
+                    <strong>
+                    <a asp-page="./Index" asp-route-pageNumber="@pageN"
+                       class="px-3 py-1 rounded-lg @(Model.PageNumber == pageN ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200")">
+                        @pageN
+                        </a>
+                    </strong>
+                }
+            </nav>
+        }
+    </div>
+</section>
+<script>
+        document.getElementById('realEstateFilter').addEventListener('input', function () {
+        const filter = this.value.trim().toLowerCase();
+        const cards = document.querySelectorAll('.card[data-realestate]');
+
+        cards.forEach(card => {
+            const realEstate = card.dataset.realestate || '';
+            if (realEstate.includes(filter)) {
+                card.parentElement.style.display = ''; // Show
+            } else {
+                card.parentElement.style.display = 'none'; // Hide
+            }
+        });
+    });
+
+</script>

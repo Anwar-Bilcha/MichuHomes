@@ -1,0 +1,20 @@
+﻿@model string
+
+@if (!string.IsNullOrWhiteSpace(Model))
+{
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            Swal.fire({
+                icon: 'success',
+                title: @Html.Raw(Json.Serialize(Model)),
+                showConfirmButton: false,
+                timer: 10000,
+                timerProgressBar: true,
+                willClose: () => {
+                    window.location.href = '@Url.Page("./Index")';
+                }
+            });
+        });
+    </script>
+}

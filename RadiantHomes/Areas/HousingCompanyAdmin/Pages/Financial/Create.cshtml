@@ -1,0 +1,114 @@
+﻿@page
+@using RadiantHomes.DAL
+@model RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial.CreateModel
+
+@{
+    ViewData["Title"] = "Create Company Financial Detail";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+<h3>Create Company Financial Detail</h3>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            @* Conditional rendering for Company selection/display *@
+            @if ((Model.CompanyId == Guid.Empty) && User.IsInRole(MichuHomesRoles.MichuAdmin))
+            {
+                <div class="form-group">
+                    <label asp-for="CompanyId" class="control-label"></label>
+                    <select asp-for="CompanyId" class="form-control" asp-items="Model.CompanySelectList">
+                        <option value="">-- Select Company --</option>
+                    </select>
+                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+                </div>
+            }
+            else if (!(Model.CompanyId == Guid.Empty) && User.IsInRole(MichuHomesRoles.MichuAdmin))
+            {
+                <div class="form-group">
+                    <label asp-for="CompanyId" class="control-label"></label>
+                    <select asp-for="CompanyId" class="form-control" asp-items="Model.CompanySelectList">
+                        <option value="">-- Select Company --</option>
+                    </select>
+                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+                </div>
+            }
+            else{
+                <input type="hidden" asp-for="CompanyId" /> @* Important: Keep a hidden field for posting the CompanyId *@
+            }
+
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.BankName" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.BankName" class="form-control" />
+                <span asp-validation-for="CompanyFinancialDetail.BankName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.AccountNumber" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.AccountNumber" class="form-control" />
+                <span asp-validation-for="CompanyFinancialDetail.AccountNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.TinNumber" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.TinNumber" class="form-control" />
+                <span asp-validation-for="CompanyFinancialDetail.TinNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.IsPrimary" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.IsPrimary" class="form-check" />
+                <span asp-validation-for="CompanyFinancialDetail.IsPrimary" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.BudgetYear" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.BudgetYear" class="form-control" />
+                <span asp-validation-for="CompanyFinancialDetail.BudgetYear" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.AnnualRevenue" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.AnnualRevenue" class="form-control" />
+                <span asp-validation-for="CompanyFinancialDetail.AnnualRevenue" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.TaxId" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.TaxId" class="form-control" />
+                <span asp-validation-for="CompanyFinancialDetail.TaxId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="form-control" />
+                <span asp-validation-for="CompanyFinancialDetail.VatRegistrationNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.hasAuditedFinancialStatement" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.hasAuditedFinancialStatement" class="form-check" />
+                <span asp-validation-for="CompanyFinancialDetail.hasAuditedFinancialStatement" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="control-label"></label>
+                <input asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="form-check" />
+                <span asp-validation-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input class="form-control" asp-for="CompanyFinancialDetail.CompanyId" type="hidden"/>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,114 @@
+﻿@page
+@model RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses.CreateModel
+
+@{
+    ViewData["Title"] = "Create Apartment House";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+<h2 class="mb-4">Create New Apartment House</h2>
+
+<form method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <!-- Basic Info -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">Basic Information</div>
+        <div class="card-body row g-3">
+            <div class="col-md-6">
+                <input asp-for="ApartmentHouse.Title" class="form-control" placeholder="e.g., Luxury Condo in Bole" />
+                <span asp-validation-for="ApartmentHouse.Title" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <input asp-for="ApartmentHouse.HouseNumber" class="form-control" placeholder="e.g., APT-204" />
+                <span asp-validation-for="ApartmentHouse.HouseNumber" class="text-danger"></span>
+            </div>
+            <div class="col-md-12">
+                <textarea asp-for="ApartmentHouse.Description" class="form-control" placeholder="Describe the apartment..." rows="3"></textarea>
+                <span asp-validation-for="ApartmentHouse.Description" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <input asp-for="ApartmentHouse.SalePrice" class="form-control" placeholder="e.g., 2,500,000 ETB" />
+                <span asp-validation-for="ApartmentHouse.SalePrice" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <input asp-for="ApartmentHouse.HouseType" class="form-control" placeholder="e.g., Condominium, Studio" />
+                <span asp-validation-for="ApartmentHouse.HouseType" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <input asp-for="ApartmentHouse.FloorNumber" class="form-control" placeholder="e.g., 3rd Floor" />
+                <span asp-validation-for="ApartmentHouse.FloorNumber" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <input asp-for="ApartmentHouse.AvailableFor" class="form-control" placeholder="e.g., Sale or Rent" />
+                <span asp-validation-for="ApartmentHouse.AvailableFor" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ownership and Category -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">Ownership & Category</div>
+        <div class="card-body row g-3">
+           
+             <div class="col-md-6">
+                <select asp-for="ApartmentHouse.HouseCategoryId" class="form-select" asp-items="ViewBag.HouseCategoryId">
+                    <option value="">Select House Category</option>
+                </select>
+                <span asp-validation-for="ApartmentHouse.HouseCategoryId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <select asp-for="ApartmentHouse.AddressId" class="form-select" asp-items="ViewBag.AddressId">
+                    <option value="">Select Address</option>
+                </select>
+                <span asp-validation-for="ApartmentHouse.AddressId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <select asp-for="ApartmentHouse.BuildingId" class="form-select" asp-items="ViewBag.BuildingId">
+                    <option value="">Select Building</option>
+                </select>
+                <span asp-validation-for="ApartmentHouse.BuildingId" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo URLs -->
+    <div class="card mb-4">
+        
+    <!-- Metadata -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">Metadata</div>
+        <div class="card-body row g-3">
+            <div class="col-md-4">
+                <input type="hidden" asp-for="ApartmentHouse.Status" class="form-control" placeholder="e.g., Active, Inactive" />
+                <span asp-validation-for="ApartmentHouse.Status" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <input type="hidden" asp-for="ApartmentHouse.CreatedBy" class="form-control" placeholder="Creator Username" />
+                <span asp-validation-for="ApartmentHouse.CreatedBy" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <input type="hidden" asp-for="ApartmentHouse.CreatedOn" class="form-control" placeholder="Date Created" />
+                <span asp-validation-for="ApartmentHouse.CreatedOn" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <input type="hidden" asp-for="ApartmentHouse.UpdatedBy" class="form-control" placeholder="Updater Username" />
+                <span asp-validation-for="ApartmentHouse.UpdatedBy" class="text-danger"></span>
+            </div>
+            <div class="col-md-4">
+                <input type="hidden" asp-for="ApartmentHouse.UpdatedOn" class="form-control" placeholder="Date Updated" />
+                <span asp-validation-for="ApartmentHouse.UpdatedOn" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="text-end">
+        <button type="submit" class="btn btn-success me-2">Submit</button>
+        <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

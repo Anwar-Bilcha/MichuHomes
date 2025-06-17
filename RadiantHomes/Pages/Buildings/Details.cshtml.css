@@ -1,0 +1,152 @@
+﻿/* Hero Section Styles */
+.hero-section {
+    background: url('/images/buildin1.jpg') center no-repeat;
+    position: relative;
+    color: white;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
+    padding: 5rem 0;
+    margin-bottom: 3rem; /* Space below hero section */
+    min-height: 400px; /* Ensure a minimum height for the hero */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center content horizontally if narrow */
+    text-align: center; /* Center text within hero */
+    border-radius: 0.5rem; /* Rounded corners for the container */
+    overflow: hidden; /* Ensure background doesn't leak */
+}
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
+        z-index: 1;
+    }
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px; /* Limit content width */
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+    .hero-content h1 {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .hero-content p {
+        font-size: 1.5rem;
+        opacity: 0.9;
+        margin-bottom: 1.5rem;
+    }
+
+/* Adjust hero text for smaller screens */
+@media (max-width: 767.98px) {
+    .hero-section {
+        min-height: 300px;
+        padding: 3rem 0;
+    }
+
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+
+    .hero-content p {
+        font-size: 1.2rem;
+    }
+}
+
+/* General Card Styles */
+.card {
+    border-radius: 0.75rem !important; /* Slightly more rounded corners for cards */
+    border: none; /* Remove default card border */
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important; /* Stronger, softer shadow */
+}
+
+.card-header {
+    border-bottom: none !important; /* Remove border below header */
+    border-top-left-radius: calc(0.75rem - 1px) !important;
+    border-top-right-radius: calc(0.75rem - 1px) !important;
+    padding: 1rem 1.5rem; /* Adjust padding */
+}
+
+/* Project Overview Specifics */
+.project-overview .card-header {
+    background-color: var(--bs-success) !important;
+}
+
+/* Auditing Info Specifics */
+.auditing-info .card-header {
+    background-color: var(--bs-info) !important;
+}
+
+/* Buildings Section Specifics */
+.buildings-section .card-header {
+    background-color: var(--bs-success) !important; /* Keeping success for consistency or could be primary */
+}
+
+/* Image Gallery Styles */
+.gallery-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Responsive grid */
+    gap: 1rem;
+    padding: 1rem;
+    background-color: var(--bs-light); /* Light background for gallery body */
+    border-bottom-left-radius: calc(0.75rem - 1px);
+    border-bottom-right-radius: calc(0.75rem - 1px);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 150px; /* Fixed height for thumbnails */
+    object-fit: cover;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+    .gallery-item img:hover {
+        transform: scale(1.03);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+    }
+
+/* No photos available placeholder for gallery */
+.no-photos-placeholder {
+    min-height: 200px; /* Adjusted height for better visual balance */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bs-light);
+    color: var(--bs-secondary-text-emphasis);
+    padding: 2rem;
+    border-bottom-left-radius: calc(0.75rem - 1px);
+    border-bottom-right-radius: calc(0.75rem - 1px);
+}
+
+/* Building Card Image */
+.building-card-img {
+    height: 180px;
+    object-fit: cover;
+    width: 100%;
+    border-bottom-left-radius: calc(0.75rem - 1px);
+    border-bottom-right-radius: calc(0.75rem - 1px);
+}
+
+/* Adjust button grouping on small screens */
+@media (max-width: 575.98px) {
+    .hero-buttons .btn {
+        width: 100%;
+        margin-bottom: 0.5rem; /* Space between stacked buttons */
+    }
+
+        .hero-buttons .btn:last-child {
+            margin-bottom: 0;
+        }
+}

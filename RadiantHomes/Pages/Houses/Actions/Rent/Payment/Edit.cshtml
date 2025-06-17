@@ -1,0 +1,97 @@
+﻿@page
+@model RadiantHomes.Pages.Houses.Actions.Rent.Payment.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Edit</h1>
+
+<h4>HouseRentPayment</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="HouseRentPayment.Id" />
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.TransactionId" class="control-label"></label>
+                <select asp-for="HouseRentPayment.TransactionId" class="form-control" asp-items="ViewBag.TransactionId"></select>
+                <span asp-validation-for="HouseRentPayment.TransactionId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.RentCommision" class="control-label"></label>
+                <input asp-for="HouseRentPayment.RentCommision" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.RentCommision" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.RentPricePerTerm" class="control-label"></label>
+                <input asp-for="HouseRentPayment.RentPricePerTerm" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.RentPricePerTerm" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.TotalRentPrice" class="control-label"></label>
+                <input asp-for="HouseRentPayment.TotalRentPrice" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.TotalRentPrice" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.SalersPreferredBank" class="control-label"></label>
+                <input asp-for="HouseRentPayment.SalersPreferredBank" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.SalersPreferredBank" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.BuyersPreferedBank" class="control-label"></label>
+                <input asp-for="HouseRentPayment.BuyersPreferedBank" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.BuyersPreferedBank" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.CommisionedPreferedBank" class="control-label"></label>
+                <input asp-for="HouseRentPayment.CommisionedPreferedBank" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.CommisionedPreferedBank" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.CreatedBy" class="control-label"></label>
+                <input asp-for="HouseRentPayment.CreatedBy" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.CreatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.CreatedOn" class="control-label"></label>
+                <input asp-for="HouseRentPayment.CreatedOn" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.CreatedOn" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.UpdatedBy" class="control-label"></label>
+                <input asp-for="HouseRentPayment.UpdatedBy" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.UpdatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="HouseRentPayment.UpdatedOn" class="control-label"></label>
+                <input asp-for="HouseRentPayment.UpdatedOn" class="form-control" />
+                <span asp-validation-for="HouseRentPayment.UpdatedOn" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,99 @@
+﻿@page
+@model RadiantHomes.Pages.Houses.Actions.Sales.EditModel
+
+@{
+    ViewData["Title"] = "Edit House Sale";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow rounded">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i> Edit House Sale Transaction</h4>
+            <a asp-page="./Index" class="btn btn-light btn-sm">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+
+        <div class="card-body">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="HouseSaleTransaction.Id" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.HouseId" class="form-label">House</label>
+                        <select asp-for="HouseSaleTransaction.HouseId" class="form-select" asp-items="ViewBag.HouseId"></select>
+                        <span asp-validation-for="HouseSaleTransaction.HouseId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.CustomerId" class="form-label">Customer</label>
+                        <select asp-for="HouseSaleTransaction.CustomerId" class="form-select" asp-items="ViewBag.CustomerId"></select>
+                        <span asp-validation-for="HouseSaleTransaction.CustomerId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.OwnerId" class="form-label">Owner</label>
+                        <select asp-for="HouseSaleTransaction.OwnerId" class="form-select" asp-items="ViewBag.OwnerId"></select>
+                        <span asp-validation-for="HouseSaleTransaction.OwnerId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.TransactionDate" class="form-label">Transaction Date</label>
+                        <input asp-for="HouseSaleTransaction.TransactionDate" class="form-control" type="date" />
+                        <span asp-validation-for="HouseSaleTransaction.TransactionDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.Status" class="form-label">Status</label>
+                        <input asp-for="HouseSaleTransaction.Status" class="form-control" placeholder="e.g. Completed, Pending..." />
+                        <span asp-validation-for="HouseSaleTransaction.Status" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.Notes" class="form-label">Notes</label>
+                        <textarea asp-for="HouseSaleTransaction.Notes" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="HouseSaleTransaction.Notes" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.CreatedBy" class="form-label">Created By</label>
+                        <input asp-for="HouseSaleTransaction.CreatedBy" class="form-control" readonly />
+                        <span asp-validation-for="HouseSaleTransaction.CreatedBy" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.CreatedOn" class="form-label">Created On</label>
+                        <input asp-for="HouseSaleTransaction.CreatedOn" class="form-control" readonly />
+                        <span asp-validation-for="HouseSaleTransaction.CreatedOn" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.UpdatedBy" class="form-label">Updated By</label>
+                        <input asp-for="HouseSaleTransaction.UpdatedBy" class="form-control" readonly />
+                        <span asp-validation-for="HouseSaleTransaction.UpdatedBy" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HouseSaleTransaction.UpdatedOn" class="form-label">Updated On</label>
+                        <input asp-for="HouseSaleTransaction.UpdatedOn" class="form-control" readonly />
+                        <span asp-validation-for="HouseSaleTransaction.UpdatedOn" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

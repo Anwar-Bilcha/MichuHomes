@@ -1,0 +1,62 @@
+﻿@page
+@model RadiantHomes.Pages.Houses.Actions.Complaints.IndexModel
+
+@{
+    ViewData["Title"] = "Complaints & Issues";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary">House Complaints</h2>
+        <a asp-page="Create" class="btn btn-success">+ Create New</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered align-middle text-nowrap">
+            <thead class="table-light">
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.IssueOrCompliant[0].IssueName)</th>
+                    <th>@Html.DisplayNameFor(model => model.IssueOrCompliant[0].House)</th>
+                    <th>@Html.DisplayNameFor(model => model.IssueOrCompliant[0].HouseOwner)</th>
+                    <th>@Html.DisplayNameFor(model => model.IssueOrCompliant[0].IssueCategory)</th>
+                    <th class="d-none d-md-table-cell">@Html.DisplayNameFor(model => model.IssueOrCompliant[0].DetailedDescription)</th>
+                    <th>@Html.DisplayNameFor(model => model.IssueOrCompliant[0].SeverityLevel)</th>
+                    <th class="d-none d-md-table-cell">@Html.DisplayNameFor(model => model.IssueOrCompliant[0].SupportingEvidenceUrl)</th>
+                    <th class="d-none d-md-table-cell">@Html.DisplayNameFor(model => model.IssueOrCompliant[0].SupportingEvidence2Url)</th>
+                    <th>@Html.DisplayNameFor(model => model.IssueOrCompliant[0].ComplainantFullName)</th>
+                    <th>@Html.DisplayNameFor(model => model.IssueOrCompliant[0].HowDoWeReachYou)</th>
+                    <th class="d-none d-sm-table-cell">@Html.DisplayNameFor(model => model.IssueOrCompliant[0].PhoneOrEmail)</th>
+                    <th class="d-none d-md-table-cell">@Html.DisplayNameFor(model => model.IssueOrCompliant[0].ComplainantAddress)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.IssueOrCompliant)
+                {
+                    <tr>
+                        <td>@item.IssueName</td>
+                        <td>@item.House?.Id</td>
+                        <td>@item.HouseOwner?.Id</td>
+                        <td>@item.IssueCategory</td>
+                        <td class="d-none d-md-table-cell">@item.DetailedDescription</td>
+                        <td>@item.SeverityLevel</td>
+                        <td class="d-none d-md-table-cell">@item.SupportingEvidenceUrl</td>
+                        <td class="d-none d-md-table-cell">@item.SupportingEvidence2Url</td>
+                        <td>@item.ComplainantFullName</td>
+                        <td>@item.HowDoWeReachYou</td>
+                        <td class="d-none d-sm-table-cell">@item.PhoneOrEmail</td>
+                        <td class="d-none d-md-table-cell">@item.ComplainantAddress</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a asp-page="./Edit" asp-route-id="@item.IssueId" class="btn btn-outline-primary">Edit</a>
+                                <a asp-page="./Details" asp-route-id="@item.IssueId" class="btn btn-outline-info">Details</a>
+                                <a asp-page="./Delete" asp-route-id="@item.IssueId" class="btn btn-outline-danger">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

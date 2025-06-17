@@ -1,0 +1,137 @@
+﻿@page
+@model RadiantHomes.Pages.RealEstates.IndexModel
+
+@{
+    ViewData["Title"] = "Housing Companies";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+@* Custom styles for this page (or move to site.css if truly global) *@
+<style>
+    /* Ensure icons in the title align well */
+    .section-title i {
+        vertical-align: middle;
+    }
+
+    /* Style for the company logo/placeholder */
+    .company-logo {
+        width: 70px; /* Slightly larger logo */
+        height: 70px;
+        object-fit: contain; /* Use contain for logos to prevent cropping */
+        border-radius: 8px; /* Slightly rounded corners for logos */
+        background-color: var(--bs-light); /* Light background for placeholder */
+        border: 1px solid var(--bs-gray-300); /* Subtle border for images */
+    }
+
+    /* Consistent styling for card details */
+    .card-text-detail {
+        font-size: 0.95rem; /* Slightly smaller font for details */
+        margin-bottom: 0.3rem; /* Tighter spacing */
+        color: var(--text-color-dark);
+    }
+
+        .card-text-detail strong {
+            color: var(--bs-dark); /* Stronger color for labels */
+            min-width: 80px; /* Align labels */
+            display: inline-block;
+        }
+
+    /* Action buttons in footer */
+    .card-footer .btn {
+        padding: 0.5rem 0.8rem; /* Larger padding for better tap target */
+        font-size: 0.9rem; /* Adjust font size */
+        border-radius: 0.3rem; /* Slightly rounded buttons */
+    }
+</style>
+
+<div class="container py-5 mt-5">
+    @* Added py-5 for vertical spacing, mt-5 to clear fixed navbar *@
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5">
+        @* Adjusted for mobile stacking *@
+        <h1 class="fw-bold text-primary mb-3 mb-md-0 section-title">
+            @* Changed to h1 for main title, added section-title *@
+            <i class="fas fa-building me-3"></i>Housing Companies
+        </h1>
+        <a asp-page="Create" class="btn btn-primary btn-lg rounded-pill px-4 shadow-sm">
+            @* Primary button, larger, rounded *@
+            <i class="fas fa-plus-circle me-2"></i> Create New
+        </a>
+    </div>
+
+    @if (Model.HousingCompany != null && Model.HousingCompany.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @* Responsive grid *@
+            @foreach (var item in Model.HousingCompany)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-lg border-0 rounded-3 animate__animated animate__fadeInUp">
+                        @* Sharper shadow, rounded corners, animation *@
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                @if (!string.IsNullOrEmpty(item.LogoUrl))
+                                {
+                                    <img src="@item.LogoUrl" alt="@item.Name Logo" class="company-logo me-3" />
+                                }
+                                else
+                                {
+                                    <div class="bg-secondary bg-opacity-25 text-primary d-flex align-items-center justify-content-center me-3 company-logo">
+                                        @* Better placeholder styling *@
+                                        <i class="fas fa-building fa-xl"></i> @* Larger icon for placeholder *@
+                                    </div>
+                                }
+                                <div>
+                                    <h5 class="card-title mb-0 fw-bold text-dark">@item.Name</h5>
+                                    <small class="text-muted">@item.CompanyCategory</small>
+                                </div>
+                            </div>
+
+                            <p class="card-text-detail"><strong class="me-2">License:</strong> @item.LicenseNumber</p>
+                            <p class="card-text-detail"><strong class="me-2">Established:</strong> @item.EstablishedDate.ToShortDateString()</p>
+                            <p class="card-text-detail"><strong class="me-2">Address:</strong> @(item.Address?.City ?? "N/A")</p>
+                            <p class="card-text-detail"><strong class="me-2">Email:</strong> @item.Email</p>
+                            <p class="card-text-detail"><strong class="me-2">Phone:</strong> @item.PhoneNumber</p>
+                            <p class="card-text-detail">
+                                <strong class="me-2">Website:</strong>
+                                @if (!string.IsNullOrEmpty(item.Website))
+                                {
+                                    <a href="@(item.Website.StartsWith("http") ? item.Website : "http://" + item.Website)" target="_blank" class="text-decoration-none text-primary hover-underline">@item.Website</a>
+                                }
+                                else
+                                {
+                                    <span>N/A</span>
+                                }
+                            </p>
+                            <p class="card-text-detail"><strong class="me-2">Status:</strong> <span class="badge @(item.Status == "Active" ? "bg-success" : "bg-warning text-dark")">@item.Status</span></p>
+                        </div>
+                        <div class="card-footer bg-light border-top d-flex justify-content-end p-3">
+                            @* Consistent light background for footer *@
+                            <a asp-page="./Details" asp-route-id="@item.CompanyId" class="btn btn-outline-info me-2" title="View Details">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                            <a asp-page="./Edit" asp-route-id="@item.CompanyId" class="btn btn-outline-primary me-2" title="Edit Company">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a asp-page="./Delete" asp-route-id="@item.CompanyId" class="btn btn-outline-danger" title="Delete Company">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center" role="alert">
+            <h4 class="alert-heading">No Housing Companies Found!</h4>
+            <p>It looks like there are no housing companies registered yet. Be the first to add one!</p>
+            <hr>
+            <p class="mb-0">Click the "Create New" button above to get started.</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+}

@@ -1,0 +1,167 @@
+﻿@page
+@model RadiantHomes.Pages.Admin.Notifications.NotificationsAllModel
+@{
+    ViewData["Title"] = "All Notifications";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+}
+
+<div class="container-fluid">
+    <h2 class="mb-4">All Notifications</h2>
+
+    @if (Model.Notifications == null || !Model.Notifications.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            No notifications found.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Message</th>
+                        <th>Created Date</th>
+                        <th>Read Status</th>
+                        <th>Approval Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var notification in Model.Notifications.OrderByDescending(n => n.CreatedAt))
+                    {
+                        <tr class="@(notification.IsRead ? "text-muted" : "fw-bold")">
+                            <td>@notification.Title</td>
+                            <td>@notification.Message</td>
+                            <td>@notification.CreatedAt.ToShortDateString() @notification.CreatedAt.ToShortTimeString()</td>
+                            <td>
+                                @if (notification.IsRead)
+                                {
+                                    <span class="badge bg-secondary">Read</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary">Unread</span>
+                                }
+                            </td>
+                            <td>
+                                @if (notification.IsRead)
+                                {
+                                    <span class="badge bg-success">Approved</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                }
+                            </td>
+                            <td>
+                                <form method="post" class="d-inline notification-action-form">
+                                    <input type="hidden" name="notificationId" value="@notification.Id" />
+                                    @if (notification.IsRead)
+                                    {
+                                        <button type="submit" asp-page-handler="MarkAsUnread" class="btn btn-info btn-sm me-2" title="Mark as Unread">
+                                            <i class="bi bi-envelope-open-fill"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" asp-page-handler="MarkAsRead" class="btn btn-secondary btn-sm me-2" title="Mark as Read">
+                                            <i class="bi bi-envelope-fill"></i>
+                                        </button>
+                                    }
+                                    <button type="submit" asp-page-handler="Delete" class="btn btn-danger btn-sm" title="Delete Notification">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.notification-action-form').forEach(form => {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault(); // Prevent default form submission
+
+                    const handler = event.submitter.getAttribute('asp-page-handler');
+                    let title, text, icon;
+
+                    switch (handler) {
+                        case 'MarkAsRead':
+                            title = 'Mark as Read?';
+                            text = 'Are you sure you want to mark this notification as read?';
+                            icon = 'question';
+                            break;
+                        case 'MarkAsUnread':
+                            title = 'Mark as Unread?';
+                            text = 'Are you sure you want to mark this notification as unread?';
+                            icon = 'question';
+                            break;
+                        case 'Delete':
+                            title = 'Delete Notification?';
+                            text = 'Are you sure you want to permanently delete this notification? This action cannot be undone.';
+                            icon = 'warning';
+                            break;
+                        default:
+                            form.submit(); // Submit for unknown handlers
+                            return;
+                    }
+
+                    Swal.fire({
+                        title: title,
+                        text: text,
+                        icon: icon,
+                        showCancelButton: true,
+                        confirmButtonText: `Yes, ${handler.replace(/([A-Z])/g, ' $1').trim()}!`, // e.g., "Yes, Mark As Read!"
+                        cancelButtonText: 'No, cancel!',
+                        customClass: {
+                            confirmButton: 'btn btn-primary me-2',
+                            cancelButton: 'btn btn-danger'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Create a hidden input for the handler and submit the form
+                            const hiddenHandlerInput = document.createElement('input');
+                            hiddenHandlerInput.type = 'hidden';
+                            hiddenHandlerInput.name = 'handler';
+                            hiddenHandlerInput.value = handler;
+                            form.appendChild(hiddenHandlerInput);
+                            form.submit(); // Submit the form programmatically
+                        }
+                    });
+                });
+            });
+
+            // Display success/error messages from TempData
+            const successMessage = '@TempData["SuccessMessage"]';
+            const errorMessage = '@TempData["ErrorMessage"]';
+
+            if (successMessage && successMessage !== '') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: successMessage,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            } else if (errorMessage && errorMessage !== '') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: errorMessage,
+                    showConfirmButton: true,
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+    </script>
+}

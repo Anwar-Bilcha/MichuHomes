@@ -1,0 +1,40 @@
+﻿@page 
+@model RadiantHomes.Pages.Houses.Actions.GetOwnersContactModel
+
+@{
+    ViewData["Title"] = "Get Owner's Contact Information";
+}
+
+<h5>You requested for getting Owner's Contact for the following House:</h5>
+
+<div>
+   <strong>House Title: </strong> <p>@Model.House.Title</p>
+    <strong>House Address: </strong> <br />
+    <p> <ul>
+            <li>@Model.House.HouseAddress.City</li>
+            <li>@Model.House.HouseAddress.SubCity</li>
+            <li>@Model.House.HouseAddress.Region</li>
+            <li>@Model.House.HouseAddress.Woreda</li>
+            <li>@Model.House.HouseAddress.Street</li>
+            <li>@Model.House.HouseAddress.PostalCode</li>
+            <li>@Model.House.HouseAddress.Country</li>
+            
+</ul> </p>
+
+    <p><strong>House Owner:</strong> @Model.Owner.FirstName + @Model.Owner.LastName</p>
+    <p><strong>Owner Contact:</strong> @Model.Owner.Email @Model.Owner.PhoneNumber</p>
+</div>
+
+<div>
+    <form method="post">
+        <input type="hidden" asp-for="@Model.House.Id" />
+        <button type="submit" class="btn btn-primary">Request Owner's Contact</button>
+    </form>
+</div>
+
+@if (Model.ContactRequestMessage != null)
+{
+    <div class="alert alert-info mt-3">
+        @Model.ContactRequestMessage
+    </div>
+}

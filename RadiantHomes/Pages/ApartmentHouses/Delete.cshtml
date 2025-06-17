@@ -1,0 +1,165 @@
+﻿@page
+@model RadiantHomes.Pages.ApartmentHouses.DeleteModel
+
+@{
+    ViewData["Title"] = "Delete";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>ApartmentHouse</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.Title)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.Title)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.HouseNumber)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.HouseNumber)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.Description)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.Description)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.SalePrice)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.SalePrice)
+        </dd>
+       
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.HouseCategory)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.HouseCategory.Id)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.AvailableFor)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.AvailableFor)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.HouseAddress)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.HouseAddress.AddressID)
+        </dd>
+        
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.Status)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.Status)
+        </dd>
+        
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.HouseType)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.HouseType)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.FloorNumber)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.FloorNumber)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.Building)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.Building.Id)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.Bathrooms)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.Bathrooms)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.IsAvailable)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.IsAvailable)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.Currency)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.Currency)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.LivingRooms)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.LivingRooms)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.HasBalcony)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.HasBalcony)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.HasElevator)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.HasElevator)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.HasParking)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.HasParking)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.IsFurnished)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.IsFurnished)
+        </dd>
+       
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.CreatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.CreatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.CreatedOn)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.CreatedOn)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.UpdatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.UpdatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.ApartmentHouse.UpdatedOn)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.ApartmentHouse.UpdatedOn)
+        </dd>
+    </dl>
+    
+    <form method="post">
+        <input type="hidden" asp-for="ApartmentHouse.Id" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-page="./Index">Back to List</a>
+    </form>
+</div>

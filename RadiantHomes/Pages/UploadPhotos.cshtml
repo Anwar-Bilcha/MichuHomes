@@ -1,0 +1,125 @@
+﻿@page
+@model RadiantHomes.Pages.ApartmentHouses.UploadPhotosModel
+@{
+    ViewData["Title"] = "Upload Photos";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4 text-center text-primary">Photo Upload Management</h2>
+
+    @* Global Success/Error Messages from TempData *@
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            @Model.SuccessMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* --- Section 1: Upload Apartment House Photos --- *@
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">Upload Apartment House Photos</h4>
+        </div>
+        <div class="card-body">
+            @* Display validation summary for apartment form errors *@
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <form method="post" asp-page-handler="ApartmentPhotos" enctype="multipart/form-data" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="ApartmentUpload.CompanyName" class="form-label"></label>
+                    <input asp-for="ApartmentUpload.CompanyName" class="form-control" placeholder="e.g., Green Apartments" required />
+                    <span asp-validation-for="ApartmentUpload.CompanyName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ApartmentUpload.BedroomCount" class="form-label"></label>
+                    <select asp-for="ApartmentUpload.BedroomCount" class="form-select" required>
+                        <option value="">-- Select Bed Count --</option>
+                        <option value="1">1 Bedroom</option>
+                        <option value="2">2 Bedrooms</option>
+                        <option value="3">3 Bedrooms</option>
+                        <option value="4">4 Bedrooms</option>
+                        <option value="5">5 Bedrooms</option>
+                        <option value="6">6 Bedrooms</option>
+                        <option value="7">7 Bedrooms</option>
+                        <option value="8">8 Bedrooms</option>
+                    </select>
+                    <span asp-validation-for="ApartmentUpload.BedroomCount" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ApartmentUpload.Photos" class="form-label"></label>
+                    <input type="file" asp-for="ApartmentUpload.Photos" multiple accept="image/*" class="form-control" required />
+                    <span asp-validation-for="ApartmentUpload.Photos" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">Upload Apartment Photos</button>
+            </form>
+        </div>
+    </div>
+
+    @* --- Section 2: Upload House Project Photos --- *@
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">Upload House Project Photos</h4>
+        </div>
+        <div class="card-body">
+            @* Display validation summary for project form errors *@
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <form method="post" asp-page-handler="ProjectPhotos" enctype="multipart/form-data" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="ProjectUpload.ProjectId" class="form-label"></label>
+                    <select asp-for="ProjectUpload.ProjectId" class="form-select" asp-items="Model.ProjectsSelectList" required>
+                        <option value="">-- Select Project --</option>
+                    </select>
+                    <span asp-validation-for="ProjectUpload.ProjectId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ProjectUpload.Photos" class="form-label"></label>
+                    <input type="file" asp-for="ProjectUpload.Photos" multiple accept="image/*" class="form-control" required />
+                    <span asp-validation-for="ProjectUpload.Photos" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-success mt-3">Upload Project Photos</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            // Initialize Select2 for Apartment BedroomCount dropdown
+            $('#ApartmentUpload_BedroomCount').select2({
+                placeholder: "-- Select Bed Count --",
+                allowClear: true,
+                minimumResultsForSearch: Infinity // Hide search box if few options
+            });
+
+            // Initialize Select2 for Project Select dropdown
+            $('#ProjectUpload_ProjectId').select2({
+                placeholder: "-- Select Project --",
+                allowClear: true
+            });
+        });
+    </script>
+}

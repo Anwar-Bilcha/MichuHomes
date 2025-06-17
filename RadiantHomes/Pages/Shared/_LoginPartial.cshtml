@@ -1,0 +1,35 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inherits Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using RadiantHomes.DAL
+@using RadiantHomes.Services
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+@inject ICustomerService customerService
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    var DefaultphotoUrl = "/images/default-profile.png";
+    var customer = customerService.GetCustomerByEmail(user.UserName);
+    var userImage = customer?.CustomerPhotoUrl;
+    var userFullName = customer?.FirstName + " " + customer?.LastName;
+    var photoUrl = userImage ?? DefaultphotoUrl;
+    <div class="dropdown navbar-profile">
+        <img src="@photoUrl" class="profile-pic dropdown-toggle" style="width:60px;height:60px" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" />
+
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+            <li><span class="dropdown-item-text greeting">Hello, @userFullName!</span></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a asp-page="/Identity/Account/Logout" id="logoutForm">
+                    <button type="submit" class="dropdown-item text-danger">Logout</button>
+                </a>
+            </li>
+        </ul>
+    </div>
+}
+@* else
+{
+    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+} *@
+

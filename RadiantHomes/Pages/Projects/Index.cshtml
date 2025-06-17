@@ -1,0 +1,60 @@
+﻿@page
+@model RadiantHomes.Pages.Projects.IndexModel
+
+@{
+    ViewData["Title"] = "Projects";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+<section class="container mt-5">
+    <div class="d-flex justify-content-between mb-4 align-items-center">
+        <h2 class="display-4 text-dark">Projects</h2>
+        <a asp-page="Create" class="btn btn-success btn-lg">
+            <i class="fas fa-plus-circle"></i> Create New
+        </a>
+    </div>
+
+    @if (Model.HouseProject?.Any() == true)
+    {
+        <!-- Bootstrap 4/5 grid system for responsive 3-column layout -->
+        <div class="row g-4">
+            @foreach (var project in Model.HouseProject)
+            {
+                <div class="col-12 col-sm-6 col-md-4 col-lg-4">
+                    <div class="card shadow-lg border-0 rounded-lg h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark">@project.ProjectName</h5>
+                            <p class="card-text text-muted"><strong>Location:</strong> @project.Location</p>
+                            <p class="card-text text-muted">@project.Description</p>
+                            <p class="card-text text-muted"><strong>Start:</strong> @project.StartDate.ToShortDateString()</p>
+                            <p class="card-text text-muted"><strong>End:</strong> @project.EndDate?.ToShortDateString()</p>
+                            <p class="card-text text-muted"><strong>Total Area:</strong> @project.TotalArea m²</p>
+
+                            <!-- Action Buttons with Modern Styles -->
+                            <div class="d-flex justify-content-between mt-4">
+                                <a asp-page="./Edit" asp-route-id="@project.ProjectId" class="btn btn-warning btn-sm text-white px-4 py-2 rounded-pill">
+                                    <i class="fas fa-pencil-alt"></i> Edit
+                                </a>
+                                <a asp-page="./Details" asp-route-id="@project.ProjectId" class="btn btn-info btn-sm text-white px-4 py-2 rounded-pill">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                                <a asp-page="./Delete" asp-route-id="@project.ProjectId" class="btn btn-danger btn-sm text-white px-4 py-2 rounded-pill">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center text-muted mt-5">
+            <p>No projects found.</p>
+        </div>
+    }
+</section>
+
+<!-- Optionally, include FontAwesome for icons -->
+

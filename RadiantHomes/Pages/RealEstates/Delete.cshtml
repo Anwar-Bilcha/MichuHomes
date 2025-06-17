@@ -1,0 +1,37 @@
+﻿@page
+@model RadiantHomes.Pages.RealEstates.DeleteModel
+@{
+    ViewData["Title"] = "Delete Housing Company";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="bg-white shadow rounded p-4">
+        <h2 class="text-danger mb-4">Delete Housing Company</h2>
+
+        <div class="alert alert-warning">
+            <h5 class="mb-2">⚠️ Warning!</h5>
+            <p>
+                You are about to <strong>permanently delete</strong> the company:
+                <strong class="text-danger">@Model.HousingCompany.Name</strong>.
+            </p>
+            <p>This will also delete:</p>
+            <ul>
+                <li><strong>@Model.Projects.Count</strong> Project(s)</li>
+                <li><strong>@Model.Buildings.Count</strong> Building(s)</li>
+                <li><strong>@Model.Apartments.Count</strong> Apartment House(s)</li>
+            </ul>
+            <p class="fw-bold text-danger">This action is irreversible. Are you absolutely sure?</p>
+        </div>
+
+       <div>
+            <form method="post" class="d-flex gap-3">
+                <input type="hidden" asp-for="HousingCompany.CompanyId" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Yes, Delete Everything
+                </button>
+                <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            </form>
+       </div>
+    </div>
+</div>

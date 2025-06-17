@@ -1,0 +1,240 @@
+﻿@page
+@model RadiantHomes.Pages.ApartmentHouses.CreateModel
+@{
+    ViewData["Title"] = "Create Apartment House";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">🏠 Create Apartment House</h2>
+        <a asp-page="Index" class="btn btn-outline-secondary">← Back to List</a>
+    </div>
+
+    <ul class="nav nav-tabs" id="createApartmentTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">📝 Manual Entry</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel" type="button" role="tab">📄 Bulk Upload (Excel)</button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-4" id="createApartmentTabsContent">
+        <!-- Manual Entry Form -->
+        <div class="tab-pane fade show active" id="manual" role="tabpanel">
+            <form method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-secondary text-white fw-semibold">📋 Basic Info</div>
+                    <div class="card-body row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ApartmentHouse.Title" class="form-label"></label>
+                            <input asp-for="ApartmentHouse.Title" class="form-control" />
+                            <span asp-validation-for="ApartmentHouse.Title" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ApartmentHouse.HouseNumber" class="form-label"></label>
+                            <input asp-for="ApartmentHouse.HouseNumber" class="form-control" />
+                            <span asp-validation-for="ApartmentHouse.HouseNumber" class="text-danger"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="ApartmentHouse.Description" class="form-label"></label>
+                            <textarea asp-for="ApartmentHouse.Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="ApartmentHouse.Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-secondary text-white fw-semibold">💲 Pricing</div>
+                    <div class="card-body row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="ApartmentHouse.SalePrice" class="form-label"></label>
+                            <input asp-for="ApartmentHouse.SalePrice" class="form-control" />
+                            <span asp-validation-for="ApartmentHouse.SalePrice" class="text-danger"></span>
+                        </div>
+                       
+                        <div class="col-md-4">
+                            <label asp-for="ApartmentHouse.Currency" class="form-label"></label>
+                            <select asp-for="ApartmentHouse.Currency" class="form-select">
+                                <option value="">-- Select Currency --</option>
+                                <option>ETB</option>
+                                <option>USD</option>
+                                <option>EUR</option>
+                            </select>
+                            <span asp-validation-for="ApartmentHouse.Currency" class="text-danger"></span>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <h4 class="card mb-4 bg-secondary text-white">
+                        📎 Photos & Ownership Documents
+                    </h4>
+                    <div class="row g-3">
+                        
+
+                       
+
+                        
+                    </div>
+                </div>
+
+                <!-- Location -->
+                <div class="card mb-4">
+                    <h4 class="card mb-4 bg-secondary text-white">📍 Location</h4>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ApartmentHouse.BuildingId" class="form-label"></label>
+                            <select asp-for="ApartmentHouse.BuildingId" class="form-select" asp-items="ViewBag.BuildingId"></select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ApartmentHouse.HouseCategoryId" class="form-label"></label>
+                            <select asp-for="ApartmentHouse.HouseCategoryId" class="form-select" asp-items="ViewBag.HouseCategoryId"></select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ApartmentHouse.AddressId" class="form-label"></label>
+                            <select asp-for="ApartmentHouse.AddressId" class="form-select" asp-items="ViewBag.AddressId"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specifications -->
+                <div class="card mb-4">
+                    <h4 class="card mb-4 bg-secondary text-white">⚙️ Specifications</h4>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ApartmentHouse.FloorNumber" class="form-label"></label>
+                            <input asp-for="ApartmentHouse.FloorNumber" class="form-control" />
+                            <span asp-validation-for="ApartmentHouse.FloorNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ApartmentHouse.HouseType" class="form-label"></label>
+                            <input asp-for="ApartmentHouse.HouseType" class="form-control" />
+                            <span asp-validation-for="ApartmentHouse.HouseType" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ApartmentHouse.Bathrooms" class="form-label"></label>
+                            <input asp-for="ApartmentHouse.Bathrooms" class="form-control" />
+                            <span asp-validation-for="ApartmentHouse.Bathrooms" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ApartmentHouse.LivingRooms" class="form-label"></label>
+                            <input asp-for="ApartmentHouse.LivingRooms" class="form-control" />
+                            <span asp-validation-for="ApartmentHouse.LivingRooms" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ApartmentHouse.AvailableFor" class="form-label"></label>
+                            <select asp-for="ApartmentHouse.AvailableFor" class="form-select">
+                                <option value="">-- Select Availability --</option>
+                                <option value="Rent">Rent</option>
+                                <option value="Sell">Sale</option>
+                                <option value="Both">Both</option>
+                            </select>
+                            <span asp-validation-for="ApartmentHouse.AvailableFor" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                <div class="card mb-4">
+                    <h4 class="card mb-4 bg-secondary text-white">
+                        🛠️ Amenities
+                    </h4>
+                    <div class="row g-3">
+                        <div class="col-md-6 form-check">
+                            <input class="form-check-input" asp-for="ApartmentHouse.HasBalcony" />
+                            <label class="form-check-label">@Html.DisplayNameFor(model => model.ApartmentHouse.HasBalcony)</label>
+                        </div>
+                        <div class="col-md-6 form-check">
+                            <input class="form-check-input" asp-for="ApartmentHouse.HasElevator" />
+                            <label class="form-check-label">@Html.DisplayNameFor(model => model.ApartmentHouse.HasElevator)</label>
+                        </div>
+                        <div class="col-md-6 form-check">
+                            <input class="form-check-input" asp-for="ApartmentHouse.HasParking" />
+                            <label class="form-check-label">@Html.DisplayNameFor(model => model.ApartmentHouse.HasParking)</label>
+                        </div>
+                        <div class="col-md-6 form-check">
+                            <input class="form-check-input" asp-for="ApartmentHouse.IsFurnished" />
+                            <label class="form-check-label">@Html.DisplayNameFor(model => model.ApartmentHouse.IsFurnished)</label>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Add more form sections below here (e.g. location, specifications, amenities, etc.) -->
+                <!-- Apartment Photos -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-secondary text-white fw-semibold">📷 Apartment Photos</div>
+                    <div class="card-body">
+                        <div id="photo-section">
+                            <div class="photo-item mb-3 border p-3 rounded bg-light">
+                                <label>Photo</label>
+                                <input type="file" name="Photos[0].PhotoFile" class="form-control mb-2" />
+                                <label>Description</label>
+                                <input type="text" name="Photos[0].Description" class="form-control" placeholder="e.g. Front View" />
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="addPhotoInput()">+ Add Another Photo</button>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary w-100 py-2">➕ Create Apartment</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Excel Upload -->
+        <div class="tab-pane fade" id="excel" role="tabpanel">
+            <form method="post" enctype="multipart/form-data" asp-page-handler="UploadExcel">
+                <div class="alert alert-info mt-3">
+                    You can download the system-generated Excel format here:
+                    <a class="btn btn-outline-success ms-2" asp-page-handler="DownloadTemplate">Download Template</a>
+
+                </div>
+
+                <div class="mb-3">
+                    <label for="excelFile" class="form-label">Upload Excel File</label>
+                    <input type="file" asp-for="@Model.ExcelFile" name="ExcelFile" id="excelFile" class="form-control" accept=".xlsx" required />
+                </div>
+                <div class="mb-3">
+                    <input type="hidden" asp-for="BuildingId" id="buildingId" class="form-control" accept=".xlsx" required />
+                </div>
+
+                <button asp-page-handler="BulkExcelUpload" type="submit" class="btn btn-success w-100 py-2">📤 Upload & Create Apartments</button>
+            </form>
+        </div>
+    </div>
+</div>
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    @await Html.PartialAsync("~/Pages/Shared/_SuccessNotification.cshtml", Model.SuccessMessage)
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let photoIndex = 1;
+        function addPhotoInput() {
+            const section = document.getElementById("photo-section");
+            const html = `
+                <div class="photo-item mb-3 border p-3 rounded bg-light">
+                    <label>Photo</label>
+                    <input type="file" name="Photos[${photoIndex}].PhotoFile" class="form-control mb-2" />
+                    <label>Description</label>
+                    <input type="text" name="Photos[${photoIndex}].Description" class="form-control" />
+                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="this.parentElement.remove()">Remove</button>
+                </div>`;
+            section.insertAdjacentHTML("beforeend", html);
+            photoIndex++;
+        }
+    </script>
+}

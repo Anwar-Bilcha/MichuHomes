@@ -81,7 +81,7 @@ $RECYCLE.BIN/
 
 # macOS
 .DS_Store
-
+/node_modules
 # Logs
 *.log
 

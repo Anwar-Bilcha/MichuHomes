@@ -1,0 +1,32 @@
+{
+  "homePage": "ዋና ገፂ",
+  "welcome": "ለራዲየንት ሆምስ በሰላም መጡ",
+  "registerPage": "መዝገቦ",
+  "registerPageformTitle": "መለያዎትን ፍጠሩ",
+  "contactPage": "እኛን እትረካ",
+  "contactOageformTitle": "በተግባር ተወካይ ማስታወቂያ",
+  "registerhousebtn": "አዲስ ቤት ይመዝግቡ",
+  "HousesAvailable": "ያሉን ቤቶች",
+  "HomePage.FirstCoursel.Title": "የህልምዎን ቤት ያግኙ",
+  "HomePage.FirstCoursel.Text": "በመላው ኢትዮጵያ ከፍላጎትዎ ጋር የተጣጣሙ ምርጥ ቤቶችን ያስሱ",
+  "HomePage.SecondCoursel.Title": "ይግዙ ፤ ይሽጡ ፤ ይከራዩ",
+  "HomePage.SecondCoursel.Text": "ሁሉም በአንድ መድረክ የያዘ ለቤቶች መፍትሄዎች",
+  "HomePage.ThirdCoursel.Title": "የታመነ የመኖርያ እና የስራ ቤት አጋርዎ",
+  "HomePage.ThirdCoursel.Text": "ደህንነታቸው የተጠበቁ ቅናሾች፣ የባለሙያዎች መመሪያ፣ ጤናማ ግብይቶች",
+  "HomePage.FourthCoursel.Title": "የቤት ንግድዎን ያዘምኑ",
+  "HomePage.FourthCoursel.Text": "እንደ ደላላ ከተመዘገቡ ልዩ የቅናሽ ጥቅል አለን።",
+  "HomePage.ExploreHouses.Text": "በፍላጎትዎ ልክ የሆኑትን ምርጥ ቤቶች ያስሱ",
+  "HomePage.ExploreHouses.Btn": "ቤቶችን ያስሱ",
+  "HomePage.WhatToDo.Title": "ምን ለማድረግ እየፈለጉ ነው?",
+  "HomePage.WhatTodo.Choice1.Title": "ቤት መግዛት",
+  "HomePage.WhatTodo.Choice1.Text": "የህልምዎን ቤት ለማግኘት የቤት ዝርዝሮቻችንን ያስሱ።",
+  "HomePage.WhatTodo.Choice2.Title": "ቤት መሸጥ",
+  "HomePage.WhatTodo.Choice2.Text": "የሚሸጥ ቤትዎን ከእኛ ጋር ይመዝግቡ እና ከፍተኛ ዋጋ በፍጥነት ያግኙ።",
+  "HomePage.WhatTodo.Choice3.Title": "ቤት መከራየት አልያም ማከራየት",
+  "HomePage.WhatTodo.Choice3.Text": "ለጊዜው ቤት ብለው የሚጠሩትን ምቹ ቤት ያግኙ።",
+  "HomePage.FeatureHomes.Section.SaleTitle": "የተመረጡ ለሽያጭ የቀረቡ ቤቶች",
+  "HomePage.FeatureHomes.Section.RentTitle": "የተመረጡ ለኪራይ የቀረቡ ቤቶች"
+
+
+
+}

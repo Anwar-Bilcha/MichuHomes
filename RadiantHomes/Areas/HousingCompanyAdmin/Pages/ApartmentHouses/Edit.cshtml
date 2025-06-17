@@ -1,0 +1,118 @@
+﻿@page
+@model RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+<h1>Edit</h1>
+
+<h4>ApartmentHouse</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="ApartmentHouse.Id" />
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.Title" class="control-label"></label>
+                <input asp-for="ApartmentHouse.Title" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.HouseNumber" class="control-label"></label>
+                <input asp-for="ApartmentHouse.HouseNumber" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.HouseNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.Description" class="control-label"></label>
+                <input asp-for="ApartmentHouse.Description" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.Description" class="text-danger"></span>
+            </div>
+           
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.HouseCategoryId" class="control-label"></label>
+                <select asp-for="ApartmentHouse.HouseCategoryId" class="form-control" asp-items="ViewBag.HouseCategoryId"></select>
+                <span asp-validation-for="ApartmentHouse.HouseCategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.AvailableFor" class="control-label"></label>
+                <input asp-for="ApartmentHouse.AvailableFor" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.AvailableFor" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.AddressId" class="control-label"></label>
+                <select asp-for="ApartmentHouse.AddressId" class="form-control" asp-items="ViewBag.AddressId"></select>
+                <span asp-validation-for="ApartmentHouse.AddressId" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.Status" class="control-label"></label>
+                <input asp-for="ApartmentHouse.Status" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.Status" class="text-danger"></span>
+            </div>
+                        
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.BuildingId" class="control-label"></label>
+                <select asp-for="ApartmentHouse.BuildingId" class="form-control" asp-items="ViewBag.BuildingId"></select>
+                <span asp-validation-for="ApartmentHouse.BuildingId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.HouseType" class="control-label"></label>
+                <input asp-for="ApartmentHouse.HouseType" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.HouseType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.FloorNumber" class="control-label"></label>
+                <input asp-for="ApartmentHouse.FloorNumber" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.FloorNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.CreatedBy" class="control-label"></label>
+                <input asp-for="ApartmentHouse.CreatedBy" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.CreatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.CreatedOn" class="control-label"></label>
+                <input asp-for="ApartmentHouse.CreatedOn" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.CreatedOn" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.UpdatedBy" class="control-label"></label>
+                <input asp-for="ApartmentHouse.UpdatedBy" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.UpdatedBy" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                
+                <label asp-for="ApartmentHouse.UpdatedOn" class="control-label"></label>
+                <input asp-for="ApartmentHouse.UpdatedOn" class="form-control" />
+                <span asp-validation-for="ApartmentHouse.UpdatedOn" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

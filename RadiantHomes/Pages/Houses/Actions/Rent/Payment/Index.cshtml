@@ -1,0 +1,62 @@
+﻿@page
+@model RadiantHomes.Pages.Houses.Actions.Rent.Payment.IndexModel
+
+@{
+    ViewData["Title"] = "House Rent Payments";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary">🏠 House Rent Payments</h2>
+        <a class="btn btn-success" asp-page="Create">
+            <i class="bi bi-plus-circle"></i> Add New Payment
+        </a>
+    </div>
+
+    <div class="table-responsive shadow rounded">
+        <table class="table table-bordered table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].Transaction)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].RentCommision)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].RentPricePerTerm)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].TotalRentPrice)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].SalersPreferredBank)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].BuyersPreferedBank)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].CommisionedPreferedBank)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].CreatedBy)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].CreatedOn)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].UpdatedBy)</th>
+                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].UpdatedOn)</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.HouseRentPayment)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.Transaction.Id)</td>
+                        <td>@Html.DisplayFor(modelItem => item.RentCommision)</td>
+                        <td>@Html.DisplayFor(modelItem => item.RentPricePerTerm)</td>
+                        <td>@Html.DisplayFor(modelItem => item.TotalRentPrice)</td>
+                        <td>@Html.DisplayFor(modelItem => item.SalersPreferredBank)</td>
+                        <td>@Html.DisplayFor(modelItem => item.BuyersPreferedBank)</td>
+                        <td>@Html.DisplayFor(modelItem => item.CommisionedPreferedBank)</td>
+                        <td>@Html.DisplayFor(modelItem => item.CreatedBy)</td>
+                        <td>@Html.DisplayFor(modelItem => item.CreatedOn)</td>
+                        <td>@Html.DisplayFor(modelItem => item.UpdatedBy)</td>
+                        <td>@Html.DisplayFor(modelItem => item.UpdatedOn)</td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a class="btn btn-outline-primary" asp-page="./Edit" asp-route-id="@item.Id">Edit</a>
+                                <a class="btn btn-outline-info" asp-page="./Details" asp-route-id="@item.Id">Details</a>
+                                <a class="btn btn-outline-danger" asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

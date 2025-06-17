@@ -1,0 +1,115 @@
+﻿@page
+@model RadiantHomes.Pages.RealEstates.DetailsModel
+@{
+    ViewData["Title"] = "Real Estate Details";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container my-5">
+    <!-- Hero Section -->
+    <div class="bg-light rounded shadow p-4 mb-5 text-center">
+        <img src="@Model.HousingCompany.LogoUrl" alt="Company Logo" class="img-fluid mb-3" style="max-height: 120px;" />
+        <h1 class="display-5 fw-bold">@Model.HousingCompany.Name</h1>
+        <input type="hidden" asp-for="HousingCompany.CompanyId" />
+    </div>
+
+    <!-- Contact & Address -->
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <h4 class="mb-3">📍 Address</h4>
+                <p>@Model.HousingCompany.Address?.FormattedAddressFull</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <h4 class="mb-3">📞 Contact Person</h4>
+                @if(Model.HousingCompany.ContactPerson.Any())
+                {
+                    foreach(var contactperson in Model.HousingCompany.ContactPerson)
+                    {
+                        <p><strong>@contactperson?.FirstName</strong></p>
+                        <p>Email: <a href="mailto:@contactperson?.Email">@contactperson?.Email</a></p>
+                        <p>Phone: @contactperson?.PhoneNumber</p>
+                    }
+                }
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Details -->
+    @if (Model.HousingCompany.FinancialDetails.Any())
+    {
+        <div class="card shadow-sm p-4 mb-5">
+            <h4 class="mb-4">💰 Financial Overview</h4>
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Total Capital:</span>
+                    <span class="fw-bold">@Model.HousingCompany.FinancialDetails ETB</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Annual Revenue:</span>
+                    <span class="fw-bold">@Model.HousingCompany.FinancialDetails[0].AnnualRevenue ETB</span>
+                </li>
+                
+                else
+                {
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Employees:</span>
+                        <span class="fw-bold text-muted">No Employees Registered</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- Projects Gallery -->
+    @if (Model.HousingCompany.Projects is not null)
+    {
+        <div class="mb-5">
+            <h3 class="mb-4">🏗️ Projects</h3>
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                @foreach (var project in Model.HousingCompany.Projects)
+                {
+                    <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId" class="text-decoration-none text-info-emphasis">
+                        <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">@project.ProjectName</h5>
+                                <p class="card-text">@project.Description</p>
+                            </div>
+                            @if (project.Photos != null && project.Photos.Any())
+                            {
+                                foreach (var projPhoto in project.Photos)
+                                {
+                                    <img src="@projPhoto.PhotoPath" class="card-img-bottom" alt="@project.ProjectName Image" style="max-height: 200px; object-fit: cover;" />
+                                }
+                            }
+                        </div>
+                    </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Customer Testimonials -->
+    @if (Model.HousingCompany.CustomerTestimonials?.Any() == true)
+    {
+        <div class="card shadow-sm p-4 mb-5">
+            <h4 class="mb-4">💬 What Our Clients Say</h4>
+            <div class="row">
+                @foreach (var testimonial in Model.HousingCompany.CustomerTestimonials)
+                {
+                    <div class="col-md-6 mb-3">
+                        <blockquote class="blockquote border-start ps-3">
+                            <p class="mb-1">"@testimonial.TestimonialText"</p>
+                            <footer class="blockquote-footer">@testimonial.CustomerName</footer>
+                        </blockquote>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

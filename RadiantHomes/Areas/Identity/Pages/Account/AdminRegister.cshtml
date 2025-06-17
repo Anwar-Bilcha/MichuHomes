@@ -1,0 +1,56 @@
+﻿@page
+@model RegisterModel
+@{
+    Layout = null;
+}
+<div class="modal fade" id="adminRegisterModal" tabindex="-1" aria-labelledby="adminRegisterLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page="/Account/Register">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adminRegisterLabel">Register Real Estate Admin</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label"></label>
+                        <input asp-for="Input.Email" class="form-control" />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="form-label"></label>
+                        <input asp-for="Input.Password" class="form-control" />
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.ConfirmPassword" class="form-label"></label>
+                        <input asp-for="Input.ConfirmPassword" class="form-control" />
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="CompanyId" class="form-label">Select Company</label>
+                        <select asp-for="CompanyId" class="form-select" asp-items="ViewBag.Companies">
+                            <option value="">-- Select Company --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="CustomerId" class="form-label">Select Customer</label>
+                        <select asp-for="CustomerId" class="form-select" asp-items="ViewBag.Customers">
+                            <option value="">-- Select Customer --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,98 @@
+﻿@page
+@model RadiantHomes.Pages.Houses.Actions.Rent.DetailsModel
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>HouseRentTransaction</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.House)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.House.Id)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.Receiver)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.Receiver.Id)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.HomeOwner)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.HomeOwner.Id)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.TransactionDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.TransactionDate)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.RentDuration)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.RentDuration)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.RentStartingDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.RentStartingDate)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.RentEndDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.RentEndDate)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.Status)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.Status)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.Notes)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.Notes)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.CreatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.CreatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.CreatedOn)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.CreatedOn)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.UpdatedBy)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.UpdatedBy)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.HouseRentTransaction.UpdatedOn)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.HouseRentTransaction.UpdatedOn)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-page="./Edit" asp-route-id="@Model.HouseRentTransaction.Id">Edit</a> |
+    <a asp-page="./Index">Back to List</a>
+</div>

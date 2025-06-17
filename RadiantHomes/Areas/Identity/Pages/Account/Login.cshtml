@@ -1,0 +1,124 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        font-family: 'Open Sans', sans-serif;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+        padding-top: 80px;
+    }
+
+    .login-container {
+        background:transparent;
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        padding: 30px;
+        max-width:500px;
+        width:100%;
+    }
+
+        .login-container h1 {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .login-container form .form-floating {
+            margin-bottom: 20px;
+        }
+
+        .login-container form button {
+            border-radius: 30px;
+            padding: 10px;
+            font-weight: 600;
+        }
+
+    .login-links {
+        text-align: center;
+        margin-top: 15px;
+    }
+
+        .login-links a {
+            display: block;
+            margin: 5px 0;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+            .login-links a:hover {
+                text-decoration: underline;
+            }
+
+    .checkbox label {
+        font-size: 0.9rem;
+    }
+</style>
+<div class="container">
+    <div class="login-container">
+        <h1>@ViewData["Title"]</h1>
+
+        <form id="account" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-3" role="alert"></div>
+
+            <div class="form-floating">
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <label asp-for="Input.Email">Email</label>
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-floating">
+                <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Password" type="password" />
+                <label asp-for="Input.Password">Password</label>
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+
+            <div class="checkbox mb-3">
+                <label asp-for="Input.RememberMe">
+                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                    @Html.DisplayNameFor(m => m.Input.RememberMe)
+                </label>
+            </div>
+
+            <button id="login-submit" type="submit" class="btn btn-primary w-100">Log in</button>
+
+            <div class="login-links">
+                <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
+                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
+                <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
+            </div>
+        </form>
+        <div class="d-flex">
+            <div class="mt-3">
+                <form asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <div class="login-links">
+                        <button type="submit" class="btn btn-outline-dark align-content-center" name="provider" value="Google">
+                            <i class="bi bi-google"></i> Sign in with Google
+                        </button>
+                    </div>
+                    <div class="login-links">
+                        <button type="submit" class="btn btn-outline-primary mt-2" name="provider" value="Facebook">
+                            <i class="bi bi-facebook"></i> Sign in with Facebook
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

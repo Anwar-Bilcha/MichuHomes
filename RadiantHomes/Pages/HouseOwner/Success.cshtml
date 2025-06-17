@@ -1,0 +1,19 @@
+﻿@page
+@model RadiantHomes.Pages.HouseOwner.SuccessModel
+@{
+    ViewData["Title"] = "Customer Registeration Successful";
+}
+
+<h2 class="alert-success" style="color:green">Application Successful!</h2>
+Dear <b> @Model.ApplicantName,</b> 
+
+<p>Thank you for your application. <br />
+We have received your Registration to RadiantsHome Market and will review it shortly.</p>
+
+<p>You can expect to hear from us within  @Model.DaysWait business days regarding the status of your application.</p>
+
+<p>If you have any questions, please feel free to contact us at @Model.companyEmail.</p>
+
+<p>For any update regarding your application we will contact you using <b>@Model.companyEmail</b></p>
+
+<p><a asp-page="/index">Back to Home</a></p>
