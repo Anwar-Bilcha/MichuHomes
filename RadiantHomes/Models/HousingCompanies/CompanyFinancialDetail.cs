@@ -22,7 +22,7 @@ namespace RadiantHomes.Models.HousingCompanies
         public string AuditedFinancialStatementUrl { get; set; }
         public int BudgetYear { get; set; }
         [ForeignKey(nameof(CompanyId))]
-        public HousingCompany Company { get; set; }
+        public HousingCompany? Company { get; set; }
     }
 
 }

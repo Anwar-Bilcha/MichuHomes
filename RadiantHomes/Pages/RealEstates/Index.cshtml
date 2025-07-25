@@ -1,4 +1,5 @@
 ﻿@page
+@using RadiantHomes.DAL @* Make sure MichuHomesRoles is accessible *@
 @model RadiantHomes.Pages.RealEstates.IndexModel
 
 @{
@@ -6,7 +7,7 @@
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-@* Custom styles for this page (or move to site.css if truly global) *@
+@* Custom styles for this page - CONSIDER MOVING TO GLOBAL CSS (e.g., site.css) *@
 <style>
     /* Ensure icons in the title align well */
     .section-title i {
@@ -27,14 +28,16 @@
     .card-text-detail {
         font-size: 0.95rem; /* Slightly smaller font for details */
         margin-bottom: 0.3rem; /* Tighter spacing */
-        color: var(--text-color-dark);
+        /* Ensure --text-color-dark is defined in your global CSS or Bootstrap variables */
+        color: var(--text-color-dark, #555); /* Added fallback color */
     }
 
-        .card-text-detail strong {
-            color: var(--bs-dark); /* Stronger color for labels */
-            min-width: 80px; /* Align labels */
-            display: inline-block;
-        }
+    .card-text-detail strong {
+        /* Ensure --bs-dark is a distinct color for labels */
+        color: var(--bs-dark, #212529); /* Added fallback color */
+        min-width: 80px; /* Align labels */
+        display: inline-block;
+    }
 
     /* Action buttons in footer */
     .card-footer .btn {
@@ -51,12 +54,16 @@
         @* Adjusted for mobile stacking *@
         <h1 class="fw-bold text-primary mb-3 mb-md-0 section-title">
             @* Changed to h1 for main title, added section-title *@
-            <i class="fas fa-building me-3"></i>Housing Companies
+            <i class="fas fa-building me-3"></i>@ViewData["Title"] @* Use ViewData["Title"] here too *@
         </h1>
-        <a asp-page="Create" class="btn btn-primary btn-lg rounded-pill px-4 shadow-sm">
-            @* Primary button, larger, rounded *@
-            <i class="fas fa-plus-circle me-2"></i> Create New
-        </a>
+        @* The "Create New" button should likely also be role-restricted, e.g., only for MichuAdmin/RealEstateAdmin *@
+        @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+        {
+            <a asp-page="Create" class="btn btn-primary btn-lg rounded-pill px-4 shadow-sm">
+                @* Primary button, larger, rounded *@
+                <i class="fas fa-plus-circle me-2"></i> Create New
+            </a>
+        }
     </div>
 
     @if (Model.HousingCompany != null && Model.HousingCompany.Any())
@@ -110,12 +117,16 @@
                             <a asp-page="./Details" asp-route-id="@item.CompanyId" class="btn btn-outline-info me-2" title="View Details">
                                 <i class="fas fa-eye"></i> Details
                             </a>
-                            <a asp-page="./Edit" asp-route-id="@item.CompanyId" class="btn btn-outline-primary me-2" title="Edit Company">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            <a asp-page="./Delete" asp-route-id="@item.CompanyId" class="btn btn-outline-danger" title="Delete Company">
-                                <i class="fas fa-trash-alt"></i> Delete
-                            </a>
+                            @* Conditional rendering for Edit and Delete buttons *@
+                            @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+                            {
+                                <a asp-page="./Edit" asp-route-id="@item.CompanyId" class="btn btn-outline-primary me-2" title="Edit Company">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a asp-page="./Delete" asp-route-id="@item.CompanyId" class="btn btn-outline-danger" title="Delete Company">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>
@@ -128,7 +139,16 @@
             <h4 class="alert-heading">No Housing Companies Found!</h4>
             <p>It looks like there are no housing companies registered yet. Be the first to add one!</p>
             <hr>
-            <p class="mb-0">Click the "Create New" button above to get started.</p>
+            <p class="mb-0">
+                @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+                {
+                    <span>Click the "Create New" button above to get started.</span>
+                }
+                else
+                {
+                    <span>Please contact an administrator to add new companies.</span>
+                }
+            </p>
         </div>
     }
 </div>

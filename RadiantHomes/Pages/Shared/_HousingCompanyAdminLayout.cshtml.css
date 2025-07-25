@@ -30,7 +30,7 @@
 .sidebar {
     background-color: silver lightgray;
     color: black;
-    width: max-content;
+    width: auto;
     flex-shrink: 0;
 }
 
@@ -43,15 +43,62 @@
             color: #ffdd57;
         }
 
-    .sidebar .collapse {
-        margin-left: 20px;
+#pageLoader {
+    display: flex; /* Controlled by JS */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7); /* Slightly more opaque */
+    z-index: 9999;
+    display: flex; /* Use flexbox for centering */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Optional: Add a class for scrolled body */
+body.scrolled .navbar {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Hover underline for quick links */
+.hover-underline:hover {
+    text-decoration: underline !important;
+}
+
+/* Responsive adjustments for overall layout */
+@@media (max-width: 991.98px) { /* Bootstrap's lg breakpoint */
+    .navbar-collapse {
+        background-color: white; /* Ensure menu is readable on small screens */
+        border-top: 1px solid #eee;
+        padding: 1rem;
     }
+
+    .navbar-nav {
+        margin-bottom: 1rem;
+    }
+
+    .language-selector {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .d-flex.align-items-center {
+        flex-direction: column;
+        align-items: flex-start !important; /* Align items to start for better stacking */
+    }
+
+        .d-flex.align-items-center > * {
+            width: 100%; /* Make login button and selector full width */
+            margin-bottom: 0.5rem;
+        }
+}
 
 /* Footer Styling */
 footer {
     background-color: #343a40;
     color: white;
-    padding: 40px 0;
 }
 
     footer .list-group-item {
@@ -119,13 +166,13 @@ footer {
 
 @media (min-width: 992px) {
     .sidebar {
-        width: max-content;
+        width: 280px;
         min-height: 100vh;
         position: fixed;
     }
 
     .main-content {
-        margin-left: 320px;
+        margin-left: 280px;
     }
 }
 /* Navbar Styling */
@@ -159,7 +206,7 @@ footer {
 
 /* Sidebar Styling */
 .sidebar {
-    width: 280px; /* Wider sidebar */
+    width: 320px; /* Wider sidebar */
     flex-shrink: 0; /* Prevent shrinking */
     min-height: 100vh; /* Ensure it takes full viewport height */
     transition: width 0.3s ease; /* Smooth transition for width if it changes */

@@ -1553,6 +1553,26 @@ namespace RadiantHomes.Migrations
                     b.ToTable("HouseRentInfos");
                 });
 
+            modelBuilder.Entity("RadiantHomes.Models.Subscriber", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SubscriptionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Subscriptions");
+                });
+
             modelBuilder.Entity("RadiantHomes.Models.UILocalization", b =>
                 {
                     b.Property<int>("ID")

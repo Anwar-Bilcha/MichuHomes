@@ -13,8 +13,13 @@
             --font-size-base: 16px;
         }
 
+        /* Hero Section */
         .hero {
-            margin: 40px 0; /* Apply margin from top/bottom */
+            width: 100%; /* Use full width */
+            margin: 0; /* Remove fixed margin */
+            padding: 0; /* Remove fixed padding */
+            position: relative; /* Ensure positioning context */
+            overflow: hidden; /* Hide overflow from absolute elements */
         }
 
         .hero-bg {
@@ -40,8 +45,15 @@
             z-index: 1;
             width: 90%; /* Ensure content is responsive */
             max-width: 960px; /* Limit content width on large screens */
+            position: absolute;
+            top: 50%;
+            left: 50%; /* Changed from start-50 to left-50 for consistency */
+            transform: translate(-50%, -50%); /* Center horizontally and vertically */
+            text-align: center;
+            padding: 1rem; /* Add some padding for smaller screens */
         }
 
+        /* Search Box */
         .search-box {
             border-radius: 0.75rem; /* More pronounced rounded corners */
         }
@@ -70,9 +82,13 @@
             align-items: center; /* Vertically align icon */
         }
 
+        /* Video Intro */
         .video-intro-container {
-            width: fit-content;
+            width: 100%; /* Make it full width on smaller screens */
+            max-width: 350px; /* Limit width on larger screens */
             padding: 1rem 1.5rem; /* Responsive padding */
+            margin-left: auto; /* Center it */
+            margin-right: auto; /* Center it */
         }
 
         /* Property tabs */
@@ -96,6 +112,7 @@
             border-radius: 0.75rem;
         }
 
+        /* Advice Section */
         .advice-section {
             background-image: url('/images/advice-bg.png'); /* Example background image */
             background-size: cover;
@@ -113,8 +130,6 @@
         .blur-circle {
             animation: pulse 4s infinite alternate; /* Simple animation */
         }
-
-            
 
         /* Testimonial card improvements */
         .testimonial-card {
@@ -138,39 +153,62 @@
             filter: invert(100%); /* Make default dark icons visible on light background */
         }
 
-
         /* Responsive adjustments */
         @@media (max-width: 768px) {
-            .hero-content
+            .hero-content {
+                padding: 0 1rem; /* Add horizontal padding for smaller screens */
+            }
 
-        {
-            padding: 0 1rem; /* Add horizontal padding for smaller screens */
+            .display-4 {
+                font-size: 2rem; /* Smaller title on mobile */
+            }
+
+            .lead {
+                font-size: 1rem; /* Smaller lead text on mobile */
+            }
+
+            .advice-card {
+                padding: 2rem !important; /* Adjust padding for mobile */
+            }
+            /* Adjust blur circles for mobile */
+            .blur-circle {
+                display: none; /* Hide on small screens if they cause layout issues */
+            }
         }
 
-        .display-4 {
-            font-size: 2rem; /* Smaller title on mobile */
+        /* Specific adjustments for house carousel on smaller screens */
+        @@media (max-width: 576px) { /* Extra small devices (phones, 576px and down) */
+            #houseCarousel .carousel-item .col-md-3 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
         }
 
-        .lead {
-            font-size: 1rem; /* Smaller lead text on mobile */
+        @@media (min-width: 577px) and (max-width: 768px) { /* Small devices (landscape phones, 576px to 768px) */
+            #houseCarousel .carousel-item .col-md-3 {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
         }
 
-        .search-box {
-            padding: 1rem;
+        /* Ensure images in cards are responsive */
+        .card-img-top {
+            width: 100%;
+            height: 200px; /* Fixed height for consistency */
+            object-fit: cover; /* Cover the area, cropping if necessary */
         }
 
-        .advice-card {
-            padding: 2rem !important;
-        }
-
+        /* Adjustments for "What are you looking to do?" section icons */
+        .card-body .bi {
+            font-size: 3rem !important; /* Ensure icons are a good size */
         }
     </style>
 </head>
 
 <body>
     <section class="hero position-relative text-white">
-        <div class="hero-bg">
-            <img src="~/images/Villa2.jpg" class="img-fluid" alt="Hero background">
+        <div class="hero-bg" style="opacity:.7">
+            <img src="~/images/banner3.jpg" class="img-fluid" alt="Hero background">
             <div class="hero-overlay position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"></div>
         </div>
 
@@ -225,7 +263,7 @@
                 </a>
             </div>
             <div class="lead">
-                <a asp-page="/LiveVideoMeet" asp-route-roomId="">Join Live Class</a>
+                <a asp-page="/LiveVideoMeet" asp-route-roomId="">Video Call Live Agents</a>
             </div>
         </div>
     </section>
@@ -271,7 +309,7 @@
                                     <div id="houseCarousel" class="carousel slide" data-bs-ride="carousel">
                                         <div class="carousel-inner">
                                             @{
-                                                int chunkSize = 4;
+                                                int chunkSize = 4; // This is still controlled by C# for the initial chunking
                                                 var chunkedApts = apartments.Select((apt, index) => new { apt, index })
                                                 .GroupBy(x => x.index / chunkSize)
                                                 .Select(g => g.Select(x => x.apt).ToList())
@@ -285,7 +323,8 @@
                                                     <div class="row">
                                                         @foreach (var apt in group)
                                                         {
-                                                            <div class="col-md-3 mb-4">
+                                                            <div class="col-12 col-sm-6 col-md-3 mb-4">
+                                                                @* Added col-12 and col-sm-6 for responsiveness *@
                                                                 <div class="card glass-card shadow-sm" data-name="@apt.Title.ToLower()">
                                                                     <img src="/images/Villa2.jpg" class="card-img-top" alt="Apartment @apt.Title">
                                                                     <div class="card-body">
@@ -336,7 +375,8 @@
                                 {
                                     @foreach (var house in housesInCategory)
                                     {
-                                        <div class="col-md-4 mb-4">
+                                        <div class="col-12 col-sm-6 col-md-4 mb-4">
+                                            @* Added col-12 and col-sm-6 for responsiveness *@
                                             <div class="card glass-card shadow-sm" data-name="@house.Title.ToLower()">
                                                 <img src="@(string.IsNullOrEmpty(house.MainPhotoUrl) ? "/images/placeholder.jpg" : house.MainPhotoUrl)" class="card-img-top" alt="House @house.Title">
                                                 <div class="card-body">
@@ -373,7 +413,8 @@
             <div class="row">
                 @foreach (var realestate in Model.RealEstates)
                 {
-                    <div class="col-md-4 mb-4">
+                    <div class="col-12 col-sm-6 col-md-4 mb-4">
+                        @* Added col-12 and col-sm-6 for responsiveness *@
                         <div class="card glass-card shadow-sm" data-name="@realestate.Name.ToLower()">
                             <img src="@(string.IsNullOrEmpty(realestate.LogoUrl) ? "/images/company-placeholder.jpg" : realestate.LogoUrl)" class="card-img-top" alt="Logo of @realestate.Name" style="max-height: 200px; object-fit: contain;"> @* Added max-height and object-fit for logos *@
                             <div class="card-body">
@@ -449,7 +490,7 @@
         <div id="heroCarousel" class="carousel slide carousel-dark" data-bs-ride="carousel">
             <div class="carousel-inner">
                 <div class="carousel-item active">
-                    <img src="~/images/banner1.jpg" class="d-block w-100 img-fluid" alt="banner1">
+                    <img src="~/images/banner3.jpg" class="d-block w-100 img-fluid" alt="banner1">
                     <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded-3 p-3">
                         <h3 class="fw-bold" data-translate="HomePage.FirstCoursel.Title">Find Your Dream Home</h3>
                         <h5 class="text-white" data-translate="HomePage.FirstCoursel.Text">Explore the best houses across Ethiopia that are tailored to your needs</h5>
@@ -568,7 +609,8 @@
         <div class="container">
             <h2 class="text-center mb-5">What Our Clients Say</h2>
             <div class="row text-center">
-                <div class="col-md-4 mb-4">
+                <div class="col-12 col-sm-6 col-md-4 mb-4">
+                    @* Added col-12 and col-sm-6 for responsiveness *@
                     <div class="card h-100 border-0 shadow-lg p-4 glass-bg testimonial-card">
                         <img src="~/images/testimonial1.jpg" class="rounded-circle mx-auto mb-3" width="80" height="80" alt="Client Sarah W.">
                         <blockquote class="blockquote">
@@ -577,7 +619,8 @@
                         <footer class="blockquote-footer">Sarah W., <cite title="Source Title">First-time buyer</cite></footer>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-12 col-sm-6 col-md-4 mb-4">
+                    @* Added col-12 and col-sm-6 for responsiveness *@
                     <div class="card h-100 border-0 shadow-lg p-4 glass-bg testimonial-card">
                         <img src="~/images/testimonial2.jpg" class="rounded-circle mx-auto mb-3" width="80" height="80" alt="Client James K.">
                         <blockquote class="blockquote">
@@ -586,7 +629,8 @@
                         <footer class="blockquote-footer">James K., <cite title="Source Title">Seller</cite></footer>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-12 col-sm-6 col-md-4 mb-4">
+                    @* Added col-12 and col-sm-6 for responsiveness *@
                     <div class="card h-100 border-0 shadow-lg p-4 glass-bg testimonial-card">
                         <img src="~/images/testimonial3.jpg" class="rounded-circle mx-auto mb-3" width="80" height="80" alt="Client Amina D.">
                         <blockquote class="blockquote">
@@ -597,120 +641,5 @@
                 </div>
             </div>
         </div>
-        <div class="blur-circle position-relative bg-success opacity-25 rounded-circle" style="width: 150px; height: 150px; bottom: -30px; left: -100px;"></div>
     </section>
-
-    <script type="text/javascript">
-        var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
-        (function () {
-            var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
-            s1.async = true;
-            s1.src = 'https://embed.tawk.to/67f2f12ee46ec81909b862f4/1io6fs85n';
-            s1.setAttribute('crossorigin', '*');
-            s0.parentNode.insertBefore(s1, s0);
-        })();
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Count-up Script
-            const counters = document.querySelectorAll('.count');
-            const speed = 100; // lower is faster
-
-            const runCountUp = () => {
-                counters.forEach(counter => {
-                    const updateCount = () => {
-                        const target = +counter.getAttribute('data-target');
-                        const count = +counter.innerText.replace(/[^0-9]/g, ''); // Remove non-numeric for 'ETB'
-                        const increment = Math.ceil(target / speed);
-
-                        if (count < target) {
-                            counter.innerText = count + increment;
-                            setTimeout(updateCount, 30);
-                        } else {
-                            counter.innerText = target;
-                        }
-                    };
-                    updateCount();
-                });
-            };
-
-            let hasRunCountUp = false;
-            const observer = new IntersectionObserver(entries => {
-                if (entries[0].isIntersecting && !hasRunCountUp) {
-                    runCountUp();
-                    hasRunCountUp = true;
-                }
-            }, { threshold: 0.5 }); // Trigger when 50% of the section is visible
-
-            const whyChooseUsSection = document.querySelector('#why-choose-us');
-            if (whyChooseUsSection) {
-                observer.observe(whyChooseUsSection);
-            }
-
-            // Property Search Script (Improved for unique IDs and specific tab content if needed)
-            const buySearchInput = document.getElementById('buySearchInput');
-            const rentSearchInput = document.getElementById('rentSearchInput');
-            const commercialSearchInput = document.getElementById('commercialSearchInput');
-
-            // Generic search function for featured properties below the hero
-            const filterPropertyCards = (searchInputId, targetContainerId) => {
-                const searchInput = document.getElementById(searchInputId);
-                if (!searchInput) return; // Exit if input not found
-
-                searchInput.addEventListener('keyup', function() {
-                    const search = this.value.toLowerCase();
-                    // Select only cards within the active property tab content (e.g., #apartment, #house, #condo)
-                    // This assumes the search in the hero section filters the *displayed* featured homes.
-                    document.querySelectorAll(`#${targetContainerId} [data-name]`).forEach(card => {
-                        if (card.getAttribute('data-name').includes(search)) {
-                            card.closest('.col-md-3, .col-md-4').style.display = 'block'; // Show the parent column
-                        } else {
-                            card.closest('.col-md-3, .col-md-4').style.display = 'none'; // Hide the parent column
-                        }
-                    });
-                });
-            };
-
-            // Initialize search for the active tab (assuming apartment is default active)
-            filterPropertyCards('buySearchInput', 'apartment'); // Default to apartment tab content
-
-            // Add event listeners to tab buttons to update which content to filter
-            const searchTabButtons = document.querySelectorAll('#searchTab button');
-            searchTabButtons.forEach(button => {
-                button.addEventListener('shown.bs.tab', function (event) {
-                    const targetTabId = event.target.getAttribute('data-bs-target').substring(1); // e.g., 'buy', 'rent', 'commercial'
-                    let currentSearchInputId;
-                    let currentPropertyContainerId;
-
-                    // Map hero search tabs to property section categories (adjust as per your exact needs)
-                    if (targetTabId === 'buy') {
-                        currentSearchInputId = 'buySearchInput';
-                        currentPropertyContainerId = 'apartment'; // Assuming 'buy' primarily relates to 'Apartment' category
-                    } else if (targetTabId === 'rent') {
-                        currentSearchInputId = 'rentSearchInput';
-                        currentPropertyContainerId = 'condo'; // Example: 'rent' relates to 'Condo'
-                    } else if (targetTabId === 'commercial') {
-                        currentSearchInputId = 'commercialSearchInput';
-                        currentPropertyContainerId = 'commercial'; // Example: 'commercial' relates to 'Commercial'
-                    }
-
-                    // Reset filtering for previously active tab's cards
-                    document.querySelectorAll('#propertyTabContent [data-name]').forEach(card => {
-                        card.closest('.col-md-3, .col-md-4').style.display = 'block';
-                    });
-
-                    // Re-attach or apply filter for the newly active tab
-                    if (currentSearchInputId && currentPropertyContainerId) {
-                         // Re-trigger the filtering with the current value if any
-                         const currentInput = document.getElementById(currentSearchInputId);
-                         if (currentInput && currentInput.value) {
-                             const searchEvent = new KeyboardEvent('keyup', { bubbles: true, cancelable: true });
-                             currentInput.dispatchEvent(searchEvent);
-                         }
-                    }
-                });
-            });
-        });
-    </script>
 </body>

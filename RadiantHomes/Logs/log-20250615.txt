@@ -1,3 +1,0 @@
-2025-06-15 22:01:51.912 +03:00 [INF] (Anonymous) Microsoft.AspNetCore.Hosting.Diagnostics Request starting HTTP/2 GET https://localhost:7195/service-worker.js - null null
-2025-06-15 22:01:52.145 +03:00 [INF] (Anonymous) Microsoft.AspNetCore.StaticFiles.StaticFileMiddleware The file /service-worker.js was not modified
-2025-06-15 22:01:52.241 +03:00 [INF] (Anonymous) Microsoft.AspNetCore.Hosting.Diagnostics Request finished HTTP/2 GET https://localhost:7195/service-worker.js - 304 null text/javascript 333.5622ms

@@ -1,8 +1,8 @@
 /* === Base Body Styling === */
 body {
-    padding-top:100px;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-    font-size: 12px;
+    padding-top: 100px;
+    font-family: 'Roboto', sans-serif; /* Your chosen font, with a fallback */
+    font-size: 11px;
 }
 
 /* === Navbar Styling === */
@@ -53,7 +53,7 @@ body {
 
 /* === Main Content === */
 .main-content {
-    font-family:'Palatino Linotype';
+    font-family: "Helvetica Neue", sans-serif;
     font-weight: 500;
 }
 
@@ -389,14 +389,37 @@ label {
     .navbar-brand:hover {
         color: #0f1f4b;
     }
+/* === Hero Section === */
 .hero {
-    height: 84vh;
-    width:94%;
-    overflow: hidden;
+    /* Remove padding-left and width that were causing left-sided alignment */
+    /* padding-left: 5%; */
+    /* width: 90%; */
+
+    background: linear-gradient(to right, rgba(12, 22, 55, 0.8), rgba(12, 22, 25, 0.8)), url('/images/banner2.jpg') center no-repeat;
+    background-size: cover; /* Ensure the background image covers the area */
+    color: white;
+    height: 84vh; /* Keep your desired height */
+    display: flex;
+    align-items: center; /* Vertically centers content */
+    justify-content: center; /* Horizontally centers direct children */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    border-radius: 1rem;
+    overflow: hidden; /* Important if content might overflow due to animations/transforms */
 }
 
+.hero-content {
+    z-index: 3;
+    max-width: 1000px; /* Keep your max-width for content */
+    width: 92%; /* Ensure it takes full available width up to max-width */
+    text-align: center; /* Center the text inside the hero-content div */
+    padding: 0 55px; /* Add some horizontal padding to prevent content from touching edges on small screens */
+    box-sizing: border-box; /* Include padding in the width calculation */
+}
+
+/* Ensure the background image covers the entire hero area */
 .hero-bg img {
-    position: absolute;
+    position: absolute; /* Changed from relative to absolute to layer it properly */
     top: 0;
     left: 0;
     object-fit: cover;
@@ -405,10 +428,10 @@ label {
     z-index: 1;
 }
 
+/* No changes needed for .hero-overlay as long as it covers the hero */
 .hero-overlay {
     z-index: 2;
 }
-
 .hero-content {
     z-index: 3;
     max-width: 1000px;

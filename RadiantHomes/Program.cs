@@ -15,6 +15,7 @@ using Serilog;
 using RadiantHomes.LogConfig;
 using Serilog.Core;
 using RadiantHomes.Services.NotificationService;
+using RadiantHomes.Services.AdminServices;
 
 var builder = WebApplication.CreateBuilder(args);
 QuestPDF.Settings.License = LicenseType.Community;
@@ -34,6 +35,7 @@ builder.Services.AddScoped<IHouseServices,HouseServices>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<ICustomerService,CustomerService>();
 builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
+builder.Services.AddScoped<IAdminDashboard, AdminDashboardService>();
 //builder.Services.AddScoped<ExcelExportService>();
 // Add services to the container.
 //builder.Services.AddRazorPages();

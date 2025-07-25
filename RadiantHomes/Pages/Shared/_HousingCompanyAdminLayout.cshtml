@@ -12,302 +12,512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewBag.Title - Homes</title>
-    <meta name="theme-color" content="#1e3a8a" />
+    <title>@ViewData["Title"] - RadiantHomes Admin</title>
+    <link rel="manifest" href="~/manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" xintegrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOcSFnggKMJwAG8QkLCTcIqRXAzxWA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.css" integrity="sha512-RFF1T74W+0h4C2K7hFjBqJk/s6t+o3d3zY1xT/r4+u6fD4g2t2eG/4n4p1b+tH/bWJpQz/w7w0XgC1X6zg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="~/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/all.min.css" /> 
+    <link rel="stylesheet" href="~/css/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="~/css/loader.css" /> 
+    <link rel="stylesheet" href="~/css/site.css" /> 
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@600;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --primary-color-dark: #1e3a8a; /* Example, adjust to your brand */
+            --secondary-color-light: #f7fafc; /* Example, adjust to your brand */
+            --sidebar-bg: #e9ecef; /* Light grey for sidebar */
+            --text-dark: #343a40; /* Dark text color */
+        }
 
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            /* Consider removing or carefully managing overflow-x: hidden; */
+            /* If elements are genuinely overflowing, it's better to fix the layout rather than hiding */
+            /* overflow-x: hidden; */
+        }
 
-    <link rel="manifest" href="/manifest.json" />
+        .main-wrapper {
+            flex: 1; /* Allows main content to grow and push footer down */
+        }
 
-    <link href="~/css/site.css" rel="stylesheet" />
-    <link href="~/css/loader.css" rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/bootstrap.css" />
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap.css" />
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-grid.css" />
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-grid.min.css" />
-    <link rel="stylesheet" href="~/bootstrap/css/bootstrap-reboot.css" />
+        /* Navbar Customization */
+        .navbar-brand .fa-house-signal {
+            color: var(--secondary-color-light);
+        }
 
+        .navbar-brand span {
+            color: white;
+        }
+
+        .navbar-brand sup span {
+            color: var(--secondary-color-light); /* Or a brand accent color */
+        }
+
+        .nav-link-custom {
+            color: rgba(255, 255, 255, 0.75); /* Lighter white for non-active */
+            transition: color 0.3s ease-in-out;
+        }
+
+            .nav-link-custom:hover {
+                color: white;
+            }
+
+        .nav-link-custom.active-link {
+            color: white;
+            font-weight: bold;
+            border-bottom: 2px solid white; /* A subtle indicator */
+        }
+
+        /* Sidebar Customization */
+        .sidebar {
+            background-color: var(--sidebar-bg) !important; /* Ensure it overrides bootstrap */
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            padding-top: 2rem;
+        }
+
+        .sidebar .nav-link {
+            color: var(--text-dark);
+            padding: 0.75rem 1rem;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+
+            .sidebar .nav-link:hover {
+                background-color: rgba(0, 0, 0, 0.05);
+                color: var(--primary-color-dark);
+            }
+
+            .sidebar .nav-link.active,
+            .sidebar .nav-link[aria-expanded="true"] {
+                font-weight: bold;
+                background-color: rgba(0, 0, 0, 0.1);
+                color: var(--primary-color-dark);
+            }
+
+        .sidebar .toggle-arrow {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .sidebar .nav-link[aria-expanded="true"] .toggle-arrow {
+            transform: rotate(90deg); /* Rotate arrow when expanded */
+        }
+
+        .sidebar-header {
+            padding: 1rem 0 1rem 1rem; /* Adjust padding for admin title */
+        }
+
+        /* Main Content Area */
+        .main-content {
+            padding: 1rem 1.5rem; /* More generous padding */
+            background-color: white; /* Ensure clear background */
+        }
+
+        /* Notifications Dropdown */
+        #notificationsDropdown {
+            margin-left: 0; /* Remove inline style */
+            background-color: transparent;
+            border: none;
+            color: var(--text-dark); /* Match surrounding text color */
+        }
+
+        #notificationsDropdown .bi-bell {
+            vertical-align: middle; /* Align icon vertically */
+        }
+
+        .notification-item {
+            border-bottom: 1px solid #eee;
+        }
+
+            .notification-item:last-child {
+                border-bottom: none;
+            }
+
+        .notification-item.unread {
+            background-color: #f8f9fa; /* Slightly different background for unread */
+            font-weight: bold;
+        }
+
+        /* Footer Customization */
+        footer {
+            background-color: var(--sidebar-bg) !important; /* Consistent light grey */
+            color: var(--text-dark) !important;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        footer a {
+            color: var(--text-dark);
+            transition: color 0.3s ease-in-out;
+        }
+
+            footer a:hover {
+                color: var(--primary-color-dark);
+            }
+
+        footer .navbar-brand sup span {
+            color: brown; /* Keep your existing color if desired */
+        }
+
+
+        /* Responsive Adjustments */
+        @@media (max-width: 991.98px) { /* Medium devices and down */
+            .sidebar {
+                position: fixed; /* Fix sidebar on smaller screens */
+                top: 60px; /* Below the fixed navbar */
+                left: 0;
+                height: calc(100vh - 60px); /* Full height minus navbar */
+                z-index: 1020; /* Above main content, below navbar */
+                transform: translateX(-100%); /* Hide off-screen by default */
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .sidebar.show {
+                transform: translateX(0); /* Show on toggle */
+            }
+
+            .main-content {
+                margin-left: 0; /* No margin when sidebar is hidden */
+            }
+
+            /* Overlay for when sidebar is open */
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1010;
+                display: none;
+            }
+
+            .sidebar.show + .sidebar-overlay {
+                display: block;
+            }
+
+            .navbar-toggler-icon {
+                color: white !important; /* Ensure toggler icon is visible */
+            }
+        }
+
+        @@media (min-width: 992px) { /* Large devices and up */
+            .sidebar {
+                position: sticky; /* Keep sidebar in flow for large screens */
+                top: 70px; /* Offset for fixed navbar */
+                height: calc(100vh - 70px); /* Adjust height */
+            }
+        }
+
+        /* Modal specific styling for create admin */
+        #createAdminModal .modal-header {
+            background-color: var(--primary-color-dark);
+            color: white;
+            border-bottom: none;
+        }
+
+        #createAdminModal .modal-title {
+            color: white !important;
+        }
+
+        #createAdminModal .btn-close {
+            filter: invert(1); /* Make close button white */
+        }
+    </style>
 </head>
-<body class="d-flex flex-column min-vh-100">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-        <div class="container-fluid">
-            <a class="navbar-brand" asp-page="/Index">
-                <i class="fa-solid fa-house-signal"></i> MICHU<sup><span style="color: brown;">HOMES</span></sup>
+<body class="d-flex flex-column">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success fixed-top shadow-lg py-3">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center me-auto" asp-page="/Index" aria-label="Michu Homes Home">
+                <i class="fa-solid fa-house-signal fs-3 me-2"></i>
+                <span class="fs-4 fw-bolder">MICHU<sup class="ms-1"><span class="text-secondary-light">HOMES</span></sup></span>
             </a>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse justify-content-between" id="navbarNavDropdown">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" asp-page="/Index" data-translate="homePage">Home</a>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                    <li class="nav-item me-lg-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Index" ? "active-link" : "")" aria-current="page" asp-page="/Index" data-translate="homePage">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-page="/HouseOwner/Create" data-translate="registerPage">Create Account</a>
+                    <li class="nav-item me-lg-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/HouseOwner/Create" ? "active-link" : "")" asp-page="/HouseOwner/Create" data-translate="registerPage">Register Account</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-page="/ApartmentHouses" data-translate="contactPage">Apartments</a>
+                    <li class="nav-item me-lg-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Index" ? "active-link" : "")" href="/ApartmentHouses/" data-translate="apartmentsPage">Apartments</a>
+                    </li>
+                    <li class="nav-item me-lg-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/RealEstates/Index" ? "active-link" : "")" href="/RealEstates/" data-translate="realEstatePage">Real Estates</a>
+                    </li>
+                    <li class="nav-item me-lg-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Index" ? "active-link" : "")" href="/Projects/index" data-translate="ProjectsPage">Projects</a>
+                    </li>
+                    <li class="nav-item d-flex align-items-center mt-2 mt-lg-0">
+                        <select class="form-select form-select-sm language-selector me-2" onchange="loadLanguage(this.value)" aria-label="Language Selector">
+                            <option value="en">English</option>
+                            <option value="am">አማርኛ</option>
+                            <option value="or">Afaan Oromoo</option>
+                            <option value="tg">ትግርኛ</option>
+                        </select>
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            @await Html.PartialAsync("_LoginPartial.cshtml")
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </button>
+                        }
                     </li>
                 </ul>
-
-                <div class="d-flex align-items-center">
-                    <select class="form-select language-selector" onchange="loadLanguage(this.value)">
-                        <option value="en">English</option>
-                        <option value="am">አማርኛ</option>
-                        <option value="or">Afaan Oromoo</option>
-                        <option value="tg">ትግርኛ</option>
-                    </select>
-
-                    <div>
-                        <partial name="_LoginPartial" />
-                    </div>
-                </div>
             </div>
         </div>
     </nav>
 
-    <div class="d-flex flex-column flex-lg-row flex-grow-1">
-        <aside class="sidebar bg-body-secondary">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fs-4 fw-bold text-black" style="padding-left:10px; padding-top:20px"> Admin Area</h5>
-                <button class="btn btn-outline-secondary d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarNav" aria-controls="sidebarNav" aria-expanded="false" aria-label="Toggle sidebar navigation">
-                    <i class="bi bi-list"></i>
-                </button>
-            </div>
+    <div class="container-fluid main-wrapper d-flex">
+        <div class="row w-100 flex-grow-1">
+            <aside class="sidebar col-lg-3 col-12 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center sidebar-header">
+                    <h5 class="fs-4 fw-bold text-black">Admin Area</h5>
+                    <button class="btn btn-outline-secondary d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarNav" aria-controls="sidebarNav" aria-expanded="false" aria-label="Toggle sidebar navigation">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
 
-            <div class="collapse d-lg-block" id="sidebarNav">
-                <ul class="nav nav-pills flex-column">
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-black d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#companyProfileSubmenu" role="button" aria-expanded="true" aria-controls="companyProfileSubmenu">
-                            <span><i class="bi bi-building me-2"></i>Company Profile</span>
-                            <i class="bi bi-chevron-right toggle-arrow"></i>
-                        </a>
-                        <div class="collapse show" id="companyProfileSubmenu">
-                            <ul class="nav flex-column ms-3">
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./Profile/Edit"><i class="bi bi-pencil-square me-2"></i>Edit Profile</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-black d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#projectsSubmenu" role="button" aria-expanded="false" aria-controls="projectsSubmenu">
-                            <span><i class="bi bi-building me-2"></i>Projects</span>
-                            <i class="bi bi-chevron-right toggle-arrow"></i>
-                        </a>
-                        <div class="collapse" id="projectsSubmenu">
-                            <ul class="nav flex-column ms-3">
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Projects/Create"><i class="bi bi-plus-square me-2"></i>Create Project</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Projects/Index"><i class="bi bi-card-list me-2"></i>View Projects</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Projects/Edit"><i class="bi bi-pencil-square me-2"></i>Update Project</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Projects/Delete"><i class="bi bi-trash me-2"></i>Delete Project</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Projects/Details"><i class="bi bi-info-circle me-2"></i>Project Details</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-black d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#buildingsSubmenu" role="button" aria-expanded="false" aria-controls="buildingsSubmenu">
-                            <span><i class="bi bi-buildings me-2"></i>Buildings</span>
-                            <i class="bi bi-chevron-right toggle-arrow"></i>
-                        </a>
-                        <div class="collapse" id="buildingsSubmenu">
-                            <ul class="nav flex-column ms-3">
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Buildings/Create"><i class="bi bi-plus-square me-2"></i>Create Building</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Buildings/Index"><i class="bi bi-card-list me-2"></i>View Buildings</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Buildings/Edit"><i class="bi bi-pencil-square me-2"></i>Update Building</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Buildings/Delete"><i class="bi bi-trash me-2"></i>Delete Building</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="/Buildings/Details"><i class="bi bi-info-circle me-2"></i>Building Details</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-black d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#apartmentsSubmenu" role="button" aria-expanded="false" aria-controls="apartmentsSubmenu">
-                            <span><i class="bi bi-house-door me-2"></i>Apartments</span>
-                            <i class="bi bi-chevron-right toggle-arrow"></i>
-                        </a>
-                        <div class="collapse" id="apartmentsSubmenu">
-                            <ul class="nav flex-column ms-3">
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./ApartmentHouses/Create"><i class="bi bi-plus-square me-2"></i>Create Apartment</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./ApartmentHouses/Index"><i class="bi bi-card-list me-2"></i>View Apartments</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./ApartmentHouses/Edit"><i class="bi bi-pencil-square me-2"></i>Update Apartment</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./ApartmentHouses/Delete"><i class="bi bi-trash me-2"></i>Delete Apartment</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./ApartmentHouses/Details"><i class="bi bi-info-circle me-2"></i>Apartment Details</a></li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-black d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#testimonialsSubmenu" role="button" aria-expanded="false" aria-controls="testimonialsSubmenu">
-                            <span><i class="bi bi-chat-right-text me-2"></i>Testimonials</span>
-                            <i class="bi bi-chevron-right toggle-arrow"></i>
-                        </a>
-                        <div class="collapse" id="testimonialsSubmenu">
-                            <ul class="nav flex-column mb-3">
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./Testimonials/Create"><i class="bi bi-plus-square me-2"></i>Create Testimonial</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./Testimonials/Index"><i class="bi bi-card-list me-2"></i>View Testimonials</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./Testimonials/Edit"><i class="bi bi-pencil-square me-2"></i>Update Testimonial</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./Testimonials/Delete"><i class="bi bi-trash me-2"></i>Delete Testimonial</a></li>
-                                <li class="nav-item"><a class="nav-link text-black" asp-page="./Testimonials/Details"><i class="bi bi-info-circle me-2"></i>Testimonial Details</a></li>
-                            </ul>
-                        </div>
-                        @if (User.IsInRole(MichuHomesRoles.MichuAdmin))
-                        {
-                            <div class="text-end mb-4">
-                                <button type="button" class="nav-link text-black d-flex justify-content-between align-items-center" data-bs-toggle="modal" data-bs-target="#createAdminModal">
-                                    <i class="bi bi-person-plus me-2"></i> Create Real Estate Admin
-                                </button>
+                <div class="collapse d-lg-block flex-grow-1" id="sidebarNav">
+                    <ul class="nav nav-pills flex-column">
+                        <li class="nav-item mb-2">
+                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Admin/Profile") == true ? "active" : "")" data-bs-toggle="collapse" href="#companyProfileSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Admin/Profile") == true ? "true" : "false")" aria-controls="companyProfileSubmenu">
+                                <span><i class="bi bi-building me-2"></i>Company Profile</span>
+                                <i class="bi bi-chevron-right toggle-arrow"></i>
+                            </a>
+                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Admin/Profile") == true ? "show" : "")" id="companyProfileSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Admin/Profile/Edit" ? "active" : "")" asp-page="./Profile/Edit"><i class="bi bi-pencil-square me-2"></i>Edit Profile</a></li>
+                                </ul>
                             </div>
-                        }
-                    </li>
+                        </li>
 
-                    @* NEW: Notifications Menu Item *@
-                    <li class="nav-item mb-2">
-                        <a class="nav-link text-black d-flex justify-content-between align-items-center" asp-page="/Admin/Notifications/NotoficationsAll">
-                            <span><i class="bi bi-bell me-2"></i>Approve Notifications</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </aside>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Projects") == true ? "active" : "")" data-bs-toggle="collapse" href="#projectsSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Projects") == true ? "true" : "false")" aria-controls="projectsSubmenu">
+                                <span><i class="bi bi-building me-2"></i>Projects</span>
+                                <i class="bi bi-chevron-right toggle-arrow"></i>
+                            </a>
+                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Projects") == true ? "show" : "")" id="projectsSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Create" ? "active" : "")" asp-page="/Projects/Create"><i class="bi bi-plus-square me-2"></i>Create Project</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Index" ? "active" : "")" asp-page="/Projects/Index"><i class="bi bi-card-list me-2"></i>View Projects</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Edit" ? "active" : "")" asp-page="/Projects/Edit"><i class="bi bi-pencil-square me-2"></i>Update Project</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Delete" ? "active" : "")" asp-page="/Projects/Delete"><i class="bi bi-trash me-2"></i>Delete Project</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Details" ? "active" : "")" asp-page="/Projects/Details"><i class="bi bi-info-circle me-2"></i>Project Details</a></li>
+                                </ul>
+                            </div>
+                        </li>
 
-        <main class="main-content py-4 flex-grow-1">
-            @{
-                // Fetch notifications (ensure NotificationService is properly injected and configured)
-                var currentUser = await userManager.GetUserAsync(User);
-                var currentUserId = currentUser?.CustomerId;
-                var notifications = await NotificationService.GetUnreadForAdminAsync(currentUserId.Value);
+                        <li class="nav-item mb-2">
+                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Buildings") == true ? "active" : "")" data-bs-toggle="collapse" href="#buildingsSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Buildings") == true ? "true" : "false")" aria-controls="buildingsSubmenu">
+                                <span><i class="bi bi-buildings me-2"></i>Buildings</span>
+                                <i class="bi bi-chevron-right toggle-arrow"></i>
+                            </a>
+                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Buildings") == true ? "show" : "")" id="buildingsSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Create" ? "active" : "")" asp-page="/Buildings/Create"><i class="bi bi-plus-square me-2"></i>Create Building</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Index" ? "active" : "")" asp-page="/Buildings/Index"><i class="bi bi-card-list me-2"></i>View Buildings</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Edit" ? "active" : "")" asp-page="/Buildings/Edit"><i class="bi bi-pencil-square me-2"></i>Update Building</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Delete" ? "active" : "")" asp-page="/Buildings/Delete"><i class="bi bi-trash me-2"></i>Delete Building</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Details" ? "active" : "")" asp-page="/Buildings/Details"><i class="bi bi-info-circle me-2"></i>Building Details</a></li>
+                                </ul>
+                            </div>
+                        </li>
 
-                var userName = "Dear Visitor";
-                Customer? userProfile = null; // Initialize as nullable
-                var userEmail = User.Identity?.Name; // Safely get user email
+                        <li class="nav-item mb-2">
+                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/ApartmentHouses") == true ? "active" : "")" data-bs-toggle="collapse" href="#apartmentsSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/ApartmentHouses") == true ? "true" : "false")" aria-controls="apartmentsSubmenu">
+                                <span><i class="bi bi-house-door me-2"></i>Apartments</span>
+                                <i class="bi bi-chevron-right toggle-arrow"></i>
+                            </a>
+                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/ApartmentHouses") == true ? "show" : "")" id="apartmentsSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Create" ? "active" : "")" asp-page="./ApartmentHouses/Create"><i class="bi bi-plus-square me-2"></i>Create Apartment</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Index" ? "active" : "")" asp-page="./ApartmentHouses/Index"><i class="bi bi-card-list me-2"></i>View Apartments</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Edit" ? "active" : "")" asp-page="./ApartmentHouses/Edit"><i class="bi bi-pencil-square me-2"></i>Update Apartment</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Delete" ? "active" : "")" asp-page="./ApartmentHouses/Delete"><i class="bi bi-trash me-2"></i>Delete Apartment</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Details" ? "active" : "")" asp-page="./ApartmentHouses/Details"><i class="bi bi-info-circle me-2"></i>Apartment Details</a></li>
+                                </ul>
+                            </div>
+                        </li>
 
-                if (!string.IsNullOrEmpty(userEmail))
-                {
-                    var appUser = await userManager.FindByEmailAsync(userEmail);
-                    if (appUser != null && appUser.CustomerId != null && appUser.CustomerId != Guid.Empty) // CustomerId is string type, compare with string representation of empty Guid
-                    {
-                        userProfile = _context.UserProfiles.FirstOrDefault(u => u.Id == appUser.CustomerId);
-                    }
-                }
+                        <li class="nav-item mb-2">
+                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Testimonials") == true ? "active" : "")" data-bs-toggle="collapse" href="#testimonialsSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Testimonials") == true ? "true" : "false")" aria-controls="testimonialsSubmenu">
+                                <span><i class="bi bi-chat-right-text me-2"></i>Testimonials</span>
+                                <i class="bi bi-chevron-right toggle-arrow"></i>
+                            </a>
+                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Testimonials") == true ? "show" : "")" id="testimonialsSubmenu">
+                                <ul class="nav flex-column ms-3">
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Create" ? "active" : "")" asp-page="./Testimonials/Create"><i class="bi bi-plus-square me-2"></i>Create Testimonial</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Index" ? "active" : "")" asp-page="./Testimonials/Index"><i class="bi bi-card-list me-2"></i>View Testimonials</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Edit" ? "active" : "")" asp-page="./Testimonials/Edit"><i class="bi bi-pencil-square me-2"></i>Update Testimonial</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Delete" ? "active" : "")" asp-page="./Testimonials/Delete"><i class="bi bi-trash me-2"></i>Delete Testimonial</a></li>
+                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Details" ? "active" : "")" asp-page="./Testimonials/Details"><i class="bi bi-info-circle me-2"></i>Testimonial Details</a></li>
+                                </ul>
+                            </div>
+                        </li>
 
-                if (userProfile != null)
-                {
-                    userName = $"{userProfile.FirstName} {userProfile.LastName}";
-                }
-                else if (User.Identity?.IsAuthenticated == true)
-                {
-                    // Fallback if profile not found but user is authenticated
-                    userName = userEmail ?? User.Identity.Name;
-                }
+                        @* Notifications Menu Item *@
+    <li class="nav-item mb-2">
+        <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Admin/Notifications/NotoficationsAll" ? "active" : "")" asp-page="/Admin/Notifications/NotoficationsAll">
+            <span><i class="bi bi-bell me-2"></i>Approve Notifications</span>
+        </a>
+    </li>
+
+    @if (User.IsInRole(MichuHomesRoles.MichuAdmin))
+    {
+        <li class="nav-item mt-3">
+            <button type="button" class="btn btn-outline-primary w-50 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#createAdminModal">
+                <i class="bi bi-person-plus me-2"></i> Create Admin
+            </button>
+        </li>
+    }
+    </ul>
+    </div>
+    </aside>
+
+    <div class="sidebar-overlay d-lg-none"></div>
+
+    <main class="main-content col-lg-9 col-12 flex-grow-1">
+        @if (User.Identity.IsAuthenticated)
+        {
+            var currentUser = await userManager.GetUserAsync(User);
+            var currentUserId = currentUser?.CustomerId;
+            Customer? customerProfile = null;
+            if (currentUserId != null && currentUserId != Guid.Empty) // Ensure it's not null or empty GUID
+            {
+                customerProfile = _context.UserProfiles.FirstOrDefault(u => u.Id == currentUserId);
             }
+            var notifications = new List<RadiantHomes.Models.Notification>();
+
+            // Only try to get notifications if customerProfile is found
+            if (customerProfile?.CompanyId != null)
+            {
+                notifications = (await NotificationService.GetAllNotifications(customerProfile.CompanyId.Value)).ToList();
+            }
+
+
+            var userName = "Dear User";
+            var userEmail = User.Identity?.Name;
+
+            if (customerProfile != null)
+            {
+                userName = $"{customerProfile.FirstName} {customerProfile.LastName}";
+            }
+            else if (!string.IsNullOrEmpty(userEmail))
+            {
+                // Fallback if profile not found but user is authenticated
+                userName = userEmail;
+            }
+
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <p>Welcome, @userName</p>
+                    <p class="mb-0 fs-5 text-dark">Welcome, <span class="fw-semibold">@userName</span></p>
                 </div>
                 <div class="dropdown">
-                    <a class="btn btn-light position-relative dropdown-toggle" style="margin-left:50px" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="btn btn-light position-relative dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-bell fs-4"></i>
-                        @if (notifications.Any())
+                        @if (notifications.Any(n => !n.IsRead))
                         {
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                @notifications.Count
+                                @notifications.Count(n => !n.IsRead)
                                 <span class="visually-hidden">unread notifications</span>
                             </span>
                         }
                     </a>
 
-                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="notificationsDropdown" style="width: 300px; max-height: 400px; overflow-y: auto;">
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="notificationsDropdown" style="width: 300px; max-height: 400px; overflow-y: auto;">
                         @if (!notifications.Any())
                         {
                             <li><span class="dropdown-item text-muted">No new notifications</span></li>
                         }
                         else
                         {
-                            @foreach (var note in notifications.Take(10))
+                            @foreach (var note in notifications.OrderByDescending(n => n.CreatedAt).Take(10))
                             {
-                                <li>
+                                <li class="notification-item @(!note.IsRead ? "unread" : "")">
                                     <a class="dropdown-item" href="@note.RedirectUrl">
-                                        <strong>@note.Title</strong><br />
-                                        <small class="text-muted">@note.Message</small>
+                                        <strong class="d-block text-truncate">@note.Title</strong>
+                                        <small class="text-muted d-block text-truncate">@note.Message</small>
+                                        <small class="text-muted d-block text-end fst-italic">@note.CreatedAt.ToShortDateString()</small>
                                     </a>
                                 </li>
                             }
                             <li><hr class="dropdown-divider" /></li>
-                            @* UPDATED: Link to the new SeeAll page *@
-                            <li><a class="dropdown-item text-center" asp-page="/Admin/Notifications/NotificationsAll">View All</a></li>
+                            <li><a class="dropdown-item text-center fw-bold" asp-page="/Admin/Notifications/NotificationsAll">View All Notifications</a></li>
                         }
                     </ul>
                 </div>
             </div>
+        }
 
-            @RenderBody()
-            @if (User.IsInRole(MichuHomesRoles.MichuAdmin))
-            {
-                <div class="modal fade" id="createAdminModal" tabindex="-1" aria-labelledby="createAdminModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                        <div class="modal-content shadow">
-                            <div class="modal-header">
-                                <h5 class="modal-title text-secondary" id="createAdminModalLabel">Create Real Estate Admin Profile</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form action="/" method="post">
-                                    <p class="text-muted">Select a housing company to pre-create a profile.</p>
-                                    @{
-                                        var companies = new SelectList(_context.HousingCompanies.ToList(), "CompanyId", "Name");
-                                    }
-                                    <div class="mb-3">
-                                        <label for="companySelectAdminLayout" class="form-label fw-semibold">Housing Company</label>
-                                        <select id="companySelectAdminLayout" class="form-select">
-                                            @foreach (var company in _context.HousingCompanies.ToList())
-                                            {
-                                                <option value="@company.CompanyId">@company.Name</option>
-                                            }
-                                        </select>
-                                    </div>
+        @RenderBody()
 
-                                    <button id="createContactPersonBtnAdminLayout" type="button" class="btn btn-success w-50">
-                                        <i class="bi bi-person-plus me-2"></i> Proceed to Create Profile
-                                    </button>
+        @if (User.IsInRole(MichuHomesRoles.MichuAdmin))
+        {
+            <div class="modal fade" id="createAdminModal" tabindex="-1" aria-labelledby="createAdminModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content shadow">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createAdminModalLabel">Create Real Estate Admin Profile</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form>
+                                <p class="text-muted">Select a housing company to pre-create a profile.</p>
+                                @{
+                                    var companies = _context.HousingCompanies.ToList();
+                                }
+                                <div class="mb-3">
+                                    <label for="companySelectAdminLayout" class="form-label fw-semibold">Housing Company</label>
+                                    <select id="companySelectAdminLayout" class="form-select">
+                                        <option value="">-- Select a Company --</option>
+                                        @foreach (var company in companies)
+                                        {
+                                            <option value="@company.CompanyId">@company.Name</option>
+                                        }
+                                    </select>
+                                </div>
 
-                                    @{
-                                        var curUser = await userManager.GetUserAsync(User);
-                                        var curUserId = currentUser?.Id;
-                                    }
-                                    <input type="hidden" id="UserId" value="@curUserId" />
-                                </form>
-                            </div>
+                                <button id="createContactPersonBtnAdminLayout" type="button" class="btn btn-primary w-100">
+                                    <i class="bi bi-person-plus me-2"></i> Proceed to Create Profile
+                                </button>
+
+                                @{
+                                    var curUser = await userManager.GetUserAsync(User);
+                                    var curUserId = curUser?.Id;
+                                }
+                                <input type="hidden" id="UserId" value="@curUserId" />
+                            </form>
                         </div>
                     </div>
                 </div>
-            }
-
-        </main>
+            </div>
+        }
+    </main>
+    </div>
     </div>
 
-    <footer class="bg-body-tertiary text-dark py-5 mt-auto">
+    <footer class="text-dark py-5">
         <div class="container">
             <div class="row gy-4">
                 <div class="col-md-3">
                     <a class="navbar-brand" asp-page="/Index">
-                        <i class="fa-solid fa-house-signal"></i> MICHU<sup><span style="color: brown;">HOMES</span></sup>
+                        <i class="fa-solid fa-house-signal text-primary"></i> MICHU<sup><span class="text-brown">HOMES</span></sup>
                     </a>
                     <p class="text-dark fst-italic small mt-2">
                         A trusted Ethiopian Housing Platform where your next home awaits.
@@ -318,27 +528,27 @@
                     <h5 class="text-secondary fw-semibold mb-3">Quick Links</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2">
-                            <a href="/" class="text-dark text-decoration-none d-flex align-items-center">
+                            <a href="/" class="text-decoration-none d-flex align-items-center">
                                 <i class="bi bi-house-door-fill me-2"></i> <span class="fs-6">Home</span>
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="/houses/sale" class="text-dark text-decoration-none d-flex align-items-center">
-                                <i class="bi bi-cash-stack me-2"></i> <span class="fs-6">Houses for Sale</span>
+                            <a href="/ApartmentHouses" class="text-decoration-none d-flex align-items-center">
+                                <i class="bi bi-cash-stack me-2"></i> <span class="fs-6">Apartments</span>
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="/houses/rent" class="text-dark text-decoration-none d-flex align-items-center">
-                                <i class="bi bi-key-fill me-2"></i> <span class="fs-6">Houses for Rent</span>
+                            <a href="/RealEstates" class="text-decoration-none d-flex align-items-center">
+                                <i class="bi bi-key-fill me-2"></i> <span class="fs-6">Real Estates</span>
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="/about" class="text-dark text-decoration-none d-flex align-items-center">
+                            <a href="/About" class="text-decoration-none d-flex align-items-center">
                                 <i class="bi bi-info-circle-fill me-2"></i> <span class="fs-6">About Us</span>
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="/contact" class="text-dark text-decoration-none d-flex align-items-center">
+                            <a href="/Contact" class="text-decoration-none d-flex align-items-center">
                                 <i class="bi bi-envelope-fill me-2"></i> <span class="fs-6">Contact</span>
                             </a>
                         </li>
@@ -369,7 +579,7 @@
                         <div class="mb-2">
                             <input type="email" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="Your email address">
                         </div>
-                        <button type="submit" class="btn btn-dark btn-sm w-100">Subscribe</button>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Subscribe</button>
                     </form>
 
                     <div class="mt-3">
@@ -384,93 +594,117 @@
                 </div>
             </div>
 
-            <hr class="my-4 bg-secondary text-white">
+            <hr class="my-4 bg-secondary">
             <div class="text-center text-muted small text-dark">
-                <p class="text-dark">&copy; 2025 <strong>MICHUHOMES</strong>. All rights reserved.</p>
+                <p>&copy; 2025 <strong>MICHUHOMES</strong>. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js" integrity="sha256-r0NPY2Gq/6hE9x2V5y0r5P2U/XmFm8W+O19T5JpXoY=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js" integrity="sha256-fXU34C4S6bV3R42Jm5b/h6jE+C6d3G1S9Z0m3X/t18=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="~/lib/swiper/swiper-bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
 
     @RenderSection("Scripts", required: false)
+    @await Html.PartialAsync("_LoginModal")
 
     <script>
-        // Sidebar collapse arrow rotation
         document.addEventListener('DOMContentLoaded', function () {
-        var collapses = document.querySelectorAll('.sidebar [data-bs-toggle="collapse"]');
+            // Sidebar collapse arrow rotation
+            var collapses = document.querySelectorAll('.sidebar [data-bs-toggle="collapse"]');
 
-        collapses.forEach(function (toggle) {
-        var arrowIcon = toggle.querySelector('.toggle-arrow');
-        var targetId = toggle.getAttribute('href') || toggle.getAttribute('data-bs-target');
-        var collapseTarget = document.querySelector(targetId);
+            collapses.forEach(function (toggle) {
+                var arrowIcon = toggle.querySelector('.toggle-arrow');
+                var targetId = toggle.getAttribute('href') || toggle.getAttribute('data-bs-target');
+                var collapseTarget = document.querySelector(targetId);
 
-        if (collapseTarget) {
-        // Initial state check for 'show' class
-        if (collapseTarget.classList.contains('show')) {
-        if (arrowIcon) {
-        arrowIcon.classList.remove('bi-chevron-right');
-        arrowIcon.classList.add('bi-chevron-down');
-        }
-        }
+                if (collapseTarget) {
+                    // Initial state check for 'show' class
+                    if (collapseTarget.classList.contains('show')) {
+                        if (arrowIcon) {
+                            arrowIcon.classList.remove('bi-chevron-right');
+                            arrowIcon.classList.add('bi-chevron-down');
+                            arrowIcon.style.transform = 'rotate(90deg)'; // Ensure initial rotation
+                        }
+                    }
 
-        collapseTarget.addEventListener('show.bs.collapse', function () {
-        if (arrowIcon) {
-        arrowIcon.classList.remove('bi-chevron-right');
-        arrowIcon.classList.add('bi-chevron-down');
-        }
-        });
-
-        collapseTarget.addEventListener('hide.bs.collapse', function () {
-        if (arrowIcon) {
-        arrowIcon.classList.remove('bi-chevron-down');
-        arrowIcon.classList.add('bi-chevron-right');
-        }
-        });
-        }
-        });
-
-        // Dinar Admin Company Selection Logic
-        const createContactPersonBtnAdminLayout = document.getElementById('createContactPersonBtnAdminLayout');
-        const companySelectAdminLayout = document.getElementById('companySelectAdminLayout');
-
-        // Only run if the elements exist (i.e., user is Dinar Admin)
-        if (createContactPersonBtnAdminLayout && companySelectAdminLayout) {
-            createContactPersonBtnAdminLayout.addEventListener('click', function () {
-                const companyId = companySelectAdminLayout.value;
-
-                if (!companyId) {
-                    // Using SweetAlert2 for a modern and user-friendly alert
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Selection Required',
-                        text: 'Please select a housing company to proceed.',
-                        confirmButtonText: 'OK',
-                        customClass: {
-                            confirmButton: 'btn btn-primary' // Apply Bootstrap styling to SweetAlert button
-                        },
-                        buttonsStyling: false // Disable SweetAlert's default button styling
+                    collapseTarget.addEventListener('show.bs.collapse', function () {
+                        if (arrowIcon) {
+                            arrowIcon.classList.remove('bi-chevron-right');
+                            arrowIcon.classList.add('bi-chevron-down');
+                            arrowIcon.style.transform = 'rotate(90deg)';
+                        }
                     });
-                    return;
+
+                    collapseTarget.addEventListener('hide.bs.collapse', function () {
+                        if (arrowIcon) {
+                            arrowIcon.classList.remove('bi-chevron-down');
+                            arrowIcon.classList.add('bi-chevron-right');
+                            arrowIcon.style.transform = 'rotate(0deg)';
+                        }
+                    });
                 }
-
-                // Moved getUserId outside the nested function for proper scope
-                const UserId = document.getElementById('UserId').value;
-
-                // Construct the URL for the HouseOwner/Create page using query parameters
-                // These parameters (ProposedContactPersonId and TargetCompanyId) will be read by the CreateModel.
-                const redirectUrl = `/HouseOwner/Create?ProposedContactPersonId=${UserId}&TargetCompanyId=${companyId}`;
-
-                // Redirect the browser to the Create Profile page
-                window.location.href = redirectUrl;
             });
-        }
+
+            // Toggle sidebar for small screens
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggle = document.querySelector('.sidebar-header .btn-outline-secondary');
+            const sidebarNav = document.getElementById('sidebarNav');
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+
+            if (sidebarToggle && sidebarNav && sidebarOverlay) {
+                sidebarNav.addEventListener('show.bs.collapse', function () {
+                    sidebar.classList.add('show');
+                    sidebarOverlay.style.display = 'block';
+                });
+
+                sidebarNav.addEventListener('hide.bs.collapse', function () {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.style.display = 'none';
+                });
+
+                sidebarOverlay.addEventListener('click', function () {
+                    if (sidebarNav.classList.contains('show')) {
+                        new bootstrap.Collapse(sidebarNav).hide();
+                    }
+                });
+            }
+
+
+            // Dinar Admin Company Selection Logic
+            const createContactPersonBtnAdminLayout = document.getElementById('createContactPersonBtnAdminLayout');
+            const companySelectAdminLayout = document.getElementById('companySelectAdminLayout');
+
+            if (createContactPersonBtnAdminLayout && companySelectAdminLayout) {
+                createContactPersonBtnAdminLayout.addEventListener('click', function () {
+                    const companyId = companySelectAdminLayout.value;
+
+                    if (!companyId) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Selection Required',
+                            text: 'Please select a housing company to proceed.',
+                            confirmButtonText: 'OK',
+                            customClass: {
+                                confirmButton: 'btn btn-primary'
+                            },
+                            buttonsStyling: false
+                        });
+                        return;
+                    }
+
+                    const UserId = document.getElementById('UserId').value;
+                    const redirectUrl = `/HouseOwner/Create?ProposedContactPersonId=${UserId}&TargetCompanyId=${companyId}`;
+                    window.location.href = redirectUrl;
+                });
+            }
         });
     </script>
-</body>
+    </body>
 </html>

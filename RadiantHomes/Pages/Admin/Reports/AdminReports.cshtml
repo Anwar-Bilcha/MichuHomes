@@ -1,0 +1,519 @@
+﻿@page
+@model RadiantHomes.Pages.Admin.Reports.AdminReportsModel
+@{
+    Layout = "~/Pages/Shared/_DashboardAdminLayout.cshtml";
+    ViewData["Title"] = "Admin Reports";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container-fluid {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        h1 {
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.85rem;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background-color: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            color: #495057;
+            font-weight: 600;
+            padding: 1.5rem 2rem;
+            border-top-left-radius: 0.85rem;
+            border-top-right-radius: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 1.15rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 0.6rem;
+            display: block;
+            font-size: 0.95rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.6rem;
+            padding: 0.8rem 1.2rem;
+            border: 1px solid #ced4da;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #66b5ff;
+            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.2);
+            outline: none;
+        }
+
+        .btn {
+            border-radius: 0.6rem;
+            padding: 0.85rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+            box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-outline-primary {
+            color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-outline-primary:hover {
+            background-color: #007bff;
+            color: #fff;
+            box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-outline-success {
+            color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-outline-success:hover {
+            background-color: #28a745;
+            color: #fff;
+            box-shadow: 0 3px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .table-responsive {
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+            border: 1px solid #e9ecef;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: #e2e6ea;
+            color: #343a40;
+            font-weight: 700;
+            border-bottom: 2px solid #dee2e6;
+            padding: 1.15rem 1.5rem;
+            white-space: nowrap;
+            text-align: left;
+            vertical-align: bottom;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f0f3f6;
+        }
+
+        .table tbody td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            white-space: nowrap;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        #dateRangeFields .form-group {
+            margin-bottom: 0;
+        }
+
+        .card-footer {
+            background-color: #fdfdfd;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 1.5rem 2rem;
+            border-bottom-left-radius: 0.85rem;
+            border-bottom-right-radius: 0.85rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            border-radius: 0.6rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+        }
+
+        @@media (max-width: 767.98px) {
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 1.5rem;
+            }
+            .card-header {
+                font-size: 1rem;
+                padding: 1rem 1.25rem;
+            }
+            .card-body {
+                padding: 1.25rem;
+            }
+            .card-footer {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 1.25rem;
+                gap: 0.75rem;
+            }
+            .btn {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+            #dateRangeFields .form-group {
+                margin-bottom: 1rem;
+            }
+        }
+
+        @@media (min-width: 768px) and (max-width: 991.98px) {
+            .card-body {
+                padding: 1.5rem;
+            }
+            .card-header {
+                padding: 1.25rem 1.75rem;
+            }
+            .card-footer {
+                padding: 1.25rem 1.75rem;
+            }
+        }
+    </style>
+}
+
+<div class="container-fluid">
+    <h1 class="text-center display-4 mb-5">Reports Dashboard</h1>
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card mb-5 shadow-lg">
+        <div class="card-header">
+            <i class="fas fa-chart-line"></i> Generate Reports
+        </div>
+        <div class="card-body">
+            <form method="post" id="reportForm" class="d-flex flex-column gap-4">
+                <div class="form-group">
+                    <label for="reportType" class="form-label">Select Report Type:</label>
+                    <select class="form-select" id="reportType" name="ReportType" onchange="toggleDatePickers()" asp-for="ReportType">
+                        <option value="">-- Select a Report --</option>
+                        <option value="ApartmentHouseSaleTransactions">Apartment/House Sale Transactions</option>
+                        <option value="AllApartmentHouses">All Apartment Houses</option>
+                        <option value="AllCustomers">All Customers</option>
+                        <option value="AllUsers">All Users (Agents)</option>
+                        <option value="HousingCompanies">Housing Companies</option>
+                        <option value="SoldHousesByDateRange">Sold Houses (by Date Range)</option>
+                    </select>  <span asp-validation-for="ReportType" class="text-danger"></span>
+                </div>
+
+                <div id="dateRangeFields" class="mt-3" style="display: @(Model.ReportType == "SoldHousesByDateRange" ? "block" : "none");">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="startDate" class="form-label">Start Date:</label>
+                                <input type="date" class="form-control" id="startDate" name="StartDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))">
+                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="endDate" class="form-label">End Date:</label>
+                                <input type="date" class="form-control" id="endDate" name="EndDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))">
+                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-play"></i> Generate Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.HouseReportData != null && Model.ReportType != null && (Model.ReportType == "AllApartmentHouses" || Model.ReportType == "SoldHousesByDateRange"))
+    {
+        <div class="card mb-5 shadow">
+            <div class="card-header">
+                <i class="fas fa-building"></i> Report Results: All Apartment Houses
+            </div>
+            <div class="card-body">
+                @if (Model.HouseReportData.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>House</th>
+                                    <th>Bed Rooms</th>
+                                    <th>Sale Price</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.HouseReportData)
+                                {
+                                    <tr>
+                                        <td>@item.Title</td>
+                                        <td>@item.Bedrooms</td>
+                                        <td>@item.SalePrice.ToString("C")</td>
+                                        <td>@item.Status</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center py-4">No data available for the selected report.</p>
+                }
+            </div>
+            @if (Model.HouseReportData.Any())
+            {
+                <div class="card-footer">
+                    <a asp-page-handler="DownloadApartmentHousePdf" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                    </a>
+                    <a asp-page-handler="DownloadApartmentHouseExcel" class="btn btn-outline-success">
+                        <i class="bi bi-file-earmark-excel"></i> Download Excel
+                    </a>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.HouseSoldTransactions != null && Model.ReportType == "ApartmentHouseSaleTransactions")
+    {
+        <div class="card mb-5 shadow">
+            <div class="card-header">
+                <i class="fas fa-handshake"></i> Report Results: Apartment/House Sale Transactions
+            </div>
+            <div class="card-body">
+                @if (Model.HouseSoldTransactions.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Transaction Date</th>
+                                    <th>Apartment/House ID</th>
+                                    <th>Customer ID</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.HouseSoldTransactions)
+                                {
+                                    <tr>
+                                        <td>@item.TransactionDate.ToShortDateString()</td>
+                                        <td>@item.ApartmentHouseId</td>
+                                        <td>@item.CustomerId</td>
+                                        <td>@item.Notes</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center py-4">No data available for the selected report.</p>
+                }
+            </div>
+            @if (Model.HouseSoldTransactions.Any())
+            {
+                <div class="card-footer">
+                    <a asp-page-handler="DownloadHouseSoldPdf" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                    </a>
+                    <a asp-page-handler="DownloadHouseSoldExcel" class="btn btn-outline-success">
+                        <i class="bi bi-file-earmark-excel"></i> Download Excel
+                    </a>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.RealEstatesRegistered != null && Model.ReportType == "HousingCompanies")
+    {
+        <div class="card mb-5 shadow">
+            <div class="card-header">
+                <i class="fas fa-city"></i> Report Results: Housing Companies
+            </div>
+            <div class="card-body">
+                @if (Model.RealEstatesRegistered.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Real Estate Name</th>
+                                    <th>Total Houses</th>
+                                    <th>Website</th>
+                                    <th>Address ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.RealEstatesRegistered)
+                                {
+                                    <tr>
+                                        <td>@item.Name</td>
+                                        <td>600</td>
+                                        <td>@item.Website</td>
+                                        <td>@item.AddressId</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center py-4">No data available for the selected report.</p>
+                }
+            </div>
+            @if (Model.RealEstatesRegistered.Any())
+            {
+                <div class="card-footer">
+                    <a asp-page-handler="DownloadHousingCompaniesPdf" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                    </a>
+                    <a asp-page-handler="DownloadHousingCompaniesExcel" class="btn btn-outline-success">
+                        <i class="bi bi-file-earmark-excel"></i> Download Excel
+                    </a>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.UsersReportData != null && Model.ReportType == "AllCustomers")
+    {
+        <div class="card mb-5 shadow">
+            <div class="card-header">
+                <i class="fas fa-users"></i> Report Results: All Customers
+            </div>
+            <div class="card-body">
+                @if (Model.UsersReportData.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Registration Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.UsersReportData)
+                                {
+                                    <tr>
+                                        <td>@item.FirstName</td>
+                                        <td>@item.LastName</td>
+                                        <td>@item.Email</td>
+                                        <td>@item.PhoneNumber</td>
+                                        <td>@item.ApplicationDate.ToShortDateString()</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center py-4">No data available for the selected report.</p>
+                }
+            </div>
+            @if (Model.UsersReportData.Any())
+            {
+                <div class="card-footer">
+                    <a asp-page-handler="DownloadAllCustomersPdf" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                    </a>
+                    <a asp-page-handler="DownloadAllCustomersExcel" class="btn btn-outline-success">
+                        <i class="bi bi-file-earmark-excel"></i> Download Excel
+                    </a>
+                </div>
+            }
+        </div>
+    }
+
+</div>
+
+@section Scripts {
+    <script>
+        function toggleDatePickers() {
+            var reportType = document.getElementById('reportType').value;
+            var dateRangeFields = document.getElementById('dateRangeFields');
+
+            if (reportType === 'SoldHousesByDateRange') {
+                dateRangeFields.style.display = 'block';
+                document.getElementById('startDate').setAttribute('required', 'required');
+                document.getElementById('endDate').setAttribute('required', 'required');
+            } else {
+                dateRangeFields.style.display = 'none';
+                document.getElementById('startDate').removeAttribute('required');
+                document.getElementById('endDate').removeAttribute('required');
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleDatePickers();
+        });
+    </script>
+}

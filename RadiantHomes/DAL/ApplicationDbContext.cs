@@ -9,6 +9,7 @@ namespace RadiantHomes.DAL
     public class ApplicationDbContext : IdentityDbContext
     {
         public DbSet<HousePerFloor> HousePerFloors { get; set; }
+        public DbSet<Subscriber> Subscriptions { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
         public DbSet<UILocalization> Translations { get; set; }
         public DbSet<Customer> UserProfiles { get; set; }
@@ -49,6 +50,12 @@ namespace RadiantHomes.DAL
             // Keys
             builder.Entity<ApartmentHouse>().HasKey(a => a.Id);
             builder.Entity<ApartmentHouse>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
+
+            builder.Entity<Subscriber>().HasKey(a => a.Id);
+            builder.Entity<Subscriber>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
+
+
+
             builder.Entity<HousePerFloor>().HasKey(a => a.Id);
             builder.Entity<HousePerFloor>().Property(a => a.Id).ValueGeneratedOnAdd();
 

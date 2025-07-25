@@ -3,189 +3,27 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - RadiantHomes</title>
+    <title>@ViewData["Title"] - MichuHomes</title> @* Changed "RadiantHomes" to "MichuHomes" for consistency *@
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://unpkg.com">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Roboto:wght@400;500;700&family=Poppins:wght@700&family=Noto+Sans+Ethiopic:wght@600;700&family=Inter:wght@200&display=swap" rel="stylesheet">
-
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="~/manifest.json">
     <meta name="theme-color" content="#1e3a8a">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    @* Local CSS Files - Bundling and Minification should be handled by ASP.NET Core for production *@
+    <link rel="stylesheet" href="~/css/bootstrap.min.css" asp-append-version="true" /> @* Added asp-append-version *@
+    <link rel="stylesheet" href="~/css/all.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/bootstrap-icons.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/swiper-bundle.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/loader.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
-    <link rel="stylesheet" href="~/css/loader.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <style>
-        /* Define CSS Variables for consistent branding */
-        :root {
-            --primary-color: #007bff; /* Bootstrap primary blue */
-            --secondary-color: #6c757d; /* Bootstrap secondary gray */
-            --brand-color-michu: #f0ad4e; /* Brown for MICHU part */
-            --text-color-light: #f8f9fa; /* For text on dark backgrounds */
-            --text-color-dark: #343a40; /* For text on light backgrounds */
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif; /* Fallback fonts */
-        }
-
-        /* Navbar Customization */
-        .navbar-brand .fa-house-signal {
-            color: var(--primary-color);
-        }
-
-        .navbar-brand sup span {
-            color: var(--brand-color-michu); /* Apply brown color via CSS */
-        }
-
-        .navbar-nav .nav-link {
-            font-weight: 500;
-            color: var(--text-color-dark) !important;
-            transition: color 0.3s ease-in-out;
-        }
-
-            .navbar-nav .nav-link:hover {
-                color: var(--primary-color) !important;
-            }
-
-        /* Language Selector Styling */
-        .language-selector {
-            border-radius: 0.25rem;
-            margin-right: 1rem;
-            border: 1px solid var(--secondary-color);
-            background-color: var(--text-color-light); /* Light background for selector */
-            color: var(--text-color-dark);
-            padding: 0.375rem 0.75rem; /* Standard Bootstrap input padding */
-        }
-
-            .language-selector:focus {
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
-            }
-
-        /* Footer Styling */
-        footer {
-            background-color: var(--text-color-light) !important; /* Ensure light background for footer */
-            color: var(--text-color-dark) !important; /* Dark text for footer */
-        }
-
-            footer .navbar-brand .fa-house-signal {
-                color: var(--primary-color);
-            }
-
-            footer .navbar-brand sup span {
-                color: var(--brand-color-michu);
-            }
-
-            footer .text-secondary {
-                color: var(--secondary-color) !important;
-            }
-
-            footer .list-unstyled a {
-                color: var(--text-color-dark) !important;
-                transition: color 0.3s ease-in-out;
-            }
-
-                footer .list-unstyled a:hover {
-                    color: var(--primary-color) !important;
-                    text-decoration: underline !important;
-                }
-
-            /* Fix for contact info icons in footer */
-            footer .list-unstyled .bi {
-                color: var(--primary-color) !important; /* Make icons visible */
-                font-size: 1.2rem; /* Adjust icon size if needed */
-            }
-
-            footer .form-control.bg-dark {
-                background-color: var(--text-color-dark) !important; /* Darker background for input */
-                border-color: var(--secondary-color) !important;
-                color: var(--text-color-light) !important;
-            }
-
-            footer .btn-dark {
-                background-color: var(--primary-color) !important;
-                border-color: var(--primary-color) !important;
-                color: var(--text-color-light) !important;
-            }
-
-                footer .btn-dark:hover {
-                    opacity: 0.9;
-                }
-
-        /* Loader Styling (moved from inline) */
-        #pageLoader {
-            display: none; /* Controlled by JS */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.7); /* Slightly more opaque */
-            z-index: 9999;
-            display: flex; /* Use flexbox for centering */
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Optional: Add a class for scrolled body */
-        body.scrolled .navbar {
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        /* Hover underline for quick links */
-        .hover-underline:hover {
-            text-decoration: underline !important;
-        }
-
-        /* Responsive adjustments for overall layout */
-        @@media (max-width: 991.98px) { /* Bootstrap's lg breakpoint */
-            .navbar-collapse
-
-        {
-            background-color: white; /* Ensure menu is readable on small screens */
-            border-top: 1px solid #eee;
-            padding: 1rem;
-        }
-
-        .navbar-nav {
-            margin-bottom: 1rem;
-        }
-
-        .language-selector {
-            margin-right: 0;
-            margin-bottom: 1rem;
-        }
-
-        .d-flex.align-items-center {
-            flex-direction: column;
-            align-items: flex-start !important; /* Align items to start for better stacking */
-        }
-
-            .d-flex.align-items-center > * {
-                width: 100%; /* Make login button and selector full width */
-                margin-bottom: 0.5rem;
-            }
-
-        }
-    </style>
-
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
 <body>
-    <div id="pageLoader">
+    @* Page Loader *@
+    <div id="pageLoader" class="d-flex justify-content-center align-items-center vh-100 position-fixed w-100 top-0 start-0 bg-white bg-opacity-75 z-index-loader">
+        @* Added classes for centering and initial hide *@
         <div class="dot-loader">
             <div></div>
             <div></div>
@@ -193,52 +31,56 @@
         </div>
     </div>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+    @* Navbar *@
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success text-white semi-bold fixed-top shadow-sm py-3">
         <div class="container">
-            <a class="navbar-brand" asp-page="/Index" aria-label="Michu Homes Home">
-                <i class="fa-solid fa-house-signal"></i> MICHU<sup><span>HOMES</span></sup>
+            <a class="navbar-brand d-flex align-items-center me-auto" asp-page="/Index" aria-label="Michu Homes Home">
+                <i class="fa-solid fa-house-signal text-white fs-3 me-2"></i>
+                <span class="fs-4 fw-bolder text-white">MICHU<sup class="ms-1"><span class="text-secondary-light">HOMES</span></sup></span>
             </a>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+                <span class="navbar-toggler-icon text-white-emphasis"></span>
             </button>
 
-            <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" asp-page="/Index" data-translate="homePage">Home</a>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNavDropdown">
+                <ul class="navbar-nav align-items-center text-white mb-2 mb-lg-0">
+                    <li class="nav-item me-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Index" ? "active-link" : "")" aria-current="page" asp-page="/Index" data-translate="homePage">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-page="/HouseOwner/Create" data-translate="registerPage">Create Account</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/HouseOwner/Create" ? "active-link" : "")" asp-page="/HouseOwner/Create" data-translate="registerPage">Create Account</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/ApartmentHouses/" data-translate="apartmentsPage">Apartments</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Index" ? "active-link" : "")" asp-page="/ApartmentHouses/Index" data-translate="apartmentsPage">Apartments</a> @* Changed href to asp-page *@
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/RealEstates/" data-translate="realEstatePage">Real Estates</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/RealEstates/Index" ? "active-link" : "")" asp-page="/RealEstates/Index" data-translate="realEstatePage">Real Estates</a> @* Changed href to asp-page *@
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Contact" data-translate="contactPage">Contact</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Index" ? "active-link" : "")" asp-page="/Projects/Index" data-translate="ProjectsPage">Projects</a> @* Changed href to asp-page *@
+                    </li>
+                    <li class="nav-item d-flex align-items-center mt-2 mt-lg-0">
+                        <select class="form-select language-selector me-2" onchange="loadLanguage(this.value)" aria-label="Language Selector">
+                            <option value="en">English</option>
+                            <option value="am">አማርኛ</option>
+                            <option value="or">Afaan Oromoo</option>
+                            <option value="tg">ትግርኛ</option>
+                        </select>
+
+                        @if (User.Identity is not null && User.Identity.IsAuthenticated) @* Added null check for User.Identity *@
+                        {
+                            @await Html.PartialAsync("_LoginPartial") @* Removed .cshtml extension, it's convention *@
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#loginModal" aria-label="Login">
+                                @* Added aria-label *@
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </button>
+                        }
                     </li>
                 </ul>
-
-                <div class="d-flex align-items-center">
-                    <select class="form-select language-selector" onchange="loadLanguage(this.value)" aria-label="Language Selector">
-                        <option value="en">English</option>
-                        <option value="am">አማርኛ</option>
-                        <option value="or">Afaan Oromoo</option>
-                        <option value="tg">ትግርኛ</option>
-                    </select>
-                    @if (User.Identity.IsAuthenticated)
-                    {
-                        @await Html.PartialAsync("_LoginPartial.cshtml")
-                    }
-                    else
-                    {
-                        <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
-                            Login
-                        </button>
-                    }
-                </div>
             </div>
         </div>
     </nav>
@@ -247,7 +89,7 @@
         @RenderBody()
     </main>
 
-    <footer class="text-dark py-5">
+    <footer class="bg-success text-dark py-5">
         <div class="container">
             <div class="row gy-4">
                 <div class="col-md-3">
@@ -263,27 +105,32 @@
                     <h5 class="text-secondary fw-semibold mb-3">Quick Links</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2">
-                            <a href="/" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                            <a asp-page="/Index" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                                @* Changed href to asp-page *@
                                 <i class="bi bi-house-door-fill me-2"></i> <span class="fs-6">Home</span>
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="/houses/sale" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                            <a asp-page="/Houses/Sale" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                                @* Changed href to asp-page, assuming /Houses/Sale exists *@
                                 <i class="bi bi-cash-stack me-2"></i> <span class="fs-6">Houses for Sale</span>
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="/houses/rent" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                            <a asp-page="/Houses/Rent" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                                @* Changed href to asp-page, assuming /Houses/Rent exists *@
                                 <i class="bi bi-key-fill me-2"></i> <span class="fs-6">Houses for Rent</span>
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="/about" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                            <a asp-page="/About" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                                @* Changed href to asp-page *@
                                 <i class="bi bi-info-circle-fill me-2"></i> <span class="fs-6">About Us</span>
                             </a>
                         </li>
                         <li class="mb-2">
-                            <a href="/contact" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                            <a asp-page="/Contact" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
+                                @* Changed href to asp-page *@
                                 <i class="bi bi-envelope-fill me-2"></i> <span class="fs-6">Contact</span>
                             </a>
                         </li>
@@ -310,9 +157,11 @@
 
                 <div class="col-md-3">
                     <h5 class="text-secondary fw-semibold mb-3">Subscribe</h5>
-                    <form>
+                    @* Assuming the subscription form will post to the current page handler or a specific one *@
+                    <form asp-page-handler="SubscribeUser" method="post">
+                        @* Added method="post" for forms *@
                         <div class="mb-2">
-                            <input type="email" class="form-control form-control-sm" placeholder="Your email address" aria-label="Email for subscription">
+                            <input type="email" name="Email" class="form-control form-control-sm" placeholder="Your email address" aria-label="Email for subscription" required> @* Added name and required attributes *@
                         </div>
                         <button type="submit" class="btn btn-primary btn-sm w-100">Subscribe</button>
                     </form>
@@ -329,35 +178,38 @@
                 </div>
             </div>
 
-            <hr class="my-4"> <div class="text-center text-muted small text-dark">
-                <p>&copy; 2025 <strong>MICHUHOMES</strong>. All rights reserved.</p>
+            <hr class="my-4">
+            <div class="text-center text-muted small text-dark">
+                <p>&copy; @DateTime.Now.Year <strong>MICHUHOMES</strong>. All rights reserved.</p> @* Dynamically get current year *@
             </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    @* Local JavaScript Files - Order matters! *@
+    <script src="~/js/jquery-3.6.0.min.js" asp-append-version="true"></script>
+    <script src="~/js/jquery.validate.min.js" asp-append-version="true"></script>
+    <script src="~/js/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script>
+    <script src="~/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/swiper-bundle.min.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" crossorigin="anonymous"></script> @* Added crossorigin *@
+    <script src="~/js/site.js" asp-append-version="true"></script>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
-    <script type="module" src="https://unpkg.com/@@google/model-viewer/dist/model-viewer.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script src="@Url.Content("~/js/core.min.js")"></script>
-
+    @* Language Loading Script *@
     <script type="text/javascript">
         function loadLanguage(language) {
             localStorage.setItem('selectedLanguage', language);
             fetch(`/locales/${language}.json`)
                 .then(response => {
                     if (!response.ok) {
-                        // Fallback to English if specified language file not found
                         console.warn(`Language file for '${language}' not found, falling back to English.`);
-                        return fetch(`/locales/en.json`);
+                        // Fallback to English if specific language file not found
+                        return fetch(`/locales/en.json`)
+                            .then(enResponse => {
+                                if (!enResponse.ok) {
+                                    throw new Error('English language file not found.'); // Critical error if even English fails
+                                }
+                                return enResponse.json();
+                            });
                     }
                     return response.json();
                 })
@@ -371,26 +223,31 @@
                         }
                     }
                 })
-                .catch(error => console.error("Error loading language file:", error));
+                .catch(error => {
+                    console.error("Error loading language file:", error);
+                    // Optionally display a user-friendly message
+                    // alert("There was an error loading language settings. Please try again.");
+                });
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            let userLang = localStorage.getItem('selectedLanguage') || navigator.language.slice(0, 2);
-            // Ensure the language selector defaults to the actual current culture of the application if possible
-            // or to the user's preferred language.
             const currentCulture = "@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName";
             const selector = document.querySelector('.language-selector');
 
             if (selector) {
-                // If there's a stored language, use it. Otherwise, use the server's current culture.
-                selector.value = localStorage.getItem('selectedLanguage') || currentCulture;
-                loadLanguage(selector.value); // Load initial language based on selector value
+                // Prioritize localStorage, then currentCulture, then navigator.language
+                const storedLanguage = localStorage.getItem('selectedLanguage');
+                const effectiveLanguage = storedLanguage || currentCulture || navigator.language.slice(0, 2);
+                selector.value = effectiveLanguage;
+                loadLanguage(effectiveLanguage);
             } else {
-                 loadLanguage(userLang); // If no selector, just load based on userLang
+                // If no selector, still attempt to load language based on preferences
+                loadLanguage(localStorage.getItem('selectedLanguage') || navigator.language.slice(0, 2));
             }
         });
     </script>
 
+    @* Tawk.to Live Chat Script *@
     <script type="text/javascript">
         var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
         (function () {
@@ -403,58 +260,83 @@
         })();
     </script>
 
+    @* Navbar Scroll Effect Script *@
     <script>
-        // This script is for adding a class 'scrolled' to the body.
-        // You can use this class in your CSS to change navbar appearance on scroll.
-        window.onscroll = function () {
+        document.addEventListener('DOMContentLoaded', function () { // Use DOMContentLoaded for consistency
             const navbar = document.querySelector('.navbar');
             if (navbar) {
-                if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-                    navbar.classList.add('scrolled'); // Add scrolled class to navbar itself
-                } else {
-                    navbar.classList.remove('scrolled');
-                }
+                window.addEventListener('scroll', function () { // Add event listener
+                    if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+                        navbar.classList.add('scrolled');
+                    } else {
+                        navbar.classList.remove('scrolled');
+                    }
+                });
             }
-        };
+        });
     </script>
 
+    @* Service Worker Registration *@
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(reg => console.log('Service Worker registered ✅'))
-                .catch(err => console.error('Service Worker registration failed:', err));
+            window.addEventListener('load', () => { // Register after page load
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('Service Worker registered ✅', reg.scope))
+                    .catch(err => console.error('Service Worker registration failed:', err));
+            });
         }
     </script>
 
+    @* Page Loader Logic *@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const loader = document.getElementById('pageLoader');
-            document.body.addEventListener('click', function (e) {
-                // Check if the clicked element or its ancestor is a link or submit button
-                // And if it's not excluded by 'data-no-loader' attribute or targeting an internal anchor link
-                const target = e.target.closest('a, button[type="submit"]');
-                const isInternalAnchor = target && target.tagName === 'A' && target.getAttribute('href') && target.getAttribute('href').startsWith('#');
 
-                if (target && !target.hasAttribute('data-no-loader') && !isInternalAnchor) {
+            // On initial page load (or after any full navigation), hide the loader
+            // by adding the 'page-loader-hidden' class.
+            if (loader) {
+                loader.classList.add('page-loader-hidden');
+
+                // Optional: Remove the loader from the DOM completely after transition
+                // if you don't need it visible but hidden for accessibility or other reasons.
+                // Be careful with this, as you'd need to re-add it if you plan to show it again.
+                loader.addEventListener('transitionend', function() {
+                     if (loader.classList.contains('page-loader-hidden')) {
+                         loader.style.display = 'none'; // Completely hide after fade out
+                     }
+                }, { once: true }); // Listener fires only once
+            }
+
+            // Show loader on navigation or form submission
+            document.body.addEventListener('click', function (e) {
+                const target = e.target.closest('a:not([data-no-loader]):not([href^="#"]), button[type="submit"]:not([data-no-loader])');
+
+                if (target) {
                     if (loader) {
-                        loader.style.display = 'flex'; // Show loader
+                        loader.style.display = 'flex'; // Make it visible again instantly for the next load
+                        loader.classList.remove('page-loader-hidden'); // Show loader for new navigation
                     }
                 }
             });
 
-            // Hide loader when page is fully loaded (good for initial page load)
-            window.addEventListener('load', function() {
-                if (loader) {
-                    loader.style.display = 'none';
+            // Handle browser's back/forward navigation (pageshow event)
+            // Ensure the loader is hidden if the page is loaded from cache.
+            window.addEventListener('pageshow', function (event) {
+                if (event.persisted) { // Check if the page is loaded from bfcache
+                    if (loader) {
+                        loader.classList.add('page-loader-hidden');
+                        loader.style.display = 'none'; // Ensure it's fully hidden
+                    }
                 }
             });
         });
     </script>
 
+    @* Login Modal ReturnUrl Logic *@
     <script>
         const loginModal = document.getElementById('loginModal');
         if (loginModal) {
-            loginModal.addEventListener('shown.bs.modal', function () {
+            loginModal.addEventListener('show.bs.modal', function () { // Use 'show.bs.modal' instead of 'shown.bs.modal'
                 const returnUrlInput = loginModal.querySelector('input[name="ReturnUrl"]');
                 if (returnUrlInput) {
                     returnUrlInput.value = window.location.pathname + window.location.search;
@@ -463,25 +345,7 @@
         }
     </script>
 
-    @*
-    <script>
-        document.querySelectorAll('[role="tablist"]').forEach(tabList => {
-            tabList.addEventListener('keydown', function (e) {
-                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                    e.preventDefault(); // Stop default browser behavior if Bootstrap doesn't handle it
-                }
-            });
-        });
-        document.querySelectorAll('#propertyTabs').forEach(tabList => {
-            tabList.addEventListener('keydown', function (e) {
-                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                    e.preventDefault(); // Stop tab switching with arrow keys
-                }
-            });
-        });
-    </script>
-    *@
-
+    @* Render section for page-specific scripts *@
     @RenderSection("Scripts", required: false)
     @await Html.PartialAsync("_LoginModal")
 </body>

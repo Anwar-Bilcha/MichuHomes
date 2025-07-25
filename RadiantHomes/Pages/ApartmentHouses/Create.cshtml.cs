@@ -264,7 +264,6 @@ namespace RadiantHomes.Pages.ApartmentHouses
             notification.ReceiverAdminId = company.ContactPerson.FirstOrDefault()?.Id !=Guid.Empty? company.ContactPerson.Select(a => a.Id).FirstOrDefault():company.CompanyId;
             notification.RecipientRole = MichuHomesRoles.RealEstateAdmin;
             notification.Datatype = EntityAffecteds.ApartmentHouses.ToString();
-            notification.RedirectUrl = "/Admin/Notifications/NotificationsAll";
 
             if (!Errors.Any())
             {
@@ -277,9 +276,15 @@ namespace RadiantHomes.Pages.ApartmentHouses
                 {
                     notification.DataKey = notification.DataKey + id + ", ";
                 }
-                await _notificationService.CreateNotificationAsync(notification);
-
-                //await _notificationService.SendToAdminsAsync($"{apartmentHouses.Count} houses pending approval", $"{apartmentHouses.Count} Apartment Houses are registered for {company}.", "/ApartmentHouses");
+              var result=  await _notificationService.CreateNotificationAsync(notification);
+                var norificationWithRedirectUrl = _context.Notifications.FirstOrDefault(a => a.Id == notification.Id);
+                if (norificationWithRedirectUrl != null)
+                {
+                    norificationWithRedirectUrl.RedirectUrl = $"/Admin/Notifications/NotificationDetails?notificationId={notification.Id}";
+                    await _context.SaveChangesAsync();
+                }
+               
+                    //await _notificationService.SendToAdminsAsync($"{apartmentHouses.Count} houses pending approval", $"{apartmentHouses.Count} Apartment Houses are registered for {company}.", "/ApartmentHouses");
                 SuccessMessage = $"Successfully uploaded {apartmentHouses.Count} apartment houses!";
             }
 

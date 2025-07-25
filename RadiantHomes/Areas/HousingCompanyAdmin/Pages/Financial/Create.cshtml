@@ -7,108 +7,143 @@
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<h3>Create Company Financial Detail</h3>
+<div class="container-fluid px-3 px-md-5 py-4">
+    <div class="bg-white p-4 rounded shadow-sm">
+        <h3 class="mb-4 text-primary"><i class="bi bi-building me-2"></i>@ViewData["Title"]</h3>
+        <hr class="mb-4" />
 
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <form method="post">
-            <div asp-validation-summary="All" class="text-danger"></div>
+        <form method="post" class="needs-validation" id="financialDetailForm">
+            <div asp-validation-summary="All" class="text-danger mb-3 fs-6"></div> 
+            <div class="mb-4"> @* Added margin-bottom for spacing *@
+                @if (User.IsInRole(MichuHomesRoles.MichuAdmin) && Model.SelectedCompanyId == Guid.Empty)
+                {
+                    <h5 class="text-secondary mb-3">Select Target Company</h5>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-8 col-sm-10"> 
+                            <label asp-for="CompanyFinancialDetail.CompanyId" class="form-label fw-semibold">Company Name</label>
+                            <select asp-for="CompanyFinancialDetail.CompanyId" class="form-select form-select-lg" asp-items="Model.CompanySelectList">
+                                <option value="">-- Choose Company --</option>
+                            </select>
+                            <span asp-validation-for="CompanyFinancialDetail.CompanyId" class="text-danger mt-1 d-block"></span> @* Added mt-1 d-block for spacing/display *@
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @* This assumes you can pass the CompanyName from the model if not MichuAdmin.
+                       You'd need to add a property like `public string CompanyName { get; set; }` to your Model. *@
+                    <h5 class="text-secondary mb-3">Company: <span class="text-dark">@Model.CompanyName</span></h5>
+                    <input type="hidden" asp-for="SelectedCompanyId" />
+                    <input type="hidden" asp-for="CompanyFinancialDetail.CompanyId" /> @* Ensure this is also bound for submission *@
+                }
+            </div>
 
-            @* Conditional rendering for Company selection/display *@
-            @if ((Model.CompanyId == Guid.Empty) && User.IsInRole(MichuHomesRoles.MichuAdmin))
-            {
-                <div class="form-group">
-                    <label asp-for="CompanyId" class="control-label"></label>
-                    <select asp-for="CompanyId" class="form-control" asp-items="Model.CompanySelectList">
-                        <option value="">-- Select Company --</option>
-                    </select>
-                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+            <h5 class="text-primary mb-3"><i class="bi bi-bank me-2"></i>Bank Account Details</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="CompanyFinancialDetail.BankName" class="form-label fw-semibold"></label>
+                    <input asp-for="CompanyFinancialDetail.BankName" class="form-control form-control-lg" placeholder="e.g., Commercial Bank of Ethiopia" />
+                    <span asp-validation-for="CompanyFinancialDetail.BankName" class="text-danger"></span>
                 </div>
-            }
-            else if (!(Model.CompanyId == Guid.Empty) && User.IsInRole(MichuHomesRoles.MichuAdmin))
-            {
-                <div class="form-group">
-                    <label asp-for="CompanyId" class="control-label"></label>
-                    <select asp-for="CompanyId" class="form-control" asp-items="Model.CompanySelectList">
-                        <option value="">-- Select Company --</option>
-                    </select>
-                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+                <div class="col-md-6">
+                    <label asp-for="CompanyFinancialDetail.AccountNumber" class="form-label fw-semibold"></label>
+                    <input asp-for="CompanyFinancialDetail.AccountNumber" class="form-control form-control-lg" placeholder="e.g., 1000123456789" />
+                    <span asp-validation-for="CompanyFinancialDetail.AccountNumber" class="text-danger"></span>
                 </div>
-            }
-            else{
-                <input type="hidden" asp-for="CompanyId" /> @* Important: Keep a hidden field for posting the CompanyId *@
-            }
-
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.BankName" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.BankName" class="form-control" />
-                <span asp-validation-for="CompanyFinancialDetail.BankName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.AccountNumber" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.AccountNumber" class="form-control" />
-                <span asp-validation-for="CompanyFinancialDetail.AccountNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.TinNumber" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.TinNumber" class="form-control" />
-                <span asp-validation-for="CompanyFinancialDetail.TinNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.IsPrimary" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.IsPrimary" class="form-check" />
-                <span asp-validation-for="CompanyFinancialDetail.IsPrimary" class="text-danger"></span>
+                <div class="col-12"> 
+                    <div class="form-check pt-2"> 
+                        <input class="form-check-input" asp-for="CompanyFinancialDetail.IsPrimary" id="isPrimaryCheckbox" />
+                        <label class="form-check-label fw-semibold" asp-for="CompanyFinancialDetail.IsPrimary"></label>
+                        <small class="text-muted ms-2">(Mark as the primary bank account for transactions)</small> 
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.BudgetYear" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.BudgetYear" class="form-control" />
-                <span asp-validation-for="CompanyFinancialDetail.BudgetYear" class="text-danger"></span>
+            <h5 class="text-primary mb-3"><i class="bi bi-receipt me-2"></i>Tax & VAT Information</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="CompanyFinancialDetail.TinNumber" class="form-label fw-semibold"></label>
+                    <input asp-for="CompanyFinancialDetail.TinNumber" class="form-control form-control-lg" placeholder="e.g., 0012345678" />
+                    <span asp-validation-for="CompanyFinancialDetail.TinNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="CompanyFinancialDetail.TaxId" class="form-label fw-semibold"></label>
+                    <input asp-for="CompanyFinancialDetail.TaxId" class="form-control form-control-lg" placeholder="e.g., ABCDE12345" />
+                    <span asp-validation-for="CompanyFinancialDetail.TaxId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="form-label fw-semibold"></label>
+                    <input asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="form-control form-control-lg" placeholder="e.g., VAT123456789" />
+                    <span asp-validation-for="CompanyFinancialDetail.VatRegistrationNumber" class="text-danger"></span>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.AnnualRevenue" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.AnnualRevenue" class="form-control" />
-                <span asp-validation-for="CompanyFinancialDetail.AnnualRevenue" class="text-danger"></span>
+            <h5 class="text-primary mb-3"><i class="bi bi-cash-stack me-2"></i>Annual Financial Details</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="CompanyFinancialDetail.BudgetYear" class="form-label fw-semibold"></label>
+                    <input asp-for="CompanyFinancialDetail.BudgetYear" class="form-control form-control-lg" placeholder="e.g., 2025" />
+                    <span asp-validation-for="CompanyFinancialDetail.BudgetYear" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="CompanyFinancialDetail.AnnualRevenue" class="form-label fw-semibold"></label>
+                    <input asp-for="CompanyFinancialDetail.AnnualRevenue" class="form-control form-control-lg" placeholder="e.g., 5,000,000 ETB" />
+                    <span asp-validation-for="CompanyFinancialDetail.AnnualRevenue" class="text-danger"></span>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.TaxId" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.TaxId" class="form-control" />
-                <span asp-validation-for="CompanyFinancialDetail.TaxId" class="text-danger"></span>
+
+            <h5 class="text-primary mb-3"><i class="bi bi-file-earmark-check me-2"></i>Audit Information</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-12"> 
+                    <div class="form-check pt-2">
+                        <input class="form-check-input" asp-for="CompanyFinancialDetail.hasAuditedFinancialStatement" id="hasAuditedFinancialStatementCheckbox" />
+                        <label class="form-check-label fw-semibold" asp-for="CompanyFinancialDetail.hasAuditedFinancialStatement"></label>
+                        <small class="text-muted ms-2">(Check if an audited financial statement is available)</small>
+                    </div>
+                </div>
+                <div class="col-12" id="auditedStatementUrlContainer"> 
+                    <label asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="form-label fw-semibold"></label>
+                    <input asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="form-control form-control-lg" placeholder="Provide URL or Path to Audited Statement" />
+                    <span asp-validation-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="form-control" />
-                <span asp-validation-for="CompanyFinancialDetail.VatRegistrationNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.hasAuditedFinancialStatement" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.hasAuditedFinancialStatement" class="form-check" />
-                <span asp-validation-for="CompanyFinancialDetail.hasAuditedFinancialStatement" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="control-label"></label>
-                <input asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="form-check" />
-                <span asp-validation-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input class="form-control" asp-for="CompanyFinancialDetail.CompanyId" type="hidden"/>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <div class="mt-4 pt-3 border-top"> 
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-save me-1"></i> Save Financial Details
+                </button>
+                <a asp-page="./Index" class="btn btn-outline-secondary btn-lg ms-2">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-page="./Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const hasAuditedCheckbox = document.getElementById('hasAuditedFinancialStatementCheckbox');
+            const auditedUrlContainer = document.getElementById('auditedStatementUrlContainer');
+            const auditedUrlInput = document.getElementById('@Html.IdFor(m => m.CompanyFinancialDetail.AuditedFinancialStatementUrl)');
+
+            function toggleAuditedUrlField() {
+                if (hasAuditedCheckbox.checked) {
+                    auditedUrlContainer.style.display = 'block';
+                    auditedUrlInput.removeAttribute('disabled'); // Ensure it's enabled when visible
+                } else {
+                    auditedUrlContainer.style.display = 'none';
+                    auditedUrlInput.setAttribute('disabled', 'disabled'); // Disable when hidden to prevent submission
+                    auditedUrlInput.value = ''; // Clear value when hidden
+                }
+            }
+
+            // Initial state
+            toggleAuditedUrlField();
+
+            // Listen for changes
+            hasAuditedCheckbox.addEventListener('change', toggleAuditedUrlField);
+        });
+    </script>
 }

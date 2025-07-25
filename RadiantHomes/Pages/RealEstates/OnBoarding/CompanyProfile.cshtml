@@ -1,0 +1,170 @@
+﻿@page
+@model RadiantHomes.Pages.RealEstates.OnBoarding.Profile.CreateModel
+
+@{
+    ViewData["Title"] = "RealEstate Onboard - Step 1: Profile";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+<link rel="stylesheet" href="~/css/OnboardingStepper.css" />
+<div class="container">
+
+    @* Stepper UI - Added here *@
+    <div class="stepper-wrapper mb-4 mt-3">
+        <div class="stepper-item active">
+            <div class="step-counter">1</div>
+            <div class="step-name">Company Profile</div>
+        </div>
+        <div class="stepper-item">
+            <div class="step-counter">2</div>
+            <div class="step-name">Financial Details</div>
+        </div>
+        <div class="stepper-item">
+            <div class="step-counter">3</div>
+            <div class="step-name">Contact Person</div>
+        </div>
+        <div class="stepper-item">
+            <div class="step-counter">4</div>
+            <div class="step-name">Housing Project</div>
+        </div>
+    </div>
+
+    @* Generic Success/Error Message Display for Stepper Flow *@
+    @if (TempData.ContainsKey("SuccessMessage"))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @Html.Raw(TempData["SuccessMessage"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData.ContainsKey("ErrorMessage"))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @Html.Raw(TempData["ErrorMessage"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm rounded-4 p-1">
+        <div class="card-header bg-subtle">
+            <h5 class="mb-4 text-dark d-flex align-items-center gap-2">
+                 @ViewData["Title"]
+            </h5>
+        </div>
+        <div class="card-body">
+            @* Added card-body for padding *@
+            <form method="post" enctype="multipart/form-data" asp-page-handler="Profile">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div> @* Show all model-level errors *@
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="HousingCompany.Name" class="form-label">
+                            <i class="bi bi-card-heading"></i> Company Name
+                        </label>
+                        <input asp-for="HousingCompany.Name" class="form-control" placeholder="e.g. Skyline Developers" />
+                        <span asp-validation-for="HousingCompany.Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HousingCompany.LicenseNumber" class="form-label">
+                            <i class="bi bi-file-earmark-text"></i> License Number
+                        </label>
+                        <input asp-for="HousingCompany.LicenseNumber" class="form-control" placeholder="123456789" />
+                        <span asp-validation-for="HousingCompany.LicenseNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HousingCompany.EstablishedDate" class="form-label">
+                            <i class="bi bi-calendar"></i> Established Date
+                        </label>
+                        <input asp-for="HousingCompany.EstablishedDate" class="form-control" type="date" />
+                        <span asp-validation-for="HousingCompany.EstablishedDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HousingCompany.AddressId" class="form-label">
+                            <i class="bi bi-geo-alt"></i> Address
+                        </label>
+                        <select asp-for="HousingCompany.AddressId" class="form-select" asp-items="ViewBag.AddressId"></select>
+                        <span asp-validation-for="HousingCompany.AddressId" class="text-danger"></span> @* Added validation span for AddressId *@
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HousingCompany.Email" class="form-label">
+                            <i class="bi bi-envelope-at"></i> Email
+                        </label>
+                        <input asp-for="HousingCompany.Email" class="form-control" type="email" placeholder="example@company.com" />
+                        <span asp-validation-for="HousingCompany.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HousingCompany.PhoneNumber" class="form-label">
+                            <i class="bi bi-telephone"></i> Phone Number
+                        </label>
+                        <input asp-for="HousingCompany.PhoneNumber" class="form-control" placeholder="+251912345678" />
+                        <span asp-validation-for="HousingCompany.PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HousingCompany.Website" class="form-label">
+                            <i class="bi bi-globe2"></i> Website
+                        </label>
+                        <input asp-for="HousingCompany.Website" class="form-control" placeholder="https://www.company.com" />
+                        <span asp-validation-for="HousingCompany.Website" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Logo" class="form-label">
+                            @* Label for IFormFile Logo *@
+                            <i class="bi bi-image"></i> Company Logo
+                        </label>
+                        <input type="file" asp-for="Logo" class="form-control" /> @* Use asp-for for IFormFile *@
+                        <span asp-validation-for="Logo" class="text-danger"></span> @* Validation for the file input itself *@
+                        <small class="form-text text-muted">Max file size: 5MB. Allowed formats: .jpg, .jpeg, .png, .gif.</small>
+                    </div>
+
+
+                    <div class="col-md-6">
+                        <label asp-for="HousingCompany.Status" class="form-label">
+                            <i class="bi bi-toggle-on"></i> Status
+                        </label>
+                        @* Assuming Status should be a dropdown or predefined, not free text. *
+                        @* For now, keeping it as input, but consider:
+                           <select asp-for="HousingCompany.Status" class="form-select" asp-items="Html.GetEnumSelectList<HousingCompanyStatusEnum>()"></select>
+                           You'd need to define HousingCompanyStatusEnum if you go this route. *@
+                        <input asp-for="HousingCompany.Status" class="form-control" />
+                        <span asp-validation-for="HousingCompany.CompanyCategory" class="text-danger"></span> @* Corrected validation span *@
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="HousingCompany.CompanyCategory" class="form-label">
+                            <i class="bi bi-tags"></i> Category
+                        </label>
+                        @* Same for category, consider a dropdown for consistency. *
+                           <select asp-for="HousingCompany.CompanyCategory" class="form-select" asp-items="Html.GetEnumSelectList<CompanyCategoryEnum>()"></select>
+                           Or a SelectList from _context.CompanyCategories if dynamic. *@
+                        <input asp-for="HousingCompany.CompanyCategory" class="form-control" />
+                        <span asp-validation-for="HousingCompany.CompanyCategory" class="text-danger"></span>
+                    </div>
+
+                    <input type="hidden" asp-for="HousingCompany.CreatedBy" />
+                    <input type="hidden" asp-for="HousingCompany.CreatedOn" />
+                    <input type="hidden" asp-for="HousingCompany.UpdatedBy" />
+                    <input type="hidden" asp-for="HousingCompany.UpdatedOn" />
+                </div>
+
+                <div class="mt-4 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Next <i class="bi bi-arrow-right-circle ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div> @* End card-body *@
+    </div>
+</div>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+  
+}
