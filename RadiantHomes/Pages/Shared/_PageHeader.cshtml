@@ -1,0 +1,48 @@
+@using RadiantHomes.Utilities
+@inject Microsoft.AspNetCore.Mvc.Infrastructure.IActionDescriptorCollectionProvider ActionDescriptors
+@*
+    Breadcrumb + title for the standard page header. The layouts wrap this in
+    <header class="mh-page-header"> and render the page's PageActions section next to it.
+
+    Page contract (set in the page's @{ } block):
+      ViewData["Title"]      page title (falls back to a name derived from the route)
+      ViewData["Subtitle"]   optional one-line description under the title
+      ViewData["PageHeader"] = false   hide the header (landing pages, auth screens)
+      ViewData["PageWidth"]  "narrow" for forms, "full" for edge-to-edge pages
+      @section PageActions { ... }     buttons shown on the right of the title
+*@
+@{
+    var title = ViewData["MhTitle"] as string ?? PageChrome.BrandName;
+    var subtitle = ViewData["Subtitle"] as string;
+    var crumbs = PageChrome.Breadcrumbs(ViewContext, ActionDescriptors, Url, title);
+}
+@if (crumbs.Count > 1)
+{
+    <nav class="mh-page-crumbs" aria-label="Breadcrumb">
+        <ol class="breadcrumb mh-breadcrumb">
+            @for (var i = 0; i < crumbs.Count; i++)
+            {
+                var crumb = crumbs[i];
+                if (i == crumbs.Count - 1)
+                {
+                    <li class="breadcrumb-item active" aria-current="page">@crumb.Text</li>
+                }
+                else if (crumb.Url is not null)
+                {
+                    <li class="breadcrumb-item"><a href="@crumb.Url">@crumb.Text</a></li>
+                }
+                else
+                {
+                    <li class="breadcrumb-item">@crumb.Text</li>
+                }
+            }
+        </ol>
+    </nav>
+}
+<div class="mh-page-heading">
+    <h1 class="mh-page-title">@title</h1>
+    @if (!string.IsNullOrWhiteSpace(subtitle))
+    {
+        <p class="mh-page-subtitle">@subtitle</p>
+    }
+</div>

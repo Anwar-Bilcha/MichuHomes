@@ -6,30 +6,42 @@
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
 @inject ICustomerService customerService
+@* Signed-in user menu (avatar + dropdown), shared by the public and admin layouts. *@
 @if (SignInManager.IsSignedIn(User))
 {
     var user = await UserManager.GetUserAsync(User);
-    var DefaultphotoUrl = "/images/default-profile.png";
-    var customer = customerService.GetCustomerByEmail(user.UserName);
-    var userImage = customer?.CustomerPhotoUrl;
-    var userFullName = customer?.FirstName + " " + customer?.LastName;
-    var photoUrl = userImage ?? DefaultphotoUrl;
-    <div class="dropdown navbar-profile">
-        <img src="@photoUrl" class="profile-pic dropdown-toggle" style="width:60px;height:60px" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" />
+    var customer = user is null ? null : customerService.GetCustomerByEmail(user.UserName);
+    var photoUrl = string.IsNullOrWhiteSpace(customer?.CustomerPhotoUrl) ? "/images/default-profile.png" : customer!.CustomerPhotoUrl;
+    var fullName = $"{customer?.FirstName} {customer?.LastName}".Trim();
+    var displayName = string.IsNullOrEmpty(fullName) ? User.Identity?.Name : fullName;
+    var isMichuAdmin = User.IsInRole(MichuHomesRoles.MichuAdmin);
+    var isCompanyAdmin = User.IsInRole(MichuHomesRoles.RealEstateAdmin);
 
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
-            <li><span class="dropdown-item-text greeting">Hello, @userFullName!</span></li>
-            <li><hr class="dropdown-divider"></li>
+    <div class="dropdown">
+        <button class="mh-profile-toggle dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Account menu for @displayName">
+            <img src="@photoUrl" class="mh-avatar" alt="" width="40" height="40" />
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end mh-profile-menu" aria-labelledby="profileDropdown">
+            <li class="px-3 pt-2 pb-2">
+                <div class="mh-profile-name">@displayName</div>
+                <div class="mh-profile-email">@User.Identity?.Name</div>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            @if (isMichuAdmin)
+            {
+                <li><a class="dropdown-item" asp-area="" asp-page="/Admin/Dashboard/AdminDashboard"><i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Admin dashboard</a></li>
+            }
+            @if (isCompanyAdmin || isMichuAdmin)
+            {
+                <li><a class="dropdown-item" asp-area="" asp-page="/Projects/Index"><i class="bi bi-kanban me-2" aria-hidden="true"></i>Manage projects</a></li>
+            }
+            <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index"><i class="bi bi-person-gear me-2" aria-hidden="true"></i>Account settings</a></li>
+            <li><hr class="dropdown-divider" /></li>
             <li>
-                <a asp-page="/Identity/Account/Logout" id="logoutForm">
-                    <button type="submit" class="dropdown-item text-danger">Logout</button>
-                </a>
+                <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
+                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Log out</button>
+                </form>
             </li>
         </ul>
     </div>
 }
-@* else
-{
-    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
-} *@
-

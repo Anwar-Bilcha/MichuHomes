@@ -1,11 +1,14 @@
-﻿.stepper-wrapper {
+﻿/* Onboarding stepper — uses the Michu Homes tokens from michu-theme.css */
+.stepper-wrapper {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 20px;
-    background-color: #f8f9fa; /* Light background for the stepper */
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+    background-color: #fff;
+    padding: 1.1rem 1rem;
+    border: 1px solid var(--mh-border, #DCE3EE);
+    border-radius: var(--mh-radius, .75rem);
+    box-shadow: var(--mh-shadow-sm, 0 1px 3px rgba(9, 43, 102, .08));
+    isolation: isolate;
 }
 
 .stepper-item {
@@ -14,18 +17,18 @@
     flex-direction: column;
     align-items: center;
     position: relative;
-    color: #6c757d; /* Muted text color for inactive steps */
+    color: var(--mh-ink-3, #66718A);
     font-weight: 500;
 }
 
     .stepper-item::before {
         content: '';
         position: absolute;
-        left: 0;
-        right: 0;
-        top: 20px; /* Adjust to center with step-counter */
+        left: -50%;
+        right: 50%;
+        top: 20px;
         height: 2px;
-        background-color: #dee2e6; /* Lighter line for inactive */
+        background-color: var(--mh-border, #DCE3EE);
         z-index: -1;
     }
 
@@ -34,45 +37,49 @@
     }
 
     .stepper-item.active .step-counter {
-        background-color: #007bff; /* Primary blue for active */
-        color: white;
-        border-color: #007bff;
+        background-color: var(--mh-orange, #FF850D);
+        color: var(--mh-navy-900, #061C44);
+        border-color: var(--mh-orange, #FF850D);
+        box-shadow: 0 0 0 4px var(--mh-orange-100, #FFE9D3);
     }
 
     .stepper-item.active .step-name {
-        color: #007bff;
+        color: var(--mh-navy, #092B66);
+        font-weight: 700;
     }
 
     .stepper-item.completed .step-counter {
-        background-color: #28a745; /* Green for completed steps */
-        color: white;
-        border-color: #28a745;
+        background-color: var(--mh-navy, #092B66);
+        color: #fff;
+        border-color: var(--mh-navy, #092B66);
     }
 
     .stepper-item.completed .step-name {
-        color: #28a745;
+        color: var(--mh-navy, #092B66);
     }
 
-    .stepper-item.completed::before {
-        background-color: #28a745; /* Green line for completed steps */
+    .stepper-item.completed::before,
+    .stepper-item.active::before {
+        background-color: var(--mh-navy, #092B66);
     }
 
 .step-counter {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #e9ecef; /* Light gray for inactive */
+    background-color: var(--mh-surface-3, #EDF1F7);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
+    font-family: var(--mh-font-display, sans-serif);
+    font-weight: 700;
     margin-bottom: 8px;
-    border: 2px solid #adb5bd; /* Medium gray border */
-    transition: all 0.3s ease; /* Smooth transition for color changes */
+    border: 2px solid var(--mh-border-strong, #C3CEDF);
+    transition: all 0.3s ease;
 }
 
 .step-name {
-    font-size: 0.9em;
+    font-size: 0.85em;
     text-align: center;
     transition: color 0.3s ease;
 }

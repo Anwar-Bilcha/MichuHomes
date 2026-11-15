@@ -2,7 +2,7 @@
 
 @if (!string.IsNullOrWhiteSpace(Model))
 {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @* SweetAlert2 is loaded by the layout (_CoreScripts); this runs after DOMContentLoaded. *@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             Swal.fire({

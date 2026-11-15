@@ -2,61 +2,74 @@
 @model RadiantHomes.Pages.Houses.Actions.Rent.Payment.IndexModel
 
 @{
-    ViewData["Title"] = "House Rent Payments";
+    ViewData["Title"] = "Rent payments";
+    ViewData["Subtitle"] = "Payments recorded against house rent transactions.";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    var hasRows = Model.HouseRentPayment is not null && Model.HouseRentPayment.Any();
 }
 
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary">🏠 House Rent Payments</h2>
-        <a class="btn btn-success" asp-page="Create">
-            <i class="bi bi-plus-circle"></i> Add New Payment
-        </a>
-    </div>
+@section PageActions {
+    <a class="btn btn-primary" asp-page="Create">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New payment
+    </a>
+}
 
-    <div class="table-responsive shadow rounded">
-        <table class="table table-bordered table-striped table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].Transaction)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].RentCommision)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].RentPricePerTerm)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].TotalRentPrice)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].SalersPreferredBank)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].BuyersPreferedBank)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].CommisionedPreferedBank)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].CreatedBy)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].CreatedOn)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].UpdatedBy)</th>
-                    <th>@Html.DisplayNameFor(model => model.HouseRentPayment[0].UpdatedOn)</th>
-                    <th class="text-center">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.HouseRentPayment)
-                {
+<div class="card">
+    @if (!hasRows)
+    {
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-receipt"></i></span>
+            <h2>No rent payments yet</h2>
+            <p>Payments appear here once they are recorded for a rent transaction.</p>
+            <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New payment</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.Transaction.Id)</td>
-                        <td>@Html.DisplayFor(modelItem => item.RentCommision)</td>
-                        <td>@Html.DisplayFor(modelItem => item.RentPricePerTerm)</td>
-                        <td>@Html.DisplayFor(modelItem => item.TotalRentPrice)</td>
-                        <td>@Html.DisplayFor(modelItem => item.SalersPreferredBank)</td>
-                        <td>@Html.DisplayFor(modelItem => item.BuyersPreferedBank)</td>
-                        <td>@Html.DisplayFor(modelItem => item.CommisionedPreferedBank)</td>
-                        <td>@Html.DisplayFor(modelItem => item.CreatedBy)</td>
-                        <td>@Html.DisplayFor(modelItem => item.CreatedOn)</td>
-                        <td>@Html.DisplayFor(modelItem => item.UpdatedBy)</td>
-                        <td>@Html.DisplayFor(modelItem => item.UpdatedOn)</td>
-                        <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                                <a class="btn btn-outline-primary" asp-page="./Edit" asp-route-id="@item.Id">Edit</a>
-                                <a class="btn btn-outline-info" asp-page="./Details" asp-route-id="@item.Id">Details</a>
-                                <a class="btn btn-outline-danger" asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
-                            </div>
-                        </td>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].Transaction)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].RentCommision)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].RentPricePerTerm)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].TotalRentPrice)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].SalersPreferredBank)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].BuyersPreferedBank)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].CommisionedPreferedBank)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].CreatedBy)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].CreatedOn)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].UpdatedBy)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentPayment[0].UpdatedOn)</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.HouseRentPayment!)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.Transaction.Id)</td>
+                            <td>@Html.DisplayFor(modelItem => item.RentCommision)</td>
+                            <td>@Html.DisplayFor(modelItem => item.RentPricePerTerm)</td>
+                            <td>@Html.DisplayFor(modelItem => item.TotalRentPrice)</td>
+                            <td>@Html.DisplayFor(modelItem => item.SalersPreferredBank)</td>
+                            <td>@Html.DisplayFor(modelItem => item.BuyersPreferedBank)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CommisionedPreferedBank)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CreatedBy)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CreatedOn)</td>
+                            <td>@Html.DisplayFor(modelItem => item.UpdatedBy)</td>
+                            <td>@Html.DisplayFor(modelItem => item.UpdatedOn)</td>
+                            <td class="text-end">
+                                <div class="mh-row-actions">
+                                    <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@item.Id" title="View details" aria-label="View details"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                                    <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                    <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>

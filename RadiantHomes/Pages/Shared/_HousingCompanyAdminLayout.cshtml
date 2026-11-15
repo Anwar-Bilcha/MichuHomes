@@ -3,708 +3,313 @@
 @using RadiantHomes.Models
 @using RadiantHomes.Models.HousingCompanies
 @using RadiantHomes.Services.NotificationService
+@using RadiantHomes.Utilities
 @inject INotificationService NotificationService
 @inject UserManager<AppUser> userManager
 @inject ApplicationDbContext _context
-@using System.Linq
-@using System.Security.Claims
+@*
+    Admin layout (Michu admins and real-estate company admins): sidebar + top bar + page header.
+    Page contract: see Pages/Shared/_PageHeader.cshtml.
+*@
+@{
+    var area = ViewContext.RouteData.Values["area"]?.ToString() ?? string.Empty;
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+    ViewData["MhTitle"] = PageChrome.ResolveTitle(ViewData["Title"] as string, currentPage, area);
 
+    var showHeader = (ViewData["PageHeader"] as bool?) ?? true;
+    var width = (ViewData["PageWidth"] as string ?? string.Empty).ToLowerInvariant();
+    var isMichuAdmin = User.IsInRole(MichuHomesRoles.MichuAdmin);
+
+    // Sidebar highlighting: "section" items match every page in the folder except Create,
+    // "exact" items match one page.
+    string Section(string folder) =>
+        currentPage.StartsWith(folder + "/", StringComparison.OrdinalIgnoreCase)
+        && !currentPage.EndsWith("/Create", StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+    string Exact(string page) =>
+        currentPage.Equals(page, StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+    string Current(string cssClass) => cssClass == "active" ? "page" : "false";
+
+    // Signed-in user + notifications (same data as before the redesign)
+    var userName = "Dear User";
+    var notifications = new List<RadiantHomes.Models.Notification>();
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        var currentUser = await userManager.GetUserAsync(User);
+        var currentCustomerId = currentUser?.CustomerId;
+        Customer? customerProfile = null;
+        if (currentCustomerId != null && currentCustomerId != Guid.Empty)
+        {
+            customerProfile = _context.UserProfiles.FirstOrDefault(u => u.Id == currentCustomerId);
+        }
+
+        if (customerProfile?.CompanyId != null)
+        {
+            notifications = (await NotificationService.GetAllNotifications(customerProfile.CompanyId.Value)).ToList();
+        }
+
+        if (customerProfile != null)
+        {
+            userName = $"{customerProfile.FirstName} {customerProfile.LastName}";
+        }
+        else if (!string.IsNullOrEmpty(User.Identity?.Name))
+        {
+            userName = User.Identity.Name;
+        }
+    }
+    var unreadCount = notifications.Count(n => !n.IsRead);
+}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName">
 <head>
-
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - RadiantHomes Admin</title>
-    <link rel="manifest" href="~/manifest.json">
-    <meta name="theme-color" content="#1e3a8a">
-
-    <link rel="stylesheet" href="~/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/all.min.css" /> 
-    <link rel="stylesheet" href="~/css/bootstrap-icons.css" />
-    <link rel="stylesheet" href="~/css/swiper-bundle.min.css" />
-    <link rel="stylesheet" href="~/css/loader.css" /> 
-    <link rel="stylesheet" href="~/css/site.css" /> 
-
-    <style>
-        :root {
-            --primary-color-dark: #1e3a8a; /* Example, adjust to your brand */
-            --secondary-color-light: #f7fafc; /* Example, adjust to your brand */
-            --sidebar-bg: #e9ecef; /* Light grey for sidebar */
-            --text-dark: #343a40; /* Dark text color */
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            /* Consider removing or carefully managing overflow-x: hidden; */
-            /* If elements are genuinely overflowing, it's better to fix the layout rather than hiding */
-            /* overflow-x: hidden; */
-        }
-
-        .main-wrapper {
-            flex: 1; /* Allows main content to grow and push footer down */
-        }
-
-        /* Navbar Customization */
-        .navbar-brand .fa-house-signal {
-            color: var(--secondary-color-light);
-        }
-
-        .navbar-brand span {
-            color: white;
-        }
-
-        .navbar-brand sup span {
-            color: var(--secondary-color-light); /* Or a brand accent color */
-        }
-
-        .nav-link-custom {
-            color: rgba(255, 255, 255, 0.75); /* Lighter white for non-active */
-            transition: color 0.3s ease-in-out;
-        }
-
-            .nav-link-custom:hover {
-                color: white;
-            }
-
-        .nav-link-custom.active-link {
-            color: white;
-            font-weight: bold;
-            border-bottom: 2px solid white; /* A subtle indicator */
-        }
-
-        /* Sidebar Customization */
-        .sidebar {
-            background-color: var(--sidebar-bg) !important; /* Ensure it overrides bootstrap */
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-            padding-top: 2rem;
-        }
-
-        .sidebar .nav-link {
-            color: var(--text-dark);
-            padding: 0.75rem 1rem;
-            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-        }
-
-            .sidebar .nav-link:hover {
-                background-color: rgba(0, 0, 0, 0.05);
-                color: var(--primary-color-dark);
-            }
-
-            .sidebar .nav-link.active,
-            .sidebar .nav-link[aria-expanded="true"] {
-                font-weight: bold;
-                background-color: rgba(0, 0, 0, 0.1);
-                color: var(--primary-color-dark);
-            }
-
-        .sidebar .toggle-arrow {
-            transition: transform 0.2s ease-in-out;
-        }
-
-        .sidebar .nav-link[aria-expanded="true"] .toggle-arrow {
-            transform: rotate(90deg); /* Rotate arrow when expanded */
-        }
-
-        .sidebar-header {
-            padding: 1rem 0 1rem 1rem; /* Adjust padding for admin title */
-        }
-
-        /* Main Content Area */
-        .main-content {
-            padding: 1rem 1.5rem; /* More generous padding */
-            background-color: white; /* Ensure clear background */
-        }
-
-        /* Notifications Dropdown */
-        #notificationsDropdown {
-            margin-left: 0; /* Remove inline style */
-            background-color: transparent;
-            border: none;
-            color: var(--text-dark); /* Match surrounding text color */
-        }
-
-        #notificationsDropdown .bi-bell {
-            vertical-align: middle; /* Align icon vertically */
-        }
-
-        .notification-item {
-            border-bottom: 1px solid #eee;
-        }
-
-            .notification-item:last-child {
-                border-bottom: none;
-            }
-
-        .notification-item.unread {
-            background-color: #f8f9fa; /* Slightly different background for unread */
-            font-weight: bold;
-        }
-
-        /* Footer Customization */
-        footer {
-            background-color: var(--sidebar-bg) !important; /* Consistent light grey */
-            color: var(--text-dark) !important;
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        footer a {
-            color: var(--text-dark);
-            transition: color 0.3s ease-in-out;
-        }
-
-            footer a:hover {
-                color: var(--primary-color-dark);
-            }
-
-        footer .navbar-brand sup span {
-            color: brown; /* Keep your existing color if desired */
-        }
-
-
-        /* Responsive Adjustments */
-        @@media (max-width: 991.98px) { /* Medium devices and down */
-            .sidebar {
-                position: fixed; /* Fix sidebar on smaller screens */
-                top: 60px; /* Below the fixed navbar */
-                left: 0;
-                height: calc(100vh - 60px); /* Full height minus navbar */
-                z-index: 1020; /* Above main content, below navbar */
-                transform: translateX(-100%); /* Hide off-screen by default */
-                transition: transform 0.3s ease-in-out;
-            }
-
-            .sidebar.show {
-                transform: translateX(0); /* Show on toggle */
-            }
-
-            .main-content {
-                margin-left: 0; /* No margin when sidebar is hidden */
-            }
-
-            /* Overlay for when sidebar is open */
-            .sidebar-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 1010;
-                display: none;
-            }
-
-            .sidebar.show + .sidebar-overlay {
-                display: block;
-            }
-
-            .navbar-toggler-icon {
-                color: white !important; /* Ensure toggler icon is visible */
-            }
-        }
-
-        @@media (min-width: 992px) { /* Large devices and up */
-            .sidebar {
-                position: sticky; /* Keep sidebar in flow for large screens */
-                top: 70px; /* Offset for fixed navbar */
-                height: calc(100vh - 70px); /* Adjust height */
-            }
-        }
-
-        /* Modal specific styling for create admin */
-        #createAdminModal .modal-header {
-            background-color: var(--primary-color-dark);
-            color: white;
-            border-bottom: none;
-        }
-
-        #createAdminModal .modal-title {
-            color: white !important;
-        }
-
-        #createAdminModal .btn-close {
-            filter: invert(1); /* Make close button white */
-        }
-    </style>
+    <partial name="_HeadAssets" />
+    @RenderSection("Styles", required: false)
 </head>
-<body class="d-flex flex-column">
+<body class="mh-admin-body">
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-primary btn-sm" style="z-index:2100" href="#main-content">Skip to content</a>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success fixed-top shadow-lg py-3">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand d-flex align-items-center me-auto" asp-page="/Index" aria-label="Michu Homes Home">
-                <i class="fa-solid fa-house-signal fs-3 me-2"></i>
-                <span class="fs-4 fw-bolder">MICHU<sup class="ms-1"><span class="text-secondary-light">HOMES</span></sup></span>
-            </a>
+    <div id="pageLoader" class="mh-loader" aria-hidden="true">
+        <div class="dot-loader"><div></div><div></div><div></div></div>
+    </div>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <div class="mh-admin">
+        <aside class="mh-sidebar-wrap">
+            <div class="offcanvas-lg offcanvas-start mh-sidebar" tabindex="-1" id="adminSidebar" aria-labelledby="adminSidebarLabel">
+                <div class="offcanvas-header d-lg-none">
+                    <span id="adminSidebarLabel" class="visually-hidden">Admin navigation</span>
+                    <partial name="_BrandLogo" model="@("reversed")" />
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#adminSidebar" aria-label="Close navigation"></button>
+                </div>
 
-            <div class="collapse navbar-collapse" id="navbarNavDropdown">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
-                    <li class="nav-item me-lg-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Index" ? "active-link" : "")" aria-current="page" asp-page="/Index" data-translate="homePage">Home</a>
-                    </li>
-                    <li class="nav-item me-lg-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/HouseOwner/Create" ? "active-link" : "")" asp-page="/HouseOwner/Create" data-translate="registerPage">Register Account</a>
-                    </li>
-                    <li class="nav-item me-lg-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Index" ? "active-link" : "")" href="/ApartmentHouses/" data-translate="apartmentsPage">Apartments</a>
-                    </li>
-                    <li class="nav-item me-lg-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/RealEstates/Index" ? "active-link" : "")" href="/RealEstates/" data-translate="realEstatePage">Real Estates</a>
-                    </li>
-                    <li class="nav-item me-lg-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Index" ? "active-link" : "")" href="/Projects/index" data-translate="ProjectsPage">Projects</a>
-                    </li>
-                    <li class="nav-item d-flex align-items-center mt-2 mt-lg-0">
-                        <select class="form-select form-select-sm language-selector me-2" onchange="loadLanguage(this.value)" aria-label="Language Selector">
-                            <option value="en">English</option>
-                            <option value="am">አማርኛ</option>
-                            <option value="or">Afaan Oromoo</option>
-                            <option value="tg">ትግርኛ</option>
-                        </select>
+                <div class="offcanvas-body">
+                    <a class="mh-sidebar-brand d-none d-lg-block" asp-area="" asp-page="/Index" aria-label="Michu Homes — home">
+                        <partial name="_BrandLogo" model="@("reversed")" />
+                    </a>
 
-                        @if (User.Identity.IsAuthenticated)
+                    <nav class="mh-sidenav" aria-label="Admin">
+                        @if (isMichuAdmin)
                         {
-                            @await Html.PartialAsync("_LoginPartial.cshtml")
+                            <div class="mh-sidenav-label">Overview</div>
+                            <ul>
+                                <li><a class="nav-link @Exact("/Admin/Dashboard/AdminDashboard")" aria-current="@Current(Exact("/Admin/Dashboard/AdminDashboard"))" asp-area="" asp-page="/Admin/Dashboard/AdminDashboard"><i class="bi bi-speedometer2" aria-hidden="true"></i>Dashboard</a></li>
+                                <li><a class="nav-link @Exact("/Admin/Reports/AdminReports")" aria-current="@Current(Exact("/Admin/Reports/AdminReports"))" asp-area="" asp-page="/Admin/Reports/AdminReports"><i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i>Reports</a></li>
+                            </ul>
                         }
-                        else
+
+                        <div class="mh-sidenav-label">Company</div>
+                        <ul>
+                            <li><a class="nav-link @Exact("/RealEstates/OnBoarding/CompanyProfile")" aria-current="@Current(Exact("/RealEstates/OnBoarding/CompanyProfile"))" asp-area="" asp-page="/RealEstates/OnBoarding/CompanyProfile"><i class="bi bi-building" aria-hidden="true"></i>Company profile</a></li>
+                            <li><a class="nav-link @Exact("/Admin/Notifications/NotificationsAll")" aria-current="@Current(Exact("/Admin/Notifications/NotificationsAll"))" asp-area="" asp-page="/Admin/Notifications/NotificationsAll"><i class="bi bi-bell" aria-hidden="true"></i>Approve notifications @if (unreadCount > 0) { <span class="badge bg-warning ms-auto">@unreadCount</span> }</a></li>
+                        </ul>
+
+                        <div class="mh-sidenav-label">Projects</div>
+                        <ul>
+                            <li><a class="nav-link @Section("/Projects")" aria-current="@Current(Section("/Projects"))" asp-page="/Projects/Index"><i class="bi bi-kanban" aria-hidden="true"></i>All projects</a></li>
+                            <li><a class="nav-link @Exact("/Projects/Create")" aria-current="@Current(Exact("/Projects/Create"))" asp-page="/Projects/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New project</a></li>
+                        </ul>
+
+                        <div class="mh-sidenav-label">Buildings</div>
+                        <ul>
+                            <li><a class="nav-link @Section("/Buildings")" aria-current="@Current(Section("/Buildings"))" asp-page="/Buildings/Index"><i class="bi bi-buildings" aria-hidden="true"></i>All buildings</a></li>
+                            <li><a class="nav-link @Exact("/Buildings/Create")" aria-current="@Current(Exact("/Buildings/Create"))" asp-page="/Buildings/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New building</a></li>
+                        </ul>
+
+                        <div class="mh-sidenav-label">Apartments</div>
+                        <ul>
+                            <li><a class="nav-link @Section("/ApartmentHouses")" aria-current="@Current(Section("/ApartmentHouses"))" asp-page="/ApartmentHouses/Index"><i class="bi bi-house-door" aria-hidden="true"></i>All apartments</a></li>
+                            <li><a class="nav-link @Exact("/ApartmentHouses/Create")" aria-current="@Current(Exact("/ApartmentHouses/Create"))" asp-page="/ApartmentHouses/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New apartment</a></li>
+                        </ul>
+
+                        <div class="mh-sidenav-label">Testimonials</div>
+                        <ul>
+                            <li><a class="nav-link @Section("/RealEstates/Testimonials")" aria-current="@Current(Section("/RealEstates/Testimonials"))" asp-area="" asp-page="/RealEstates/Testimonials/Index"><i class="bi bi-chat-quote" aria-hidden="true"></i>All testimonials</a></li>
+                            <li><a class="nav-link @Exact("/RealEstates/Testimonials/Create")" aria-current="@Current(Exact("/RealEstates/Testimonials/Create"))" asp-area="" asp-page="/RealEstates/Testimonials/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New testimonial</a></li>
+                        </ul>
+                    </nav>
+
+                    <div class="mh-sidebar-footer">
+                        @if (isMichuAdmin)
                         {
-                            <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            <button type="button" class="btn btn-accent btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createAdminModal">
+                                <i class="bi bi-person-plus" aria-hidden="true"></i> Create admin
                             </button>
                         }
-                    </li>
-                </ul>
+                        <div>&copy; @DateTime.Now.Year Michu Homes</div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </nav>
+        </aside>
 
-    <div class="container-fluid main-wrapper d-flex">
-        <div class="row w-100 flex-grow-1">
-            <aside class="sidebar col-lg-3 col-12 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-center sidebar-header">
-                    <h5 class="fs-4 fw-bold text-black">Admin Area</h5>
-                    <button class="btn btn-outline-secondary d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarNav" aria-controls="sidebarNav" aria-expanded="false" aria-label="Toggle sidebar navigation">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
+        <div class="mh-admin-main">
+            <header class="mh-topbar">
+                <button class="mh-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminSidebar" aria-controls="adminSidebar" aria-label="Open navigation">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <a class="d-lg-none" asp-area="" asp-page="/Index" aria-label="Michu Homes — home">
+                    <partial name="_BrandLogo" model="@("mark")" />
+                </a>
 
-                <div class="collapse d-lg-block flex-grow-1" id="sidebarNav">
-                    <ul class="nav nav-pills flex-column">
-                        <li class="nav-item mb-2">
-                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Admin/Profile") == true ? "active" : "")" data-bs-toggle="collapse" href="#companyProfileSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Admin/Profile") == true ? "true" : "false")" aria-controls="companyProfileSubmenu">
-                                <span><i class="bi bi-building me-2"></i>Company Profile</span>
-                                <i class="bi bi-chevron-right toggle-arrow"></i>
-                            </a>
-                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Admin/Profile") == true ? "show" : "")" id="companyProfileSubmenu">
-                                <ul class="nav flex-column ms-3">
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Admin/Profile/Edit" ? "active" : "")" asp-page="./Profile/Edit"><i class="bi bi-pencil-square me-2"></i>Edit Profile</a></li>
-                                </ul>
-                            </div>
-                        </li>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <p class="mh-topbar-title d-none d-md-block text-truncate">Welcome back, <strong>@userName</strong></p>
+                }
 
-                        <li class="nav-item mb-2">
-                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Projects") == true ? "active" : "")" data-bs-toggle="collapse" href="#projectsSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Projects") == true ? "true" : "false")" aria-controls="projectsSubmenu">
-                                <span><i class="bi bi-building me-2"></i>Projects</span>
-                                <i class="bi bi-chevron-right toggle-arrow"></i>
-                            </a>
-                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Projects") == true ? "show" : "")" id="projectsSubmenu">
-                                <ul class="nav flex-column ms-3">
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Create" ? "active" : "")" asp-page="/Projects/Create"><i class="bi bi-plus-square me-2"></i>Create Project</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Index" ? "active" : "")" asp-page="/Projects/Index"><i class="bi bi-card-list me-2"></i>View Projects</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Edit" ? "active" : "")" asp-page="/Projects/Edit"><i class="bi bi-pencil-square me-2"></i>Update Project</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Delete" ? "active" : "")" asp-page="/Projects/Delete"><i class="bi bi-trash me-2"></i>Delete Project</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Details" ? "active" : "")" asp-page="/Projects/Details"><i class="bi bi-info-circle me-2"></i>Project Details</a></li>
-                                </ul>
-                            </div>
-                        </li>
-
-                        <li class="nav-item mb-2">
-                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Buildings") == true ? "active" : "")" data-bs-toggle="collapse" href="#buildingsSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Buildings") == true ? "true" : "false")" aria-controls="buildingsSubmenu">
-                                <span><i class="bi bi-buildings me-2"></i>Buildings</span>
-                                <i class="bi bi-chevron-right toggle-arrow"></i>
-                            </a>
-                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Buildings") == true ? "show" : "")" id="buildingsSubmenu">
-                                <ul class="nav flex-column ms-3">
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Create" ? "active" : "")" asp-page="/Buildings/Create"><i class="bi bi-plus-square me-2"></i>Create Building</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Index" ? "active" : "")" asp-page="/Buildings/Index"><i class="bi bi-card-list me-2"></i>View Buildings</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Edit" ? "active" : "")" asp-page="/Buildings/Edit"><i class="bi bi-pencil-square me-2"></i>Update Building</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Delete" ? "active" : "")" asp-page="/Buildings/Delete"><i class="bi bi-trash me-2"></i>Delete Building</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Buildings/Details" ? "active" : "")" asp-page="/Buildings/Details"><i class="bi bi-info-circle me-2"></i>Building Details</a></li>
-                                </ul>
-                            </div>
-                        </li>
-
-                        <li class="nav-item mb-2">
-                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/ApartmentHouses") == true ? "active" : "")" data-bs-toggle="collapse" href="#apartmentsSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/ApartmentHouses") == true ? "true" : "false")" aria-controls="apartmentsSubmenu">
-                                <span><i class="bi bi-house-door me-2"></i>Apartments</span>
-                                <i class="bi bi-chevron-right toggle-arrow"></i>
-                            </a>
-                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/ApartmentHouses") == true ? "show" : "")" id="apartmentsSubmenu">
-                                <ul class="nav flex-column ms-3">
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Create" ? "active" : "")" asp-page="./ApartmentHouses/Create"><i class="bi bi-plus-square me-2"></i>Create Apartment</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Index" ? "active" : "")" asp-page="./ApartmentHouses/Index"><i class="bi bi-card-list me-2"></i>View Apartments</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Edit" ? "active" : "")" asp-page="./ApartmentHouses/Edit"><i class="bi bi-pencil-square me-2"></i>Update Apartment</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Delete" ? "active" : "")" asp-page="./ApartmentHouses/Delete"><i class="bi bi-trash me-2"></i>Delete Apartment</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Details" ? "active" : "")" asp-page="./ApartmentHouses/Details"><i class="bi bi-info-circle me-2"></i>Apartment Details</a></li>
-                                </ul>
-                            </div>
-                        </li>
-
-                        <li class="nav-item mb-2">
-                            <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Testimonials") == true ? "active" : "")" data-bs-toggle="collapse" href="#testimonialsSubmenu" role="button" aria-expanded="@(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Testimonials") == true ? "true" : "false")" aria-controls="testimonialsSubmenu">
-                                <span><i class="bi bi-chat-right-text me-2"></i>Testimonials</span>
-                                <i class="bi bi-chevron-right toggle-arrow"></i>
-                            </a>
-                            <div class="collapse @(ViewContext.RouteData.Values["Page"]?.ToString().StartsWith("/Testimonials") == true ? "show" : "")" id="testimonialsSubmenu">
-                                <ul class="nav flex-column ms-3">
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Create" ? "active" : "")" asp-page="./Testimonials/Create"><i class="bi bi-plus-square me-2"></i>Create Testimonial</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Index" ? "active" : "")" asp-page="./Testimonials/Index"><i class="bi bi-card-list me-2"></i>View Testimonials</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Edit" ? "active" : "")" asp-page="./Testimonials/Edit"><i class="bi bi-pencil-square me-2"></i>Update Testimonial</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Delete" ? "active" : "")" asp-page="./Testimonials/Delete"><i class="bi bi-trash me-2"></i>Delete Testimonial</a></li>
-                                    <li class="nav-item"><a class="nav-link text-black @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Testimonials/Details" ? "active" : "")" asp-page="./Testimonials/Details"><i class="bi bi-info-circle me-2"></i>Testimonial Details</a></li>
-                                </ul>
-                            </div>
-                        </li>
-
-                        @* Notifications Menu Item *@
-    <li class="nav-item mb-2">
-        <a class="nav-link d-flex justify-content-between align-items-center @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Admin/Notifications/NotoficationsAll" ? "active" : "")" asp-page="/Admin/Notifications/NotoficationsAll">
-            <span><i class="bi bi-bell me-2"></i>Approve Notifications</span>
-        </a>
-    </li>
-
-    @if (User.IsInRole(MichuHomesRoles.MichuAdmin))
-    {
-        <li class="nav-item mt-3">
-            <button type="button" class="btn btn-outline-primary w-50 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#createAdminModal">
-                <i class="bi bi-person-plus me-2"></i> Create Admin
-            </button>
-        </li>
-    }
-    </ul>
-    </div>
-    </aside>
-
-    <div class="sidebar-overlay d-lg-none"></div>
-
-    <main class="main-content col-lg-9 col-12 flex-grow-1">
-        @if (User.Identity.IsAuthenticated)
-        {
-            var currentUser = await userManager.GetUserAsync(User);
-            var currentUserId = currentUser?.CustomerId;
-            Customer? customerProfile = null;
-            if (currentUserId != null && currentUserId != Guid.Empty) // Ensure it's not null or empty GUID
-            {
-                customerProfile = _context.UserProfiles.FirstOrDefault(u => u.Id == currentUserId);
-            }
-            var notifications = new List<RadiantHomes.Models.Notification>();
-
-            // Only try to get notifications if customerProfile is found
-            if (customerProfile?.CompanyId != null)
-            {
-                notifications = (await NotificationService.GetAllNotifications(customerProfile.CompanyId.Value)).ToList();
-            }
-
-
-            var userName = "Dear User";
-            var userEmail = User.Identity?.Name;
-
-            if (customerProfile != null)
-            {
-                userName = $"{customerProfile.FirstName} {customerProfile.LastName}";
-            }
-            else if (!string.IsNullOrEmpty(userEmail))
-            {
-                // Fallback if profile not found but user is authenticated
-                userName = userEmail;
-            }
-
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <p class="mb-0 fs-5 text-dark">Welcome, <span class="fw-semibold">@userName</span></p>
-                </div>
-                <div class="dropdown">
-                    <a class="btn btn-light position-relative dropdown-toggle" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell fs-4"></i>
-                        @if (notifications.Any(n => !n.IsRead))
-                        {
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                @notifications.Count(n => !n.IsRead)
-                                <span class="visually-hidden">unread notifications</span>
-                            </span>
-                        }
+                <div class="mh-topbar-tools">
+                    <a class="btn btn-outline-secondary btn-sm d-none d-md-inline-flex" asp-area="" asp-page="/Index">
+                        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> View site
                     </a>
 
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="notificationsDropdown" style="width: 300px; max-height: 400px; overflow-y: auto;">
-                        @if (!notifications.Any())
-                        {
-                            <li><span class="dropdown-item text-muted">No new notifications</span></li>
-                        }
-                        else
-                        {
-                            @foreach (var note in notifications.OrderByDescending(n => n.CreatedAt).Take(10))
+                    <select class="form-select form-select-sm language-selector d-none d-sm-block" onchange="loadLanguage(this.value)" aria-label="Language">
+                        <option value="en">English</option>
+                        <option value="am">አማርኛ</option>
+                        <option value="or">Afaan Oromoo</option>
+                        <option value="tg">ትግርኛ</option>
+                    </select>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="dropdown">
+                            <button class="mh-icon-btn" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications@(unreadCount > 0 ? $", {unreadCount} unread" : "")">
+                                <i class="bi bi-bell" aria-hidden="true"></i>
+                                @if (unreadCount > 0)
+                                {
+                                    <span class="badge rounded-pill" aria-hidden="true">@unreadCount</span>
+                                }
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end mh-notifications" aria-labelledby="notificationsDropdown">
+                                <li><h2 class="dropdown-header">Notifications</h2></li>
+                                @if (!notifications.Any())
+                                {
+                                    <li><span class="dropdown-item-text text-muted">No new notifications</span></li>
+                                }
+                                else
+                                {
+                                    @foreach (var note in notifications.OrderByDescending(n => n.CreatedAt).Take(10))
+                                    {
+                                        <li class="notification-item @(!note.IsRead ? "unread" : "")">
+                                            <a class="dropdown-item" href="@note.RedirectUrl">
+                                                <strong class="d-block text-truncate">@note.Title</strong>
+                                                <small class="text-muted d-block text-truncate">@note.Message</small>
+                                                <small class="text-muted d-block text-end">@note.CreatedAt.ToShortDateString()</small>
+                                            </a>
+                                        </li>
+                                    }
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item text-center fw-semibold" asp-area="" asp-page="/Admin/Notifications/NotificationsAll">View all notifications</a></li>
+                                }
+                            </ul>
+                        </div>
+
+                        <partial name="_LoginPartial" />
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Log in
+                        </button>
+                    }
+                </div>
+            </header>
+
+            <main id="main-content" class="mh-admin-content" role="main">
+                @if (showHeader)
+                {
+                    <header class="mh-page-header">
+                        <div class="mh-page-header__inner">
+                            <partial name="_PageHeader" />
+                            @if (IsSectionDefined("PageActions"))
                             {
-                                <li class="notification-item @(!note.IsRead ? "unread" : "")">
-                                    <a class="dropdown-item" href="@note.RedirectUrl">
-                                        <strong class="d-block text-truncate">@note.Title</strong>
-                                        <small class="text-muted d-block text-truncate">@note.Message</small>
-                                        <small class="text-muted d-block text-end fst-italic">@note.CreatedAt.ToShortDateString()</small>
-                                    </a>
-                                </li>
+                                <div class="mh-page-actions">@RenderSection("PageActions")</div>
                             }
-                            <li><hr class="dropdown-divider" /></li>
-                            <li><a class="dropdown-item text-center fw-bold" asp-page="/Admin/Notifications/NotificationsAll">View All Notifications</a></li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        }
-
-        @RenderBody()
-
-        @if (User.IsInRole(MichuHomesRoles.MichuAdmin))
-        {
-            <div class="modal fade" id="createAdminModal" tabindex="-1" aria-labelledby="createAdminModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-centered">
-                    <div class="modal-content shadow">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="createAdminModalLabel">Create Real Estate Admin Profile</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body">
-                            <form>
-                                <p class="text-muted">Select a housing company to pre-create a profile.</p>
-                                @{
-                                    var companies = _context.HousingCompanies.ToList();
-                                }
-                                <div class="mb-3">
-                                    <label for="companySelectAdminLayout" class="form-label fw-semibold">Housing Company</label>
-                                    <select id="companySelectAdminLayout" class="form-select">
-                                        <option value="">-- Select a Company --</option>
-                                        @foreach (var company in companies)
-                                        {
-                                            <option value="@company.CompanyId">@company.Name</option>
-                                        }
-                                    </select>
-                                </div>
+                    </header>
+                }
+                else if (IsSectionDefined("PageActions"))
+                {
+                    IgnoreSection("PageActions");
+                }
 
-                                <button id="createContactPersonBtnAdminLayout" type="button" class="btn btn-primary w-100">
-                                    <i class="bi bi-person-plus me-2"></i> Proceed to Create Profile
-                                </button>
-
-                                @{
-                                    var curUser = await userManager.GetUserAsync(User);
-                                    var curUserId = curUser?.Id;
-                                }
-                                <input type="hidden" id="UserId" value="@curUserId" />
-                            </form>
-                        </div>
+                @if (width == "full")
+                {
+                    @RenderBody()
+                }
+                else
+                {
+                    <div class="mh-page-body @(width == "narrow" ? "mh-container-narrow" : "")">
+                        @RenderBody()
                     </div>
-                </div>
-            </div>
-        }
-    </main>
-    </div>
+                }
+            </main>
+
+            <footer class="mh-admin-footer">
+                <span>&copy; @DateTime.Now.Year Michu Homes. All rights reserved.</span>
+                <span><a asp-area="" asp-page="/Privacy">Privacy</a> · <a href="mailto:info@michuhomes.et">info@michuhomes.et</a></span>
+            </footer>
+        </div>
     </div>
 
-    <footer class="text-dark py-5">
-        <div class="container">
-            <div class="row gy-4">
-                <div class="col-md-3">
-                    <a class="navbar-brand" asp-page="/Index">
-                        <i class="fa-solid fa-house-signal text-primary"></i> MICHU<sup><span class="text-brown">HOMES</span></sup>
-                    </a>
-                    <p class="text-dark fst-italic small mt-2">
-                        A trusted Ethiopian Housing Platform where your next home awaits.
-                    </p>
-                </div>
-
-                <div class="col-md-3">
-                    <h5 class="text-secondary fw-semibold mb-3">Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <a href="/" class="text-decoration-none d-flex align-items-center">
-                                <i class="bi bi-house-door-fill me-2"></i> <span class="fs-6">Home</span>
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="/ApartmentHouses" class="text-decoration-none d-flex align-items-center">
-                                <i class="bi bi-cash-stack me-2"></i> <span class="fs-6">Apartments</span>
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="/RealEstates" class="text-decoration-none d-flex align-items-center">
-                                <i class="bi bi-key-fill me-2"></i> <span class="fs-6">Real Estates</span>
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="/About" class="text-decoration-none d-flex align-items-center">
-                                <i class="bi bi-info-circle-fill me-2"></i> <span class="fs-6">About Us</span>
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="/Contact" class="text-decoration-none d-flex align-items-center">
-                                <i class="bi bi-envelope-fill me-2"></i> <span class="fs-6">Contact</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="col-md-3">
-                    <h5 class="text-secondary fw-semibold mb-3">Contact</h5>
-                    <ul class="list-unstyled text-dark">
-                        <li class="d-flex align-items-start mb-2">
-                            <i class="bi bi-telephone-fill me-2"></i>
-                            <span class="fs-6">+251-900-000-000</span>
-                        </li>
-                        <li class="d-flex align-items-start mb-2">
-                            <i class="bi bi-envelope-fill me-2"></i>
-                            <span class="fs-6">info@dinarhomes.et</span>
-                        </li>
-                        <li class="d-flex align-items-start mb-2">
-                            <i class="bi bi-geo-alt-fill me-2"></i>
-                            <span class="fs-6">Bole, Addis Ababa</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="col-md-3">
-                    <h5 class="text-secondary fw-semibold mb-3">Subscribe</h5>
-                    <form>
-                        <div class="mb-2">
-                            <input type="email" class="form-control form-control-sm bg-dark border-secondary text-white" placeholder="Your email address">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-sm w-100">Subscribe</button>
-                    </form>
-
-                    <div class="mt-3">
-                        <h6 class="text-dark fw-semibold small">Follow Us</h6>
-                        <div class="d-flex gap-3">
-                            <a href="#" class="text-dark"><i class="bi bi-facebook fs-5"></i></a>
-                            <a href="#" class="text-dark"><i class="bi bi-twitter-x fs-5"></i></a>
-                            <a href="#" class="text-dark"><i class="bi bi-instagram fs-5"></i></a>
-                            <a href="#" class="text-dark"><i class="bi bi-linkedin fs-5"></i></a>
-                        </div>
+    @if (isMichuAdmin)
+    {
+        var companies = _context.HousingCompanies.ToList();
+        var curUser = await userManager.GetUserAsync(User);
+        <div class="modal fade" id="createAdminModal" tabindex="-1" aria-labelledby="createAdminModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header mh-modal-header--brand">
+                        <h2 class="modal-title fs-5" id="createAdminModalLabel">Create real estate admin profile</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <p class="text-muted">Select a housing company to pre-create a profile.</p>
+                            <div class="mb-3">
+                                <label for="companySelectAdminLayout" class="form-label">Housing company</label>
+                                <select id="companySelectAdminLayout" class="form-select">
+                                    <option value="">-- Select a company --</option>
+                                    @foreach (var company in companies)
+                                    {
+                                        <option value="@company.CompanyId">@company.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <button id="createContactPersonBtnAdminLayout" type="button" class="btn btn-primary w-100">
+                                <i class="bi bi-person-plus" aria-hidden="true"></i> Proceed to create profile
+                            </button>
+                            <input type="hidden" id="UserId" value="@curUser?.Id" />
+                        </form>
                     </div>
                 </div>
-            </div>
-
-            <hr class="my-4 bg-secondary">
-            <div class="text-center text-muted small text-dark">
-                <p>&copy; 2025 <strong>MICHUHOMES</strong>. All rights reserved.</p>
             </div>
         </div>
-    </footer>
+    }
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="~/lib/swiper/swiper-bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-
+    <partial name="_CoreScripts" />
     @RenderSection("Scripts", required: false)
-    @await Html.PartialAsync("_LoginModal")
+    <partial name="_LoginModal" />
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Sidebar collapse arrow rotation
-            var collapses = document.querySelectorAll('.sidebar [data-bs-toggle="collapse"]');
-
-            collapses.forEach(function (toggle) {
-                var arrowIcon = toggle.querySelector('.toggle-arrow');
-                var targetId = toggle.getAttribute('href') || toggle.getAttribute('data-bs-target');
-                var collapseTarget = document.querySelector(targetId);
-
-                if (collapseTarget) {
-                    // Initial state check for 'show' class
-                    if (collapseTarget.classList.contains('show')) {
-                        if (arrowIcon) {
-                            arrowIcon.classList.remove('bi-chevron-right');
-                            arrowIcon.classList.add('bi-chevron-down');
-                            arrowIcon.style.transform = 'rotate(90deg)'; // Ensure initial rotation
-                        }
-                    }
-
-                    collapseTarget.addEventListener('show.bs.collapse', function () {
-                        if (arrowIcon) {
-                            arrowIcon.classList.remove('bi-chevron-right');
-                            arrowIcon.classList.add('bi-chevron-down');
-                            arrowIcon.style.transform = 'rotate(90deg)';
-                        }
-                    });
-
-                    collapseTarget.addEventListener('hide.bs.collapse', function () {
-                        if (arrowIcon) {
-                            arrowIcon.classList.remove('bi-chevron-down');
-                            arrowIcon.classList.add('bi-chevron-right');
-                            arrowIcon.style.transform = 'rotate(0deg)';
-                        }
-                    });
-                }
-            });
-
-            // Toggle sidebar for small screens
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarToggle = document.querySelector('.sidebar-header .btn-outline-secondary');
-            const sidebarNav = document.getElementById('sidebarNav');
-            const sidebarOverlay = document.querySelector('.sidebar-overlay');
-
-            if (sidebarToggle && sidebarNav && sidebarOverlay) {
-                sidebarNav.addEventListener('show.bs.collapse', function () {
-                    sidebar.classList.add('show');
-                    sidebarOverlay.style.display = 'block';
-                });
-
-                sidebarNav.addEventListener('hide.bs.collapse', function () {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.style.display = 'none';
-                });
-
-                sidebarOverlay.addEventListener('click', function () {
-                    if (sidebarNav.classList.contains('show')) {
-                        new bootstrap.Collapse(sidebarNav).hide();
-                    }
-                });
-            }
-
-
-            // Dinar Admin Company Selection Logic
-            const createContactPersonBtnAdminLayout = document.getElementById('createContactPersonBtnAdminLayout');
-            const companySelectAdminLayout = document.getElementById('companySelectAdminLayout');
-
-            if (createContactPersonBtnAdminLayout && companySelectAdminLayout) {
-                createContactPersonBtnAdminLayout.addEventListener('click', function () {
-                    const companyId = companySelectAdminLayout.value;
-
+            // Michu admin: pre-create a real estate admin profile for the selected company
+            const proceedButton = document.getElementById('createContactPersonBtnAdminLayout');
+            const companySelect = document.getElementById('companySelectAdminLayout');
+            if (proceedButton && companySelect) {
+                proceedButton.addEventListener('click', function () {
+                    const companyId = companySelect.value;
                     if (!companyId) {
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Selection Required',
+                            title: 'Selection required',
                             text: 'Please select a housing company to proceed.',
                             confirmButtonText: 'OK',
-                            customClass: {
-                                confirmButton: 'btn btn-primary'
-                            },
+                            customClass: { confirmButton: 'btn btn-primary' },
                             buttonsStyling: false
                         });
                         return;
                     }
-
-                    const UserId = document.getElementById('UserId').value;
-                    const redirectUrl = `/HouseOwner/Create?ProposedContactPersonId=${UserId}&TargetCompanyId=${companyId}`;
-                    window.location.href = redirectUrl;
+                    const userId = document.getElementById('UserId').value;
+                    window.location.href = `/HouseOwner/Create?ProposedContactPersonId=${userId}&TargetCompanyId=${companyId}`;
                 });
             }
         });
     </script>
-    </body>
+</body>
 </html>

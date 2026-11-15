@@ -2,97 +2,52 @@
 @model RadiantHomes.Pages.Houses.Actions.Rent.Payment.CreateModel
 
 @{
-    ViewData["Title"] = "New Rent Payment";
+    ViewData["Title"] = "New rent payment";
+    ViewData["Subtitle"] = "Amounts are calculated from the rent transaction.";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4">
-    <h2 class="mb-3">New Rent Payment</h2>
-    <hr />
-
-    <form method="post" class="needs-validation" novalidate>
+<form method="post" class="card needs-validation" novalidate>
+    <div class="card-body">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-        <div class="row">
+        <input type="hidden" asp-for="TransactionId" />
+        <input type="hidden" asp-for="HouseRentPayment.SalersPreferredBank" />
+        <input type="hidden" asp-for="HouseRentPayment.BuyersPreferedBank" />
+        <input type="hidden" asp-for="HouseRentPayment.CommisionedPreferedBank" />
+        <input type="hidden" asp-for="HouseRentPayment.CreatedBy" />
+        <input type="hidden" asp-for="HouseRentPayment.CreatedOn" />
+        <input type="hidden" asp-for="HouseRentPayment.UpdatedBy" />
+        <input type="hidden" asp-for="HouseRentPayment.UpdatedOn" />
+        <span asp-validation-for="HouseRentPayment.SalersPreferredBank" class="text-danger small d-block"></span>
+        <span asp-validation-for="HouseRentPayment.BuyersPreferedBank" class="text-danger small d-block"></span>
+        <span asp-validation-for="HouseRentPayment.CommisionedPreferedBank" class="text-danger small d-block"></span>
+
+        <div class="row g-3">
             <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="TransactionId" class="form-label">Transaction</label>
-                    <input type="hidden" asp-for="TransactionId" class="form-control"  />
-                </div>
-                @* <div class="form-group mb-3">
-                    <label asp-for="HouseRentPayment.RentTerm" class="form-label">Rent Price / Term</label>
-                    <input asp-for="HouseRentPayment.RentTerm" class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.RentTerm" class="text-danger small"></span>
-                </div> *@
-                <div class="form-group mb-3">
-                    <label asp-for="HouseRentPayment.RentPricePerTerm" class="form-label">Rent Price / Term</label>
-                    <input asp-for="HouseRentPayment.RentPricePerTerm" readonly class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.RentPricePerTerm" class="text-danger small"></span>
-                </div>
-
-                <div class="form-group mb-3">
-                    <label asp-for="HouseRentPayment.TotalRentPrice" class="form-label">Total Rent Price</label>
-                    <input asp-for="HouseRentPayment.TotalRentPrice" readonly class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.TotalRentPrice" class="text-danger small"></span>
-                </div>
-
-                <div class="form-group mb-3">
-                    <label asp-for="HouseRentPayment.RentCommision" class="form-label">Commission</label>
-                    <input asp-for="HouseRentPayment.RentCommision" readonly class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.RentCommision" class="text-danger small"></span>
-                </div>
+                <label asp-for="HouseRentPayment.RentPricePerTerm" class="form-label">Rent price / term</label>
+                <input asp-for="HouseRentPayment.RentPricePerTerm" readonly class="form-control" />
+                <span asp-validation-for="HouseRentPayment.RentPricePerTerm" class="text-danger small"></span>
             </div>
-
             <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <input type="hidden" asp-for="HouseRentPayment.SalersPreferredBank" class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.SalersPreferredBank" class="text-danger small"></span>
-                </div>
-
-                <div class="form-group mb-3">
-                    <input type="hidden" asp-for="HouseRentPayment.BuyersPreferedBank" class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.BuyersPreferedBank" class="text-danger small"></span>
-                </div>
-
-                <div class="form-group mb-3">
-                    <input type="hidden" asp-for="HouseRentPayment.CommisionedPreferedBank" class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.CommisionedPreferedBank" class="text-danger small"></span>
-                </div>
+                <label asp-for="HouseRentPayment.TotalRentPrice" class="form-label">Total rent price</label>
+                <input asp-for="HouseRentPayment.TotalRentPrice" readonly class="form-control" />
+                <span asp-validation-for="HouseRentPayment.TotalRentPrice" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="HouseRentPayment.RentCommision" class="form-label">Commission</label>
+                <input asp-for="HouseRentPayment.RentCommision" readonly class="form-control" />
+                <span asp-validation-for="HouseRentPayment.RentCommision" class="text-danger small"></span>
             </div>
         </div>
 
-        <div class="row mt-3">
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <input type="hidden" asp-for="HouseRentPayment.CreatedBy" class="form-control" readonly />
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <input type="hidden" asp-for="HouseRentPayment.CreatedOn" class="form-control" readonly />
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <input type="hidden" asp-for="HouseRentPayment.UpdatedBy" class="form-control" readonly />
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <input type="hidden" asp-for="HouseRentPayment.UpdatedOn" class="form-control" readonly />
-                </div>
-            </div>
+        <div class="mh-form-actions">
+            <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save payment</button>
         </div>
-
-        <div class="form-group mt-4">
-            <button type="submit" class="btn btn-primary">Save Payment</button>
-            <a asp-page="Index" class="btn btn-secondary ms-2">Cancel</a>
-        </div>
-    </form>
-</div>
+    </div>
+</form>
 
 @section Scripts {
     @{

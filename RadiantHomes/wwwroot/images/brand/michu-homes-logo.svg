@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
+  <title id="title">michu Homes logo</title>
+  <desc id="desc">Navy and orange real estate logo combining a city skyline and a house, alongside the michu Homes wordmark.</desc>
+
+  <rect width="1600" height="700" fill="#FFFFFF"/>
+
+  <!-- Architectural mark: two modern buildings, a house roof, windows and a curved foundation -->
+  <g transform="translate(65 105)">
+    <path d="M105 365 V160 L250 68 V284 L188 327 V207 L166 222 V365 Z" fill="#092B66"/>
+    <path d="M305 240 V0 L492 115 V252 L431 215 V123 L367 84 V240 Z" fill="#092B66"/>
+    <path d="M130 365 L435 170 L590 280 V365 L435 258 L260 365 Z" fill="#FF850D"/>
+    <path d="M435 170 L495 210 L495 270 L435 229 Z" fill="#FF850D"/>
+    <g fill="#092B66">
+      <rect x="385" y="300" width="34" height="34"/>
+      <rect x="430" y="300" width="34" height="34"/>
+      <rect x="385" y="344" width="34" height="34"/>
+      <rect x="430" y="344" width="34" height="34"/>
+    </g>
+    <path d="M0 438 Q260 320 610 438" fill="none" stroke="#092B66" stroke-width="17" stroke-linecap="round"/>
+  </g>
+
+  <!-- Divider -->
+  <path d="M700 190 V535" stroke="#092B66" stroke-width="5"/>
+
+  <!-- Wordmark -->
+  <g font-family="Montserrat, Poppins, Arial, sans-serif">
+    <text x="755" y="390" font-size="190" font-weight="750" letter-spacing="-8" fill="#092B66">michu</text>
+    <circle cx="1070" cy="173" r="27" fill="#FF850D"/>
+    <text x="855" y="515" font-size="112" font-weight="400" letter-spacing="8" fill="#FF850D">Homes</text>
+  </g>
+</svg>

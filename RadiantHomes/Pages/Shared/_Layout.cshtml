@@ -1,254 +1,184 @@
-﻿<!DOCTYPE html>
+﻿@using RadiantHomes.Utilities
+@*
+    Public layout (visitors, buyers, house owners).
+    Page contract: see Pages/Shared/_PageHeader.cshtml.
+*@
+@{
+    var area = ViewContext.RouteData.Values["area"]?.ToString() ?? string.Empty;
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+    ViewData["MhTitle"] = PageChrome.ResolveTitle(ViewData["Title"] as string, currentPage, area);
+
+    var showHeader = (ViewData["PageHeader"] as bool?) ?? true;
+    var width = (ViewData["PageWidth"] as string ?? string.Empty).ToLowerInvariant();
+    var bodyContainer = width switch
+    {
+        "full" => null,
+        "narrow" => "container mh-container-narrow",
+        _ => "container"
+    };
+    var headerContainer = width == "narrow" ? "container mh-container-narrow" : "container";
+
+    // Highlights the nav item for the current section (e.g. /ApartmentHouses/Details → Apartments)
+    string Active(string section) =>
+        area.Length == 0 && (section == "/Index"
+            ? currentPage.Equals("/Index", StringComparison.OrdinalIgnoreCase)
+            : currentPage.StartsWith(section + "/", StringComparison.OrdinalIgnoreCase))
+            ? "active-link" : string.Empty;
+}
+<!DOCTYPE html>
 <html lang="@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MichuHomes</title> @* Changed "RadiantHomes" to "MichuHomes" for consistency *@
-
-    <link rel="manifest" href="~/manifest.json">
-    <meta name="theme-color" content="#1e3a8a">
-
-    @* Local CSS Files - Bundling and Minification should be handled by ASP.NET Core for production *@
-    <link rel="stylesheet" href="~/css/bootstrap.min.css" asp-append-version="true" /> @* Added asp-append-version *@
-    <link rel="stylesheet" href="~/css/all.min.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/bootstrap-icons.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/swiper-bundle.min.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/loader.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    <partial name="_HeadAssets" />
+    @RenderSection("Styles", required: false)
 </head>
+<body class="mh-public">
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-primary btn-sm" style="z-index:2100" href="#main-content">Skip to content</a>
 
-<body>
-    @* Page Loader *@
-    <div id="pageLoader" class="d-flex justify-content-center align-items-center vh-100 position-fixed w-100 top-0 start-0 bg-white bg-opacity-75 z-index-loader">
-        @* Added classes for centering and initial hide *@
-        <div class="dot-loader">
-            <div></div>
-            <div></div>
-            <div></div>
-        </div>
+    <div id="pageLoader" class="mh-loader" aria-hidden="true">
+        <div class="dot-loader"><div></div><div></div><div></div></div>
     </div>
 
-    @* Navbar *@
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success text-white semi-bold fixed-top shadow-sm py-3">
+    <nav class="navbar navbar-expand-lg fixed-top mh-navbar" aria-label="Main navigation">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center me-auto" asp-page="/Index" aria-label="Michu Homes Home">
-                <i class="fa-solid fa-house-signal text-white fs-3 me-2"></i>
-                <span class="fs-4 fw-bolder text-white">MICHU<sup class="ms-1"><span class="text-secondary-light">HOMES</span></sup></span>
+            <a class="navbar-brand" asp-area="" asp-page="/Index" aria-label="Michu Homes — home">
+                <partial name="_BrandLogo" model="@("color")" />
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon text-white-emphasis"></span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNavDropdown">
-                <ul class="navbar-nav align-items-center text-white mb-2 mb-lg-0">
-                    <li class="nav-item me-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Index" ? "active-link" : "")" aria-current="page" asp-page="/Index" data-translate="homePage">Home</a>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto mb-0 align-items-lg-center gap-lg-1">
+                    <li class="nav-item">
+                        <a class="nav-link @Active("/Index")" asp-area="" asp-page="/Index" data-translate="homePage">Home</a>
                     </li>
-                    <li class="nav-item me-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/HouseOwner/Create" ? "active-link" : "")" asp-page="/HouseOwner/Create" data-translate="registerPage">Create Account</a>
+                    <li class="nav-item">
+                        <a class="nav-link @Active("/HouseOwner")" asp-area="" asp-page="/HouseOwner/Create" data-translate="registerPage">Create Account</a>
                     </li>
-                    <li class="nav-item me-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/ApartmentHouses/Index" ? "active-link" : "")" asp-page="/ApartmentHouses/Index" data-translate="apartmentsPage">Apartments</a> @* Changed href to asp-page *@
+                    <li class="nav-item">
+                        <a class="nav-link @Active("/ApartmentHouses")" asp-area="" asp-page="/ApartmentHouses/Index" data-translate="apartmentsPage">Apartments</a>
                     </li>
-                    <li class="nav-item me-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/RealEstates/Index" ? "active-link" : "")" asp-page="/RealEstates/Index" data-translate="realEstatePage">Real Estates</a> @* Changed href to asp-page *@
+                    <li class="nav-item">
+                        <a class="nav-link @Active("/RealEstates")" asp-area="" asp-page="/RealEstates/Index" data-translate="realEstatePage">Real Estates</a>
                     </li>
-                    <li class="nav-item me-3">
-                        <a class="nav-link nav-link-custom @(ViewContext.RouteData.Values["Page"]?.ToString() == "/Projects/Index" ? "active-link" : "")" asp-page="/Projects/Index" data-translate="ProjectsPage">Projects</a> @* Changed href to asp-page *@
-                    </li>
-                    <li class="nav-item d-flex align-items-center mt-2 mt-lg-0">
-                        <select class="form-select language-selector me-2" onchange="loadLanguage(this.value)" aria-label="Language Selector">
-                            <option value="en">English</option>
-                            <option value="am">አማርኛ</option>
-                            <option value="or">Afaan Oromoo</option>
-                            <option value="tg">ትግርኛ</option>
-                        </select>
-
-                        @if (User.Identity is not null && User.Identity.IsAuthenticated) @* Added null check for User.Identity *@
-                        {
-                            @await Html.PartialAsync("_LoginPartial") @* Removed .cshtml extension, it's convention *@
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-outline-light btn-sm px-3 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#loginModal" aria-label="Login">
-                                @* Added aria-label *@
-                                <i class="fas fa-sign-in-alt me-1"></i> Login
-                            </button>
-                        }
+                    <li class="nav-item">
+                        <a class="nav-link @Active("/Projects")" asp-area="" asp-page="/Projects/Index" data-translate="ProjectsPage">Projects</a>
                     </li>
                 </ul>
+
+                <div class="d-flex align-items-center ms-lg-3 gap-2 mh-nav-tools">
+                    <select class="form-select form-select-sm language-selector" onchange="loadLanguage(this.value)" aria-label="Language">
+                        <option value="en">English</option>
+                        <option value="am">አማርኛ</option>
+                        <option value="or">Afaan Oromoo</option>
+                        <option value="tg">ትግርኛ</option>
+                    </select>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <partial name="_LoginPartial" />
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Log in
+                        </button>
+                    }
+                </div>
             </div>
         </div>
     </nav>
 
-    <main role="main" class="flex-grow-1">
-        @RenderBody()
+    <main id="main-content" role="main">
+        @if (showHeader)
+        {
+            <header class="mh-page-header">
+                <div class="@headerContainer mh-page-header__inner">
+                    <partial name="_PageHeader" />
+                    @if (IsSectionDefined("PageActions"))
+                    {
+                        <div class="mh-page-actions">@RenderSection("PageActions")</div>
+                    }
+                </div>
+            </header>
+        }
+        else if (IsSectionDefined("PageActions"))
+        {
+            IgnoreSection("PageActions");
+        }
+
+        @if (bodyContainer is null)
+        {
+            @RenderBody()
+        }
+        else
+        {
+            <div class="@bodyContainer mh-page-body @(showHeader ? "" : "pt-4")">
+                @RenderBody()
+            </div>
+        }
     </main>
 
-    <footer class="bg-success text-dark py-5">
+    <footer class="mh-footer">
         <div class="container">
             <div class="row gy-4">
-                <div class="col-md-3">
-                    <a class="navbar-brand d-flex align-items-center mb-2" asp-page="/Index" aria-label="Michu Homes Footer Link">
-                        <i class="fa-solid fa-house-signal fs-4 me-2"></i> <span class="fs-4 fw-bold">MICHU<sup><span>HOMES</span></sup></span>
+                <div class="col-lg-4 col-md-6">
+                    <a asp-area="" asp-page="/Index" class="d-inline-block mb-3" aria-label="Michu Homes — home">
+                        <partial name="_BrandLogo" model="@("reversed")" />
                     </a>
-                    <p class="text-dark fst-italic small">
-                        A trusted Ethiopian Housing Platform where your next home awaits.
-                    </p>
-                </div>
-
-                <div class="col-md-3">
-                    <h5 class="text-secondary fw-semibold mb-3">Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <a asp-page="/Index" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
-                                @* Changed href to asp-page *@
-                                <i class="bi bi-house-door-fill me-2"></i> <span class="fs-6">Home</span>
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a asp-page="/Houses/Sale" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
-                                @* Changed href to asp-page, assuming /Houses/Sale exists *@
-                                <i class="bi bi-cash-stack me-2"></i> <span class="fs-6">Houses for Sale</span>
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a asp-page="/Houses/Rent" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
-                                @* Changed href to asp-page, assuming /Houses/Rent exists *@
-                                <i class="bi bi-key-fill me-2"></i> <span class="fs-6">Houses for Rent</span>
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a asp-page="/About" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
-                                @* Changed href to asp-page *@
-                                <i class="bi bi-info-circle-fill me-2"></i> <span class="fs-6">About Us</span>
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a asp-page="/Contact" class="text-dark text-decoration-none d-flex align-items-center hover-underline">
-                                @* Changed href to asp-page *@
-                                <i class="bi bi-envelope-fill me-2"></i> <span class="fs-6">Contact</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="col-md-3">
-                    <h5 class="text-secondary fw-semibold mb-3">Contact</h5>
-                    <ul class="list-unstyled text-dark">
-                        <li class="d-flex align-items-start mb-2">
-                            <i class="bi bi-telephone-fill me-2"></i>
-                            <span class="fs-6">+251-900-000-000</span>
-                        </li>
-                        <li class="d-flex align-items-start mb-2">
-                            <i class="bi bi-envelope-fill me-2"></i>
-                            <span class="fs-6">info@michuhomes.et</span>
-                        </li>
-                        <li class="d-flex align-items-start mb-2">
-                            <i class="bi bi-geo-alt-fill me-2"></i>
-                            <span class="fs-6">Bole, Addis Ababa</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="col-md-3">
-                    <h5 class="text-secondary fw-semibold mb-3">Subscribe</h5>
-                    @* Assuming the subscription form will post to the current page handler or a specific one *@
-                    <form asp-page-handler="SubscribeUser" method="post">
-                        @* Added method="post" for forms *@
-                        <div class="mb-2">
-                            <input type="email" name="Email" class="form-control form-control-sm" placeholder="Your email address" aria-label="Email for subscription" required> @* Added name and required attributes *@
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-sm w-100">Subscribe</button>
-                    </form>
-
-                    <div class="mt-3">
-                        <h6 class="text-dark fw-semibold small">Follow Us</h6>
-                        <div class="d-flex gap-3">
-                            <a href="#" class="text-dark" aria-label="Facebook"><i class="bi bi-facebook fs-5"></i></a>
-                            <a href="#" class="text-dark" aria-label="Twitter"><i class="bi bi-twitter-x fs-5"></i></a>
-                            <a href="#" class="text-dark" aria-label="Instagram"><i class="bi bi-instagram fs-5"></i></a>
-                            <a href="#" class="text-dark" aria-label="LinkedIn"><i class="bi bi-linkedin fs-5"></i></a>
-                        </div>
+                    <p class="mb-0" style="max-width: 34ch">A trusted Ethiopian housing platform where your next home awaits.</p>
+                    <div class="mh-footer-social">
+                        <a href="#" aria-label="Facebook"><i class="bi bi-facebook" aria-hidden="true"></i></a>
+                        <a href="#" aria-label="X (Twitter)"><i class="bi bi-twitter-x" aria-hidden="true"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="bi bi-instagram" aria-hidden="true"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin" aria-hidden="true"></i></a>
                     </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h2>Explore</h2>
+                    <ul>
+                        <li><a asp-area="" asp-page="/Index">Home</a></li>
+                        <li><a asp-area="" asp-page="/ApartmentHouses/Index">Apartments</a></li>
+                        <li><a asp-area="" asp-page="/RealEstates/Index">Real estates</a></li>
+                        <li><a asp-area="" asp-page="/Projects/Index">Projects</a></li>
+                        <li><a asp-area="" asp-page="/Privacy">Privacy</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6 col-6">
+                    <h2>Contact</h2>
+                    <ul>
+                        <li><i class="bi bi-telephone" aria-hidden="true"></i>+251-900-000-000</li>
+                        <li><i class="bi bi-envelope" aria-hidden="true"></i><a href="mailto:info@michuhomes.et">info@michuhomes.et</a></li>
+                        <li><i class="bi bi-geo-alt" aria-hidden="true"></i>Bole, Addis Ababa</li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h2>Stay updated</h2>
+                    <form asp-page-handler="SubscribeUser" method="post" data-no-loader>
+                        <label for="footerSubscribeEmail" class="visually-hidden">Email address</label>
+                        <div class="input-group">
+                            <input id="footerSubscribeEmail" type="email" name="Email" class="form-control" placeholder="Your email address" required />
+                            <button type="submit" class="btn btn-accent">Subscribe</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <hr class="my-4">
-            <div class="text-center text-muted small text-dark">
-                <p>&copy; @DateTime.Now.Year <strong>MICHUHOMES</strong>. All rights reserved.</p> @* Dynamically get current year *@
+            <div class="mh-footer-bottom">
+                <span>&copy; @DateTime.Now.Year Michu Homes. All rights reserved.</span>
+                <a asp-area="" asp-page="/Privacy">Privacy policy</a>
             </div>
         </div>
     </footer>
 
-    @* Local JavaScript Files - Order matters! *@
-    <script src="~/js/jquery-3.6.0.min.js" asp-append-version="true"></script>
-    <script src="~/js/jquery.validate.min.js" asp-append-version="true"></script>
-    <script src="~/js/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script>
-    <script src="~/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
-    <script src="~/js/swiper-bundle.min.js" asp-append-version="true"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" crossorigin="anonymous"></script> @* Added crossorigin *@
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <partial name="_CoreScripts" />
 
-    @* Language Loading Script *@
-    <script type="text/javascript">
-        function loadLanguage(language) {
-            localStorage.setItem('selectedLanguage', language);
-            fetch(`/locales/${language}.json`)
-                .then(response => {
-                    if (!response.ok) {
-                        console.warn(`Language file for '${language}' not found, falling back to English.`);
-                        // Fallback to English if specific language file not found
-                        return fetch(`/locales/en.json`)
-                            .then(enResponse => {
-                                if (!enResponse.ok) {
-                                    throw new Error('English language file not found.'); // Critical error if even English fails
-                                }
-                                return enResponse.json();
-                            });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    for (const key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            const elements = document.querySelectorAll(`[data-translate="${key}"]`);
-                            elements.forEach(element => {
-                                element.innerText = data[key];
-                            });
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error("Error loading language file:", error);
-                    // Optionally display a user-friendly message
-                    // alert("There was an error loading language settings. Please try again.");
-                });
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const currentCulture = "@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName";
-            const selector = document.querySelector('.language-selector');
-
-            if (selector) {
-                // Prioritize localStorage, then currentCulture, then navigator.language
-                const storedLanguage = localStorage.getItem('selectedLanguage');
-                const effectiveLanguage = storedLanguage || currentCulture || navigator.language.slice(0, 2);
-                selector.value = effectiveLanguage;
-                loadLanguage(effectiveLanguage);
-            } else {
-                // If no selector, still attempt to load language based on preferences
-                loadLanguage(localStorage.getItem('selectedLanguage') || navigator.language.slice(0, 2));
-            }
-        });
-    </script>
-
-    @* Tawk.to Live Chat Script *@
-    <script type="text/javascript">
+    @* Tawk.to live chat *@
+    <script>
         var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
         (function () {
             var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
@@ -260,93 +190,7 @@
         })();
     </script>
 
-    @* Navbar Scroll Effect Script *@
-    <script>
-        document.addEventListener('DOMContentLoaded', function () { // Use DOMContentLoaded for consistency
-            const navbar = document.querySelector('.navbar');
-            if (navbar) {
-                window.addEventListener('scroll', function () { // Add event listener
-                    if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-                        navbar.classList.add('scrolled');
-                    } else {
-                        navbar.classList.remove('scrolled');
-                    }
-                });
-            }
-        });
-    </script>
-
-    @* Service Worker Registration *@
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { // Register after page load
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('Service Worker registered ✅', reg.scope))
-                    .catch(err => console.error('Service Worker registration failed:', err));
-            });
-        }
-    </script>
-
-    @* Page Loader Logic *@
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const loader = document.getElementById('pageLoader');
-
-            // On initial page load (or after any full navigation), hide the loader
-            // by adding the 'page-loader-hidden' class.
-            if (loader) {
-                loader.classList.add('page-loader-hidden');
-
-                // Optional: Remove the loader from the DOM completely after transition
-                // if you don't need it visible but hidden for accessibility or other reasons.
-                // Be careful with this, as you'd need to re-add it if you plan to show it again.
-                loader.addEventListener('transitionend', function() {
-                     if (loader.classList.contains('page-loader-hidden')) {
-                         loader.style.display = 'none'; // Completely hide after fade out
-                     }
-                }, { once: true }); // Listener fires only once
-            }
-
-            // Show loader on navigation or form submission
-            document.body.addEventListener('click', function (e) {
-                const target = e.target.closest('a:not([data-no-loader]):not([href^="#"]), button[type="submit"]:not([data-no-loader])');
-
-                if (target) {
-                    if (loader) {
-                        loader.style.display = 'flex'; // Make it visible again instantly for the next load
-                        loader.classList.remove('page-loader-hidden'); // Show loader for new navigation
-                    }
-                }
-            });
-
-            // Handle browser's back/forward navigation (pageshow event)
-            // Ensure the loader is hidden if the page is loaded from cache.
-            window.addEventListener('pageshow', function (event) {
-                if (event.persisted) { // Check if the page is loaded from bfcache
-                    if (loader) {
-                        loader.classList.add('page-loader-hidden');
-                        loader.style.display = 'none'; // Ensure it's fully hidden
-                    }
-                }
-            });
-        });
-    </script>
-
-    @* Login Modal ReturnUrl Logic *@
-    <script>
-        const loginModal = document.getElementById('loginModal');
-        if (loginModal) {
-            loginModal.addEventListener('show.bs.modal', function () { // Use 'show.bs.modal' instead of 'shown.bs.modal'
-                const returnUrlInput = loginModal.querySelector('input[name="ReturnUrl"]');
-                if (returnUrlInput) {
-                    returnUrlInput.value = window.location.pathname + window.location.search;
-                }
-            });
-        }
-    </script>
-
-    @* Render section for page-specific scripts *@
     @RenderSection("Scripts", required: false)
-    @await Html.PartialAsync("_LoginModal")
+    <partial name="_LoginModal" />
 </body>
 </html>

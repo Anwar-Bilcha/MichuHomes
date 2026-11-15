@@ -1,0 +1,88 @@
+@*
+    Core scripts shared by every layout. Loaded once, in dependency order.
+    Page-specific scripts go in @section Scripts, which layouts render after this partial.
+*@
+<script src="~/js/jquery-3.6.0.min.js" asp-append-version="true"></script>
+<script src="~/js/jquery.validate.min.js" asp-append-version="true"></script>
+<script src="~/js/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script>
+<script src="~/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+<script src="~/js/swiper-bundle.min.js" asp-append-version="true"></script>
+<script src="~/js/sweetalert2@11.js" asp-append-version="true"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+<script>
+    // ---- Language switcher (elements with data-translate="key") ----
+    function loadLanguage(language) {
+        try { localStorage.setItem('selectedLanguage', language); } catch (e) { /* storage unavailable */ }
+        fetch(`/locales/${language}.json`)
+            .then(response => response.ok ? response.json() : fetch('/locales/en.json').then(r => r.json()))
+            .then(data => {
+                Object.keys(data).forEach(key => {
+                    document.querySelectorAll(`[data-translate="${key}"]`).forEach(el => { el.innerText = data[key]; });
+                });
+                document.querySelectorAll('.language-selector').forEach(s => { s.value = language; });
+            })
+            .catch(error => console.error('Error loading language file:', error));
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Restore the chosen language
+        let stored = null;
+        try { stored = localStorage.getItem('selectedLanguage'); } catch (e) { /* storage unavailable */ }
+        const culture = document.documentElement.lang || '';
+        const language = stored || culture || (navigator.language || 'en').slice(0, 2);
+        loadLanguage(language || 'en');
+
+        // ---- Page loader: hide on load, show while navigating away ----
+        const loader = document.getElementById('pageLoader');
+        const hideLoader = () => loader && loader.classList.add('page-loader-hidden');
+        const showLoader = () => loader && loader.classList.remove('page-loader-hidden');
+        hideLoader();
+        window.addEventListener('pageshow', hideLoader);
+
+        document.body.addEventListener('click', function (e) {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            const link = e.target.closest('a[href]');
+            if (link) {
+                const href = link.getAttribute('href') || '';
+                const skip = link.hasAttribute('data-no-loader') || link.hasAttribute('download')
+                    || link.hasAttribute('data-bs-toggle') || (link.target && link.target !== '_self')
+                    || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:');
+                if (!skip) showLoader();
+            }
+        });
+
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (form.hasAttribute('data-no-loader')) return;
+            // Respect client-side validation: only show when the form is actually going to submit
+            if (window.jQuery && jQuery(form).data('validator') && !jQuery(form).valid()) return;
+            showLoader();
+            setTimeout(hideLoader, 15000); // safety net for downloads / no-navigation responses
+        });
+
+        // ---- Public navbar shadow on scroll ----
+        const navbar = document.querySelector('.mh-navbar');
+        if (navbar) {
+            const onScroll = () => navbar.classList.toggle('scrolled', window.scrollY > 8);
+            onScroll();
+            window.addEventListener('scroll', onScroll, { passive: true });
+        }
+
+        // ---- Login modal: return to the current page after signing in ----
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) {
+            loginModal.addEventListener('show.bs.modal', function () {
+                const input = loginModal.querySelector('input[name="ReturnUrl"]');
+                if (input) input.value = window.location.pathname + window.location.search;
+            });
+        }
+    });
+
+    // ---- Service worker (static-asset cache) ----
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js').catch(err => console.error('Service worker registration failed:', err));
+        });
+    }
+</script>

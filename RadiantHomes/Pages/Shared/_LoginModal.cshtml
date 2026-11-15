@@ -1,70 +1,45 @@
 ﻿@inject SignInManager<AppUser> SigninManager
+@* Login dialog opened from the "Log in" buttons in both layouts. *@
 @{
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
 }
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg rounded">
-            <div class="lead modal-title">
-
-                <div class="modal-header bg-success  d-flex justify-content-between align-items-center bg-secondary">
-                    <div class="modal-title  text-white fw-bold">
-                        Login to
-                        <a class="navbar-brand" asp-page="/Index">
-                            <i class="fa-solid fa-house-signal"></i> MICHU<sup><span style="color: brown;">HOMES</span></sup>
-                        </a>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <br />
+            <div class="modal-body px-4 pb-4 pt-0">
+                <div class="text-center mb-4">
+                    <div class="d-inline-block mb-3" style="width: 180px"><partial name="_BrandLogo" model="@("color")" /></div>
+                    <h2 class="modal-title fs-4" id="loginModalLabel">Welcome back</h2>
+                    <p class="text-muted mb-0">Log in to manage your homes and listings.</p>
+                </div>
 
-            <form method="post" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@returnUrl">
-                <div class="modal-body">
+                <form method="post" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@returnUrl">
+                    <input type="hidden" name="ReturnUrl" value="@returnUrl" />
                     <div class="mb-3">
-                        <label for="Input_Email" style="font-size:14px">Email Address</label>
-                        <input name="Input.Email" id="Input_Email" class="form-control" required />
+                        <label for="Input_Email" class="form-label">Email address</label>
+                        <input name="Input.Email" id="Input_Email" type="email" class="form-control" autocomplete="username" required />
                     </div>
                     <div class="mb-3">
-                        <label for="Input_Password" style="font-size:14px">Password</label>
-                        <input name="Input.Password" id="Input_Password" type="password" class="form-control" required />
+                        <label for="Input_Password" class="form-label">Password</label>
+                        <input name="Input.Password" id="Input_Password" type="password" class="form-control" autocomplete="current-password" required />
                     </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary login-links text-center w-50">Login</button>
-                    </div>
-                    <!-- 🔥 External login section -->
-                    <div class="text-center modal-footer my-3">
-                        <p class="text-body" style="font-size:14px; font-weight:800"> Or login with</p>
-                       @*  @foreach (var provider in (await SigninManager.GetExternalAuthenticationSchemesAsync()))
-                        {
-                            <button type="submit" class="btn btn-outline-dark align-content-center" name="provider" value="Google">
-                                <i class="bi bi-google"></i> Sign in with Google
-                            </button>
-                        } *@
-                        
-                    </div>
-                </div>
-               
-            </form>
-            
-                <form asp-area="Identity" asp-page="/Account/ExternalLogin" asp-route-returnUrl="/index" method="post">
-                <div class="modal-body">
-                    <div class="login-links text-center">
-                        <button type="submit" class="btn btn-outline-dark align-content-center" name="provider" value="Google">
-                            <i class="fa-brands fa-google" style="font-size:2rem"></i> Sign in with Google
-                        </button>
-                    </div>
-                    <div class="login-links text-center">
-                        <button type="submit" class="btn btn-outline-primary mt-2 justify-content-center" name="provider" value="Facebook">
-                            <i class="fa-brands fa-facebook-f" style="font-size:2rem"></i> Sign in with Facebook
-                        </button>
-                    </div>
-                </div>
+                    <button type="submit" class="btn btn-primary w-100">Log in</button>
                 </form>
-            
 
+                <div class="mh-auth-divider">or continue with</div>
+
+                <form asp-area="Identity" asp-page="/Account/ExternalLogin" asp-route-returnUrl="/index" method="post" class="d-grid gap-2">
+                    <button type="submit" class="btn btn-outline-secondary" name="provider" value="Google">
+                        <i class="fa-brands fa-google" aria-hidden="true"></i> Google
+                    </button>
+                    <button type="submit" class="btn btn-outline-secondary" name="provider" value="Facebook">
+                        <i class="fa-brands fa-facebook-f" aria-hidden="true"></i> Facebook
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

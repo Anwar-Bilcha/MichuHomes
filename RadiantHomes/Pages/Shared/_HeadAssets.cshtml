@@ -1,0 +1,33 @@
+@using RadiantHomes.Utilities
+@*
+    Shared <head> content for every layout: meta, title, favicon, fonts and the core stylesheets.
+    The layout sets ViewData["MhTitle"] (resolved page title) before rendering this partial.
+*@
+@{
+    var pageTitle = ViewData["MhTitle"] as string;
+    var fullTitle = string.IsNullOrWhiteSpace(pageTitle) || pageTitle == PageChrome.BrandName
+        ? PageChrome.BrandName
+        : $"{pageTitle} · {PageChrome.BrandName}";
+}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>@fullTitle</title>
+<meta name="description" content="Michu Homes — a trusted Ethiopian housing platform where your next home awaits." />
+<meta name="theme-color" content="#092B66" />
+
+<link rel="icon" href="~/favicon.ico" sizes="48x48" />
+<link rel="icon" href="~/images/brand/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="~/images/brand/apple-touch-icon.png" />
+<link rel="manifest" href="~/manifest.json" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;600;700;800&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" />
+
+<link rel="stylesheet" href="~/css/bootstrap.min.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/bootstrap-icons.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/lib/fontawesome/css/all.min.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/swiper-bundle.min.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/loader.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/michu-theme.css" asp-append-version="true" />

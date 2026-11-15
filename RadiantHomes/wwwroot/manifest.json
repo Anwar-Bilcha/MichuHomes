@@ -1,22 +1,37 @@
 {
-  "name": "RadiantHomes",
-  "short_name": "RadiantHomes",
+  "name": "Michu Homes",
+  "short_name": "Michu Homes",
+  "description": "A trusted Ethiopian housing platform where your next home awaits.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1e3a8a",
+  "background_color": "#FFFFFF",
+  "theme_color": "#092B66",
   "orientation": "portrait",
   "scope": "/",
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/images/brand/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
     }
   ]
 }
