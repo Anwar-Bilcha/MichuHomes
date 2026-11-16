@@ -1,0 +1,35 @@
+@page
+@model RadiantHomes.Pages.Portal.MoreModel
+@{
+    ViewData["Title"] = "More";
+}
+
+<div class="mh-more">
+<div class="mh-me-card mb-3">
+    <img src="@(string.IsNullOrWhiteSpace(Model.Me.Profile?.CustomerPhotoUrl) ? "/images/default-profile.png" : Model.Me.Profile!.CustomerPhotoUrl)" alt="" width="56" height="56" />
+    <div class="min-w-0">
+        <strong>@Model.Me.FullName</strong>
+        <span>@Model.Me.Account.Email</span>
+    </div>
+</div>
+
+<nav class="mh-menu" aria-label="More">
+    <a asp-page="/Portal/Prices"><i class="bi bi-graph-down-arrow" aria-hidden="true"></i> Best prices <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i></a>
+    <a asp-page="/Portal/Bought"><i class="bi bi-key" aria-hidden="true"></i> Houses bought <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i></a>
+    <a asp-page="/Portal/Comments"><i class="bi bi-chat-left-text" aria-hidden="true"></i> My comments <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i></a>
+    <a asp-page="/Portal/Referrals"><i class="bi bi-gift" aria-hidden="true"></i> Refer a friend <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i></a>
+    <a asp-page="/Portal/Profile"><i class="bi bi-person" aria-hidden="true"></i> My profile <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i></a>
+    <a asp-area="Identity" asp-page="/Account/Manage/Index"><i class="bi bi-person-gear" aria-hidden="true"></i> Account settings <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i></a>
+    <a asp-area="" asp-page="/Index"><i class="bi bi-globe2" aria-hidden="true"></i> Public website <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i></a>
+</nav>
+
+<div class="mh-menu mt-3">
+    <div class="mh-menu-row">
+        <span><i class="bi bi-translate" aria-hidden="true"></i> Language</span>
+        <partial name="_LanguagePicker" model="@("form-select form-select-sm language-selector w-auto ms-auto")" />
+    </div>
+    <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
+        <button type="submit" class="mh-menu-danger"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Log out</button>
+    </form>
+</div>
+</div>

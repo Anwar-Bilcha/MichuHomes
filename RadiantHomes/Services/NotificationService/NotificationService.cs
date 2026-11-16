@@ -70,17 +70,21 @@ namespace RadiantHomes.Services.NotificationService
         public async Task<List<Notification>> GetUnreadForAdminAsync()
         {
             return await _context.Notifications
-                .Where(n => !n.IsRead)
+                .Where(n => !n.IsRead && n.RecipientRole != CustomerRecipientRole)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
 
+        // Every notification except the customers' own (customer portal; see CustomerPortal/CustomerNotifications).
         public async Task<List<Notification>> GetForMichuAdminAsync()
         {
             return await _context.Notifications
+                .Where(n => n.RecipientRole != CustomerRecipientRole)
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
         }
+
+        private const string CustomerRecipientRole = MichuHomesRoles.Buyer;
 
         public Task<bool> MarkAsReadAsync(int notificationId) => SetReadAsync(notificationId, true);
 

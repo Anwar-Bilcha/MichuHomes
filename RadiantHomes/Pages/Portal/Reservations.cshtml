@@ -1,0 +1,67 @@
+@page
+@model RadiantHomes.Pages.Portal.ReservationsModel
+@using RadiantHomes.Pages.ApartmentHouses
+@{
+    ViewData["Title"] = "My reservations";
+}
+
+@if (!Model.Me.HasProfile)
+{
+    <partial name="_ProfileNeeded" model="@("Reservations are made with your customer profile.")" />
+    return;
+}
+
+<nav class="mh-segmented mb-3" aria-label="Reservations">
+    <a class="@(Model.ShowPast ? null : "active")" asp-page="/Portal/Reservations" aria-current="@(Model.ShowPast ? null : "page")">Active</a>
+    <a class="@(Model.ShowPast ? "active" : null)" asp-page="/Portal/Reservations" asp-route-show="past" aria-current="@(Model.ShowPast ? "page" : null)">Past</a>
+</nav>
+
+@if (!Model.Items.Any())
+{
+    <div class="mh-empty">
+        <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-calendar-check"></i></span>
+        <h2>@(Model.ShowPast ? "No past reservations" : "No active reservations")</h2>
+        <p>@(Model.ShowPast ? "Cancelled reservations appear here." : "Reserve a home and follow its progress here.")</p>
+        <a class="btn btn-primary" asp-page="/Portal/Browse"><i class="bi bi-search" aria-hidden="true"></i> Browse homes</a>
+    </div>
+}
+
+<ul class="mh-rlist">
+    @foreach (var t in Model.Items)
+    {
+        var a = t.ApartmentHouse;
+        Model.Photos.TryGetValue(t.ApartmentHouseId, out var photo);
+        <li class="mh-rcard">
+            <a class="mh-rcard-media" asp-page="/Portal/Apartment" asp-route-id="@t.ApartmentHouseId" tabindex="-1" aria-hidden="true">
+                <img src="@(photo ?? "/images/brand/michu-homes-mark.svg")" class="@(photo == null ? "is-logo" : null)" alt="" loading="lazy"
+                     onerror="this.onerror=null;this.src='/images/brand/michu-homes-mark.svg';this.classList.add('is-logo')" />
+            </a>
+            <div class="mh-rcard-body">
+                <partial name="_ReservationStatus" model="t.Status" />
+                <a class="mh-rcard-title" asp-page="/Portal/Apartment" asp-route-id="@t.ApartmentHouseId">@a?.Title</a>
+                <span class="mh-rcard-meta">@(string.Join(" · ", new[] { a?.Building?.Project?.ProjectName, a?.Building?.Project?.Company?.Name }.Where(s => !string.IsNullOrWhiteSpace(s))))</span>
+                <span class="mh-rcard-meta">
+                    @(a is { SalePrice: > 0 } ? ApartmentHouseForm.Price(a.SalePrice, a.Currency) : "Price not listed") ·
+                    @($"Reserved on {t.TransactionDate:d MMM yyyy}")
+                </span>
+                @if (!string.IsNullOrWhiteSpace(t.Notes))
+                {
+                    <span class="mh-rcard-note"><i class="bi bi-chat-left-quote" aria-hidden="true"></i> @t.Notes</span>
+                }
+                @if (t.Status == HouseReserveStatuses.Pending)
+                {
+                    <form method="post" asp-page-handler="Cancel" asp-route-id="@t.Id" class="mt-2"
+                          data-confirm-title="@($"Cancel your reservation of \"{a?.Title}\"?")"
+                          data-confirm="The home becomes available to other buyers again."
+                          data-confirm-ok="Cancel reservation" data-confirm-variant="danger">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel reservation</button>
+                    </form>
+                }
+                else if (t.Status == HouseReserveStatuses.Approved)
+                {
+                    <span class="mh-rcard-hint">The company approved your reservation. They will contact you to complete the purchase.</span>
+                }
+            </div>
+        </li>
+    }
+</ul>

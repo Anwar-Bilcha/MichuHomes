@@ -15,10 +15,19 @@
                 <h1 class="h3 mb-1">Create a new account</h1>
             </div>
 
+            @if (!string.IsNullOrEmpty(Model.InvitedBy))
+            {
+                <div class="alert alert-info d-flex gap-2 align-items-start" role="note">
+                    <i class="bi bi-gift" aria-hidden="true"></i>
+                    <span>@($"{Model.InvitedBy} invited you to Michu Homes. Create your account to get started.")</span>
+                </div>
+            }
+
             <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
                 <input type="hidden" asp-for="CustomerId" />
                 <input type="hidden" asp-for="CompanyId" />
+                <input type="hidden" asp-for="Ref" />
                 @if (!string.IsNullOrEmpty(Model.Success))
                 {
                     <div class="alert alert-success"><label class="mb-0" asp-for="Success">@Model.Success</label></div>

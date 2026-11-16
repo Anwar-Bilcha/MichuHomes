@@ -1523,6 +1523,85 @@ namespace RadiantHomes.Migrations
                     b.ToTable("Addresses");
                 });
 
+            modelBuilder.Entity("RadiantHomes.Models.Referral", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ReferralCodeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReferredUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReferralCodeId");
+
+                    b.HasIndex("ReferredUserId")
+                        .IsUnique();
+
+                    b.ToTable("Referrals");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.ReferralCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("ReferralCodes");
+                });
+
             modelBuilder.Entity("RadiantHomes.Models.RentInfo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1582,10 +1661,6 @@ namespace RadiantHomes.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
                     b.Property<string>("AdditionalNote")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AfanOromoValue")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AmharicValue")
@@ -2122,6 +2197,28 @@ namespace RadiantHomes.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("RadiantHomes.Models.Referral", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.ReferralCode", "ReferralCode")
+                        .WithMany("Referrals")
+                        .HasForeignKey("ReferralCodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ReferralCode");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.ReferralCode", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("RadiantHomes.Models.RentInfo", b =>
                 {
                     b.HasOne("RadiantHomes.Models.House", "House")
@@ -2271,6 +2368,11 @@ namespace RadiantHomes.Migrations
                     b.Navigation("Projects");
 
                     b.Navigation("RealEstates");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.ReferralCode", b =>
+                {
+                    b.Navigation("Referrals");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,147 @@
+@using RadiantHomes.Utilities
+@using RadiantHomes.Pages.Portal
+@*
+    Customer portal layout (Pages/Portal), mobile first: a compact top bar and a bottom tab bar on phones,
+    a side menu from 992px. Page contract: ViewData["Title"], optional ViewData["Subtitle"],
+    ViewData["PageHeader"] = false to leave the heading to the page, @section PageActions for buttons next to it.
+*@
+@{
+    var portal = ViewData.Model as PortalPageModel;
+    var unread = portal?.UnreadNotifications ?? 0;
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+    ViewData["MhTitle"] = PageChrome.ResolveTitle(ViewData["Title"] as string, currentPage, string.Empty);
+    var title = ViewData["Title"] as string;
+    var subtitle = ViewData["Subtitle"] as string;
+    var showHeader = (ViewData["PageHeader"] as bool?) ?? true;
+
+    // Which tab / menu item is "here": details pages belong to their section.
+    string Section(string page) => currentPage switch
+    {
+        "/Portal/Apartment" or "/Portal/Browse" => "/Portal/Browse",
+        _ => currentPage,
+    } == page ? "active" : string.Empty;
+    string? Current(string page) => Section(page) == "active" ? "page" : null;
+    var moreActive = currentPage is "/Portal/More" or "/Portal/Prices" or "/Portal/Bought" or "/Portal/Comments" or "/Portal/Referrals" or "/Portal/Profile";
+}
+<!DOCTYPE html>
+<html lang="@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName">
+<head>
+    <partial name="_HeadAssets" />
+    @RenderSection("Styles", required: false)
+</head>
+<body class="mh-portal">
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-primary btn-sm" style="z-index:2100" href="#main-content">Skip to content</a>
+
+    <div id="pageLoader" class="mh-loader" aria-hidden="true">
+        <div class="dot-loader"><div></div><div></div><div></div></div>
+    </div>
+
+    <header class="mh-portal-top">
+        <div class="mh-portal-top-inner">
+            <a class="mh-portal-brand" asp-page="/Portal/Index" aria-label="Michu Homes — my home page">
+                <span class="d-none d-sm-inline-flex"><partial name="_BrandLogo" model="@("color")" /></span>
+                <span class="d-inline-flex d-sm-none"><partial name="_BrandLogo" model="@("mark")" /></span>
+            </a>
+            <div class="mh-portal-top-actions">
+                <partial name="_LanguagePicker" model="@("form-select form-select-sm language-selector mh-portal-lang")" />
+                <a class="mh-icon-btn mh-portal-bell" asp-page="/Portal/Notifications"
+                   aria-label="@(unread > 0 ? $"Notifications, {unread} unread" : "Notifications")">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                    @if (unread > 0)
+                    {
+                        <span class="mh-dot-badge" aria-hidden="true">@(unread > 99 ? "99+" : unread.ToString())</span>
+                    }
+                </a>
+                <partial name="_LoginPartial" />
+            </div>
+        </div>
+    </header>
+
+    <div class="mh-portal-shell">
+        <aside class="mh-portal-side">
+            <nav class="mh-portal-nav" aria-label="My Michu Homes">
+                <a class="@Section("/Portal/Index")" aria-current="@Current("/Portal/Index")" asp-page="/Portal/Index"><i class="bi bi-house-door" aria-hidden="true"></i> Home</a>
+                <a class="@Section("/Portal/Browse")" aria-current="@Current("/Portal/Browse")" asp-page="/Portal/Browse"><i class="bi bi-search" aria-hidden="true"></i> Browse homes</a>
+                <a class="@Section("/Portal/Prices")" aria-current="@Current("/Portal/Prices")" asp-page="/Portal/Prices"><i class="bi bi-graph-down-arrow" aria-hidden="true"></i> Best prices</a>
+                <div class="mh-portal-nav-label">My activity</div>
+                <a class="@Section("/Portal/Reservations")" aria-current="@Current("/Portal/Reservations")" asp-page="/Portal/Reservations"><i class="bi bi-calendar-check" aria-hidden="true"></i> My reservations</a>
+                <a class="@Section("/Portal/Bought")" aria-current="@Current("/Portal/Bought")" asp-page="/Portal/Bought"><i class="bi bi-key" aria-hidden="true"></i> Houses bought</a>
+                <a class="@Section("/Portal/Comments")" aria-current="@Current("/Portal/Comments")" asp-page="/Portal/Comments"><i class="bi bi-chat-left-text" aria-hidden="true"></i> My comments</a>
+                <a class="@Section("/Portal/Referrals")" aria-current="@Current("/Portal/Referrals")" asp-page="/Portal/Referrals"><i class="bi bi-gift" aria-hidden="true"></i> Refer a friend</a>
+                <a class="@Section("/Portal/Notifications")" aria-current="@Current("/Portal/Notifications")" asp-page="/Portal/Notifications">
+                    <i class="bi bi-bell" aria-hidden="true"></i> Notifications
+                    @if (unread > 0)
+                    {
+                        <span class="mh-nav-count">@unread</span>
+                    }
+                </a>
+                <div class="mh-portal-nav-label">Account</div>
+                <a class="@Section("/Portal/Profile")" aria-current="@Current("/Portal/Profile")" asp-page="/Portal/Profile"><i class="bi bi-person" aria-hidden="true"></i> My profile</a>
+                <a asp-area="" asp-page="/Index"><i class="bi bi-globe2" aria-hidden="true"></i> Public website</a>
+            </nav>
+        </aside>
+
+        <main id="main-content" class="mh-portal-main">
+            @if (showHeader && !string.IsNullOrWhiteSpace(title))
+            {
+                <div class="mh-portal-head">
+                    <div class="min-w-0">
+                        <h1 class="mh-portal-title">@title</h1>
+                        @if (!string.IsNullOrWhiteSpace(subtitle))
+                        {
+                            <p class="mh-portal-subtitle">@subtitle</p>
+                        }
+                    </div>
+                    @if (IsSectionDefined("PageActions"))
+                    {
+                        <div class="mh-portal-head-actions">@RenderSection("PageActions")</div>
+                    }
+                </div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+
+    <nav class="mh-portal-tabs" aria-label="My Michu Homes">
+        <a class="@Section("/Portal/Index")" aria-current="@Current("/Portal/Index")" asp-page="/Portal/Index"><i class="bi bi-house-door" aria-hidden="true"></i><span>Home</span></a>
+        <a class="@Section("/Portal/Browse")" aria-current="@Current("/Portal/Browse")" asp-page="/Portal/Browse"><i class="bi bi-search" aria-hidden="true"></i><span>Browse</span></a>
+        <a class="@Section("/Portal/Reservations")" aria-current="@Current("/Portal/Reservations")" asp-page="/Portal/Reservations"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Reservations</span></a>
+        <a class="@Section("/Portal/Notifications")" aria-current="@Current("/Portal/Notifications")" asp-page="/Portal/Notifications">
+            <i class="bi bi-bell" aria-hidden="true"></i><span>Notifications</span>
+            @if (unread > 0)
+            {
+                <span class="mh-dot-badge" aria-hidden="true">@(unread > 99 ? "99+" : unread.ToString())</span>
+            }
+        </a>
+        <a class="@(moreActive ? "active" : null)" aria-current="@(moreActive ? "page" : null)" asp-page="/Portal/More"><i class="bi bi-grid" aria-hidden="true"></i><span>More</span></a>
+    </nav>
+
+    <partial name="_CoreScripts" />
+    <partial name="_FlashMessages" />
+    <script>
+        // Slider arrows (Pages/Portal/_ScrollButtons): shown while the section's slider overflows, a page of cards per click.
+        document.querySelectorAll('.mh-psection').forEach(function (section) {
+            var track = section.querySelector('.mh-hscroll');
+            var prev = section.querySelector('[data-hscroll="prev"]');
+            var next = section.querySelector('[data-hscroll="next"]');
+            if (!track || !prev || !next) return;
+            function update() {
+                var max = track.scrollWidth - track.clientWidth;
+                prev.hidden = next.hidden = max <= 4;
+                prev.disabled = track.scrollLeft <= 4;
+                next.disabled = track.scrollLeft >= max - 4;
+            }
+            function page(direction) {
+                var smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                track.scrollBy({ left: direction * track.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+            }
+            prev.addEventListener('click', function () { page(-1); });
+            next.addEventListener('click', function () { page(1); });
+            track.addEventListener('scroll', update, { passive: true });
+            if ('ResizeObserver' in window) new ResizeObserver(update).observe(track); else window.addEventListener('resize', update);
+            update();
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

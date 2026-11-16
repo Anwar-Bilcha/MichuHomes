@@ -1,0 +1,222 @@
+@page
+@model RadiantHomes.Pages.Portal.BrowseModel
+@{
+    ViewData["Title"] = "Browse homes";
+    var bedroomChoices = new (int? Value, string Label)[] { (null, "Any"), (0, "Studio"), (1, "1"), (2, "2"), (3, "3"), (ApartmentCatalog.MaxBedroomFilter, $"{ApartmentCatalog.MaxBedroomFilter}+") };
+    string Tab(string? view) => Model.View == view || (view == null && !Model.IsGroupView) ? "active" : string.Empty;
+}
+
+<form method="get" class="mh-portal-search mh-portal-search--page mb-3" role="search">
+    @foreach (var (key, value) in Model.Route(("q", null)))
+    {
+        <input type="hidden" name="@key" value="@value" />
+    }
+    <label for="browseSearch" class="visually-hidden">Search homes</label>
+    <input id="browseSearch" name="q" type="search" class="form-control" value="@Model.Q" placeholder="Site, area or home name" autocomplete="off" />
+    <button type="submit" class="btn btn-primary" aria-label="Search"><i class="bi bi-search" aria-hidden="true"></i></button>
+    @if (!Model.IsGroupView)
+    {
+        <button type="button" class="btn btn-outline-primary d-xl-none mh-filter-btn" data-bs-toggle="offcanvas" data-bs-target="#browseFilters" aria-controls="browseFilters">
+            <i class="bi bi-sliders" aria-hidden="true"></i><span class="visually-hidden">Filters</span>
+            @if (Model.ActiveFilterCount > 0)
+            {
+                <span class="mh-dot-badge" aria-hidden="true">@Model.ActiveFilterCount</span>
+            }
+        </button>
+    }
+</form>
+
+<nav class="mh-segmented mb-3" aria-label="Browse by">
+    <a class="@Tab(null)" asp-page="/Portal/Browse" aria-current="@(Tab(null) == "active" ? "page" : null)">All homes</a>
+    <a class="@Tab("sites")" asp-page="/Portal/Browse" asp-route-view="sites" aria-current="@(Tab("sites") == "active" ? "page" : null)">Sites</a>
+    <a class="@Tab("bedrooms")" asp-page="/Portal/Browse" asp-route-view="bedrooms" aria-current="@(Tab("bedrooms") == "active" ? "page" : null)">Bedrooms</a>
+    <a class="@Tab("companies")" asp-page="/Portal/Browse" asp-route-view="companies" aria-current="@(Tab("companies") == "active" ? "page" : null)">Real estates</a>
+</nav>
+
+@if (Model.IsGroupView)
+{
+    @if (!Model.Groups.Any())
+    {
+        <div class="mh-empty"><span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-house"></i></span><h2>No homes are listed right now</h2><p>Please check again soon.</p></div>
+    }
+    <div class="mh-group-grid">
+        @foreach (var group in Model.Groups)
+        {
+            var route = Model.View switch
+            {
+                "sites" => new Dictionary<string, string> { ["site"] = group.Key },
+                "companies" => new Dictionary<string, string> { ["company"] = group.Key },
+                _ => new Dictionary<string, string> { ["bedrooms"] = group.Key },
+            };
+            <a class="mh-gcard" asp-page="/Portal/Browse" asp-all-route-data="route">
+                @if (Model.View == "bedrooms")
+                {
+                    <span class="mh-gcard-icon" aria-hidden="true">@(group.Key == "0" ? "S" : group.Key == ApartmentCatalog.MaxBedroomFilter.ToString() ? $"{group.Key}+" : group.Key)</span>
+                }
+                else
+                {
+                    <img src="@(group.PhotoUrl ?? "/images/brand/michu-homes-mark.svg")" class="@(group.PhotoUrl == null || Model.View == "companies" ? "is-logo" : null)" alt="" loading="lazy"
+                         onerror="this.onerror=null;this.src='/images/brand/michu-homes-mark.svg';this.classList.add('is-logo')" />
+                }
+                <span class="mh-gcard-body">
+                    <span class="mh-gcard-name">@group.Name</span>
+                    @if (!string.IsNullOrWhiteSpace(group.Detail))
+                    {
+                        <span class="mh-gcard-detail">@group.Detail</span>
+                    }
+                    <span class="mh-gcard-foot">
+                        <span>@(group.Count == 1 ? "1 home" : $"{group.Count} homes")</span>
+                        @if (group.FromPriceText is { } from)
+                        {
+                            <strong>From @from</strong>
+                        }
+                    </span>
+                </span>
+                <i class="bi bi-chevron-right" aria-hidden="true"></i>
+            </a>
+        }
+    </div>
+}
+else
+{
+    <div class="mh-browse">
+        <div class="mh-browse-filters">
+            <div class="offcanvas-xl offcanvas-bottom mh-filters" tabindex="-1" id="browseFilters" aria-labelledby="browseFiltersLabel">
+                <div class="offcanvas-header">
+                    <h2 class="offcanvas-title h5" id="browseFiltersLabel">Filters</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#browseFilters" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <form method="get" class="mh-filter-form w-100">
+                        <input type="hidden" name="q" value="@Model.Q" />
+                        <div class="mb-3">
+                            <label class="form-label" for="fSite">Site</label>
+                            <select id="fSite" name="site" class="form-select">
+                                <option value="">All sites</option>
+                                @foreach (var site in Model.SiteOptions)
+                                {
+                                    <option value="@site.Key" selected="@(Model.Site?.ToString() == site.Key)">@site.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="fArea">Area</label>
+                            <select id="fArea" name="area" class="form-select">
+                                <option value="">All areas</option>
+                                @foreach (var area in Model.AreaOptions)
+                                {
+                                    <option value="@area" selected="@(string.Equals(Model.Area, area, StringComparison.OrdinalIgnoreCase))">@area</option>
+                                }
+                            </select>
+                        </div>
+                        <fieldset class="mb-3">
+                            <legend class="form-label fs-6">Bedrooms</legend>
+                            <div class="mh-chiprow mh-chiprow--wrap">
+                                @foreach (var (value, label) in bedroomChoices)
+                                {
+                                    var id = $"fBeds{(value?.ToString() ?? "Any")}";
+                                    <input class="btn-check" type="radio" name="bedrooms" id="@id" value="@value" checked="@(Model.Bedrooms == value)" />
+                                    <label class="mh-fchip" for="@id">@label</label>
+                                }
+                            </div>
+                        </fieldset>
+                        <div class="mb-3">
+                            <label class="form-label" for="fCompany">Real estate</label>
+                            <select id="fCompany" name="company" class="form-select">
+                                <option value="">All real estates</option>
+                                @foreach (var company in Model.CompanyOptions)
+                                {
+                                    <option value="@company.Key" selected="@(Model.Company?.ToString() == company.Key)">@company.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="fMax">Maximum price (ETB)</label>
+                            <input id="fMax" name="maxPrice" type="number" min="0" step="10000" inputmode="numeric" class="form-control" value="@(Model.MaxPrice is > 0 ? Model.MaxPrice.Value.ToString("0", System.Globalization.CultureInfo.InvariantCulture) : null)" placeholder="e.g. 5000000" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="fSort">Sort by</label>
+                            <select id="fSort" name="sort" class="form-select">
+                                <option value="" selected="@(string.IsNullOrEmpty(Model.Sort))">Newest first</option>
+                                <option value="price" selected="@(Model.Sort == "price")">Lowest price first</option>
+                                <option value="price-desc" selected="@(Model.Sort == "price-desc")">Highest price first</option>
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel" aria-hidden="true"></i> Show homes</button>
+                            <a class="btn btn-outline-secondary" asp-page="/Portal/Browse">Clear filters</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-browse-results">
+            @if (Model.ActiveFilterCount > 0 || !string.IsNullOrWhiteSpace(Model.Q))
+            {
+                <div class="mh-chiprow mh-chiprow--wrap mb-3" aria-label="Active filters">
+                    @if (!string.IsNullOrWhiteSpace(Model.Q))
+                    {
+                        <a class="mh-fchip active" asp-page="/Portal/Browse" asp-all-route-data='Model.Route(("q", null))' aria-label="Remove search">“@Model.Q” <i class="bi bi-x" aria-hidden="true"></i></a>
+                    }
+                    @if (Model.SiteName is { } siteName)
+                    {
+                        <a class="mh-fchip active" asp-page="/Portal/Browse" asp-all-route-data='Model.Route(("site", null))'>@siteName <i class="bi bi-x" aria-hidden="true"></i></a>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Area))
+                    {
+                        <a class="mh-fchip active" asp-page="/Portal/Browse" asp-all-route-data='Model.Route(("area", null))'>@Model.Area <i class="bi bi-x" aria-hidden="true"></i></a>
+                    }
+                    @if (Model.Bedrooms is int beds)
+                    {
+                        <a class="mh-fchip active" asp-page="/Portal/Browse" asp-all-route-data='Model.Route(("bedrooms", null))'>@ApartmentCatalog.BedroomsLabel(beds) <i class="bi bi-x" aria-hidden="true"></i></a>
+                    }
+                    @if (Model.CompanyName is { } companyName)
+                    {
+                        <a class="mh-fchip active" asp-page="/Portal/Browse" asp-all-route-data='Model.Route(("company", null))'>@companyName <i class="bi bi-x" aria-hidden="true"></i></a>
+                    }
+                    @if (Model.MaxPrice is > 0)
+                    {
+                        <a class="mh-fchip active" asp-page="/Portal/Browse" asp-all-route-data='Model.Route(("maxPrice", null))'>Up to @Model.MaxPrice.Value.ToString("N0") ETB <i class="bi bi-x" aria-hidden="true"></i></a>
+                    }
+                </div>
+            }
+
+            <p class="mh-result-count">@(Model.Total == 1 ? "1 home" : $"{Model.Total} homes")</p>
+
+            @if (Model.Items.Any())
+            {
+                <div class="mh-card-grid">
+                    @foreach (var card in Model.Items)
+                    {
+                        <partial name="_ApartmentCard" model="card" />
+                    }
+                </div>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="mh-pager" aria-label="Pages">
+                        @if (Model.PageNumber > 1)
+                        {
+                            <a class="btn btn-outline-primary" asp-page="/Portal/Browse" asp-all-route-data='Model.Route(("p", Model.PageNumber - 1))'><i class="bi bi-chevron-left" aria-hidden="true"></i> Previous</a>
+                        }
+                        <span>@($"Page {Model.PageNumber} of {Model.TotalPages}")</span>
+                        @if (Model.PageNumber < Model.TotalPages)
+                        {
+                            <a class="btn btn-outline-primary" asp-page="/Portal/Browse" asp-all-route-data='Model.Route(("p", Model.PageNumber + 1))'>Next <i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+                        }
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="mh-empty">
+                    <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-search"></i></span>
+                    <h2>No homes match</h2>
+                    <p>Try fewer filters or another search.</p>
+                    <a class="btn btn-secondary" asp-page="/Portal/Browse">Clear filters</a>
+                </div>
+            }
+        </div>
+    </div>
+}

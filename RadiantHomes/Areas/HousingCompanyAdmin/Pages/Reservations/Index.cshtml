@@ -1,0 +1,117 @@
+@page
+@model RadiantHomes.Areas.HousingCompanyAdmin.Pages.Reservations.IndexModel
+@using RadiantHomes.Models.HousingCompanies
+@using RadiantHomes.Pages.ApartmentHouses
+@{
+    ViewData["Title"] = "Reservations";
+    ViewData["Subtitle"] = "Customers who reserved your apartments. Approve a reservation, mark the apartment as sold, or cancel it — the customer is notified each time.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var tabs = new (string? Key, string Label, int? Count)[]
+    {
+        ("pending", "Waiting", Model.Count(HouseReserveStatuses.Pending)),
+        ("approved", "Approved", Model.Count(HouseReserveStatuses.Approved)),
+        ("completed", "Sold", Model.Count(HouseReserveStatuses.Completed)),
+        ("cancelled", "Cancelled", Model.Count(HouseReserveStatuses.Cancelled)),
+        ("all", "All", null),
+    };
+    var current = Model.Filter switch
+    {
+        HouseReserveStatuses.Approved => "approved",
+        HouseReserveStatuses.Completed => "completed",
+        HouseReserveStatuses.Cancelled => "cancelled",
+        null => "all",
+        _ => "pending",
+    };
+}
+
+<nav class="mh-segmented mb-3" aria-label="Reservation status">
+    @foreach (var (key, label, count) in tabs)
+    {
+        <a class="@(current == key ? "active" : null)" asp-page="./Index" asp-route-status="@key" aria-current="@(current == key ? "page" : null)">
+            @label @if (count is int n) { <span class="badge rounded-pill text-bg-light ms-1">@n</span> }
+        </a>
+    }
+</nav>
+
+@if (!Model.Items.Any())
+{
+    <div class="card">
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-calendar-check"></i></span>
+            <h2>No reservations here</h2>
+            <p>When customers reserve your apartments, they appear here.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Apartment</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Reserved on</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model.Items)
+                    {
+                        var a = t.ApartmentHouse;
+                        var customer = t.Receiver;
+                        var title = a?.Title ?? string.Empty;
+                        <tr>
+                            <td>
+                                <a asp-area="" asp-page="/ApartmentHouses/Details" asp-route-id="@t.ApartmentHouseId" class="fw-semibold">@title</a>
+                                <div class="small text-muted">@(string.Join(" · ", new[] { a?.Building?.Project?.ProjectName, a?.Building?.Project?.Company?.Name }.Where(s => !string.IsNullOrWhiteSpace(s))))</div>
+                                <div class="small">@(a is { SalePrice: > 0 } ? ApartmentHouseForm.Price(a.SalePrice, a.Currency) : "Price not listed")</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">@($"{customer?.FirstName} {customer?.LastName}".Trim())</div>
+                                @if (!string.IsNullOrWhiteSpace(customer?.PhoneNumber))
+                                {
+                                    <a class="small d-block" href="tel:@customer.PhoneNumber">@customer.PhoneNumber</a>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(customer?.Email))
+                                {
+                                    <a class="small d-block" href="mailto:@customer.Email">@customer.Email</a>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(t.Notes))
+                                {
+                                    <div class="small text-muted mt-1"><i class="bi bi-chat-left-quote" aria-hidden="true"></i> @t.Notes</div>
+                                }
+                            </td>
+                            <td class="text-nowrap">@t.TransactionDate.ToString("d MMM yyyy")</td>
+                            <td><span class="badge @(t.Status switch { HouseReserveStatuses.Pending => "text-bg-warning", HouseReserveStatuses.Approved => "text-bg-info", HouseReserveStatuses.Completed => "text-bg-success", _ => "text-bg-secondary" })">@(t.Status switch { HouseReserveStatuses.Pending => "Waiting", HouseReserveStatuses.Completed => "Sold", _ => t.Status.ToString() })</span></td>
+                            <td class="text-end">
+                                <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+                                    @if (t.Status == HouseReserveStatuses.Pending)
+                                    {
+                                        <form method="post" asp-page-handler="Approve" asp-route-id="@t.Id" asp-route-status="@current"
+                                              data-confirm-title="@($"Approve the reservation of \"{title}\"?")" data-confirm="The customer is notified that you approved it." data-confirm-ok="Approve">
+                                            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check2" aria-hidden="true"></i> Approve</button>
+                                        </form>
+                                    }
+                                    @if (t.Status is HouseReserveStatuses.Pending or HouseReserveStatuses.Approved)
+                                    {
+                                        <form method="post" asp-page-handler="Sold" asp-route-id="@t.Id" asp-route-status="@current"
+                                              data-confirm-title="@($"Mark \"{title}\" as sold?")" data-confirm="The apartment stays off the market and appears under the customer's houses bought." data-confirm-ok="Mark as sold" data-confirm-variant="accent">
+                                            <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-key" aria-hidden="true"></i> Mark as sold</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="Cancel" asp-route-id="@t.Id" asp-route-status="@current"
+                                              data-confirm-title="@($"Cancel the reservation of \"{title}\"?")" data-confirm="The apartment is listed again and the customer is notified." data-confirm-ok="Cancel reservation" data-confirm-variant="danger">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel</button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

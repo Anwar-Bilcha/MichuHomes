@@ -131,7 +131,15 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
                         HttpContext.Session.Remove("CustomerId"); // don't keep a previous user's value
                     }
                     _logger.LogInformation("User logged in.");
-                    Console.WriteLine($"Redirecting to {returnUrl}");
+                    // Customers who didn't come from a particular page start in their portal.
+                    if (returnUrl == Url.Content("~/"))
+                    {
+                        var account = await _signInManager.UserManager.FindByNameAsync(Input.Email);
+                        if (account != null && RadiantHomes.Services.CustomerPortal.PortalUsers.IsCustomer(await _signInManager.UserManager.GetRolesAsync(account)))
+                        {
+                            returnUrl = Url.Content("~/Portal");
+                        }
+                    }
                     return LocalRedirect(returnUrl);
                 }
                 if (result.RequiresTwoFactor)

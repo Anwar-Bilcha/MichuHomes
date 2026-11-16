@@ -43,6 +43,8 @@ namespace RadiantHomes.DAL
         public DbSet<CustomerTestimonial> CustomerTestimonials { get; set; }
         public DbSet<HouseSpecs> HouseSpecifications { get; set; }
         public DbSet<ApartmentPhoto> ApartmentPhotos { get; set; }
+        public DbSet<ReferralCode> ReferralCodes { get; set; }
+        public DbSet<Referral> Referrals { get; set; }
 
         // The model below declares HasDefaultValueSql("NEWID()") for the Guid keys, but the database
         // columns have no default (the live DB has a later migration that removed them). EF therefore
@@ -113,6 +115,19 @@ namespace RadiantHomes.DAL
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // Customer portal: referral codes and the friends who registered with them (Models/Referrals.cs)
+            builder.Entity<ReferralCode>().HasIndex(c => c.Code).IsUnique();
+            builder.Entity<ReferralCode>()
+                .HasOne(c => c.Customer).WithMany()
+                .HasForeignKey(c => c.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Referral>().HasIndex(r => r.ReferredUserId).IsUnique(); // an account is referred once
+            builder.Entity<Referral>()
+                .HasOne(r => r.ReferralCode).WithMany(c => c.Referrals)
+                .HasForeignKey(r => r.ReferralCodeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.Entity<ApartmentHouseSaleTransaction>()
     .ToTable("ApartmentHouseSaleTransactions");
 

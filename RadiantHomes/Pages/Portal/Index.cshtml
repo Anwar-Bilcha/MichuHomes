@@ -1,0 +1,129 @@
+@page
+@model RadiantHomes.Pages.Portal.IndexModel
+@{
+    ViewData["Title"] = "My Michu Homes";
+    ViewData["PageHeader"] = false;
+}
+
+<section class="mh-portal-hero">
+    <p class="mh-portal-hero-hello">Hello, @Model.Me.DisplayName</p>
+    <h1 class="mh-portal-hero-title">Find your next home</h1>
+    <form method="get" asp-page="/Portal/Browse" class="mh-portal-search" role="search">
+        <label for="homeSearch" class="visually-hidden">Search homes</label>
+        <input id="homeSearch" name="q" type="search" class="form-control" placeholder="Site, area or home name" autocomplete="off" />
+        <button type="submit" class="btn btn-accent" aria-label="Search"><i class="bi bi-search" aria-hidden="true"></i></button>
+    </form>
+</section>
+
+@if (!Model.Me.HasProfile)
+{
+    <partial name="_ProfileNeeded" model="@("Add your name, phone and address to reserve homes, comment and refer friends.")" />
+}
+
+<div class="mh-quick-grid mb-4">
+    <a class="mh-quick" asp-page="/Portal/Reservations"><i class="bi bi-calendar-check" aria-hidden="true"></i><span class="mh-quick-text"><strong>@Model.ActiveReservations</strong><span>Active reservations</span></span></a>
+    <a class="mh-quick" asp-page="/Portal/Bought"><i class="bi bi-key" aria-hidden="true"></i><span class="mh-quick-text"><strong>@Model.Bought</strong><span>Houses bought</span></span></a>
+    <a class="mh-quick" asp-page="/Portal/Referrals"><i class="bi bi-people" aria-hidden="true"></i><span class="mh-quick-text"><strong>@Model.Friends</strong><span>Friends referred</span></span></a>
+    <a class="mh-quick" asp-page="/Portal/Notifications"><i class="bi bi-bell" aria-hidden="true"></i><span class="mh-quick-text"><strong>@Model.UnreadNotifications</strong><span>Unread notifications</span></span></a>
+</div>
+
+@if (Model.Bedrooms.Any())
+{
+    <section class="mh-psection" aria-labelledby="bedsHeading">
+        <div class="mh-psection-head">
+            <h2 id="bedsHeading">Browse by bedrooms</h2>
+            <a asp-page="/Portal/Browse" asp-route-view="bedrooms">See all</a>
+        </div>
+        <div class="mh-bedgrid">
+            @foreach (var group in Model.Bedrooms)
+            {
+                <a class="mh-fchip mh-fchip--tall" asp-page="/Portal/Browse" asp-route-bedrooms="@group.Key">
+                    <span>@group.Name</span>
+                    @if (group.FromPriceText is { } from)
+                    {
+                        <small>From @from</small>
+                    }
+                </a>
+            }
+        </div>
+    </section>
+}
+
+@if (Model.Sites.Any())
+{
+    <section class="mh-psection" aria-labelledby="sitesHeading">
+        <div class="mh-psection-head">
+            <h2 id="sitesHeading">Sites</h2>
+            <div class="mh-psection-tools">
+                <partial name="_ScrollButtons" />
+                <a asp-page="/Portal/Browse" asp-route-view="sites">See all</a>
+            </div>
+        </div>
+        <div class="mh-hscroll">
+            @foreach (var site in Model.Sites)
+            {
+                <a class="mh-scard" asp-page="/Portal/Browse" asp-route-site="@site.Key">
+                    <img src="@(site.PhotoUrl ?? "/images/brand/michu-homes-mark.svg")" class="@(site.PhotoUrl == null ? "is-logo" : null)" alt="" loading="lazy"
+                         onerror="this.onerror=null;this.src='/images/brand/michu-homes-mark.svg';this.classList.add('is-logo')" />
+                    <span class="mh-scard-body">
+                        <span class="mh-scard-name">@site.Name</span>
+                        <span class="mh-scard-detail">@site.Detail</span>
+                        <span class="mh-scard-foot">
+                            <span>@(site.Count == 1 ? "1 home" : $"{site.Count} homes")</span>
+                            @if (site.FromPriceText is { } from)
+                            {
+                                <strong>From @from</strong>
+                            }
+                        </span>
+                    </span>
+                </a>
+            }
+        </div>
+    </section>
+}
+
+<section class="mh-psection" aria-labelledby="newHeading">
+    <div class="mh-psection-head">
+        <h2 id="newHeading">Newest homes</h2>
+        <div class="mh-psection-tools">
+            <partial name="_ScrollButtons" />
+            <a asp-page="/Portal/Browse">See all</a>
+        </div>
+    </div>
+    @if (Model.Latest.Any())
+    {
+        <div class="mh-hscroll">
+            @foreach (var card in Model.Latest)
+            {
+                <partial name="_ApartmentCard" model="card" />
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">No homes are listed right now. Please check again soon.</p>
+    }
+</section>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <a class="mh-promo mh-promo--orange" asp-page="/Portal/Referrals">
+            <i class="bi bi-gift" aria-hidden="true"></i>
+            <span>
+                <strong>Refer a friend</strong>
+                <span>Share your code and see when friends join Michu Homes.</span>
+            </span>
+            <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i>
+        </a>
+    </div>
+    <div class="col-md-6">
+        <a class="mh-promo" asp-page="/Portal/Prices">
+            <i class="bi bi-graph-down-arrow" aria-hidden="true"></i>
+            <span>
+                <strong>Best prices</strong>
+                <span>Compare the lowest price of every real estate company.</span>
+            </span>
+            <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i>
+        </a>
+    </div>
+</div>

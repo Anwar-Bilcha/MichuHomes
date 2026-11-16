@@ -30,6 +30,10 @@
                 }
             </li>
             <li><hr class="dropdown-divider" /></li>
+            @if (!isMichuAdmin && !isCompanyAdmin)
+            {
+                <li><a class="dropdown-item" asp-area="" asp-page="/Portal/Index"><i class="bi bi-house-heart me-2" aria-hidden="true"></i>My Michu Homes</a></li>
+            }
             @if (isMichuAdmin)
             {
                 <li><a class="dropdown-item" asp-area="" asp-page="/Admin/Dashboard/AdminDashboard"><i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Admin dashboard</a></li>

@@ -39,6 +39,13 @@ builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<ICustomerService,CustomerService>();
 builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
 builder.Services.AddScoped<IAdminDashboard, AdminDashboardService>();
+// Customer portal (Pages/Portal, Services/CustomerPortal)
+builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.PortalUsers>();
+builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.ApartmentCatalog>();
+builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.CustomerNotifications>();
+builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.ReservationService>();
+builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.ApartmentComments>();
+builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.ReferralService>();
 //builder.Services.AddScoped<ExcelExportService>();
 // Add services to the container.
 //builder.Services.AddRazorPages();
@@ -74,6 +81,9 @@ builder.Services.AddRazorPages(options =>
         }
     }
     c.AuthorizePage("/ApartmentHouses/Tour", AccessPolicies.CompanyAdmin); // rooms of an apartment's 3D tour
+
+    // Customer portal: any signed-in user (pages that need a customer profile ask for it)
+    c.AuthorizeFolder("/Portal");
 
     // Signed-in users (house owners, buyers, tenants)
     c.AuthorizePage("/Houses/Create");
@@ -206,5 +216,22 @@ app.UseAuthorization();
 app.UseSession();
 app.MapRazorPages();
 app.MapMichuLocalizationEndpoints();
+
+// Referral links (customer portal, "Refer a friend"): /r/MH-7K3Q9P keeps the code for 30 days and opens registration.
+app.MapGet("/r/{code}", async (string code, HttpContext http, RadiantHomes.Services.CustomerPortal.ReferralService referrals) =>
+{
+    if (http.User.Identity?.IsAuthenticated == true) return Results.LocalRedirect("/Portal");
+    var referral = await referrals.FindActiveAsync(code);
+    if (referral is null) return Results.LocalRedirect("/");
+    http.Response.Cookies.Append(RadiantHomes.Services.CustomerPortal.ReferralService.CookieName, referral.Code, new CookieOptions
+    {
+        Expires = DateTimeOffset.UtcNow.AddDays(30),
+        HttpOnly = true,
+        IsEssential = true,
+        SameSite = SameSiteMode.Lax,
+        Secure = http.Request.IsHttps,
+    });
+    return Results.LocalRedirect("/Identity/Account/Register?ref=" + Uri.EscapeDataString(referral.Code));
+});
 
 app.Run();

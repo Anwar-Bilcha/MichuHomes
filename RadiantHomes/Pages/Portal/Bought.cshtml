@@ -1,0 +1,57 @@
+@page
+@model RadiantHomes.Pages.Portal.BoughtModel
+@using RadiantHomes.Pages.ApartmentHouses
+@{
+    ViewData["Title"] = "Houses bought";
+}
+
+@if (!Model.Me.HasProfile)
+{
+    <partial name="_ProfileNeeded" model="@("Purchases are recorded with your customer profile.")" />
+    return;
+}
+
+@if (!Model.Items.Any())
+{
+    <div class="mh-empty">
+        <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-key"></i></span>
+        <h2>No houses bought yet</h2>
+        <p>When a real estate company completes your purchase, the home appears here.</p>
+        <a class="btn btn-primary" asp-page="/Portal/Reservations"><i class="bi bi-calendar-check" aria-hidden="true"></i> My reservations</a>
+    </div>
+}
+
+<ul class="mh-rlist">
+    @foreach (var t in Model.Items)
+    {
+        var a = t.ApartmentHouse;
+        Model.Photos.TryGetValue(t.ApartmentHouseId, out var photo);
+        var contact = t.HomeOwner;
+        <li class="mh-rcard">
+            <a class="mh-rcard-media" asp-page="/Portal/Apartment" asp-route-id="@t.ApartmentHouseId" tabindex="-1" aria-hidden="true">
+                <img src="@(photo ?? "/images/brand/michu-homes-mark.svg")" class="@(photo == null ? "is-logo" : null)" alt="" loading="lazy"
+                     onerror="this.onerror=null;this.src='/images/brand/michu-homes-mark.svg';this.classList.add('is-logo')" />
+            </a>
+            <div class="mh-rcard-body">
+                <partial name="_ReservationStatus" model="t.Status" />
+                <a class="mh-rcard-title" asp-page="/Portal/Apartment" asp-route-id="@t.ApartmentHouseId">@a?.Title</a>
+                <span class="mh-rcard-meta">@(string.Join(" · ", new[] { a?.Building?.Project?.ProjectName, a?.HouseAddress?.SubCity, a?.HouseAddress?.City }.Where(s => !string.IsNullOrWhiteSpace(s))))</span>
+                <span class="mh-rcard-meta">
+                    @(a is { SalePrice: > 0 } ? ApartmentHouseForm.Price(a.SalePrice, a.Currency) : "Price not listed") ·
+                    @($"Bought on {(t.UpdatedOn ?? t.TransactionDate):d MMM yyyy}")
+                </span>
+                @if (contact is not null)
+                {
+                    <span class="mh-rcard-note">
+                        <i class="bi bi-person-badge" aria-hidden="true"></i>
+                        @($"{a?.Building?.Project?.Company?.Name} — {contact.FirstName} {contact.LastName}".Trim())
+                        @if (!string.IsNullOrWhiteSpace(contact.PhoneNumber))
+                        {
+                            <a class="ms-1" href="tel:@contact.PhoneNumber">@contact.PhoneNumber</a>
+                        }
+                    </span>
+                }
+            </div>
+        </li>
+    }
+</ul>

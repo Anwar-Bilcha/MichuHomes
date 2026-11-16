@@ -13,6 +13,7 @@ using RadiantHomes.DAL;
 using RadiantHomes.Models;
 using RadiantHomes.Models.HousingCompanies;
 using RadiantHomes.Models.Shared;
+using RadiantHomes.Services.CustomerPortal;
 using RadiantHomes.Services.NotificationService;
 
 namespace RadiantHomes.Pages.ApartmentHouses
@@ -130,14 +131,10 @@ namespace RadiantHomes.Pages.ApartmentHouses
         [BindProperty]
         public ApartmentHouseSaleTransaction Transaction { get; set; } = new();
 
-        public async Task<IActionResult> OnPostSubmitReviewAsync(Guid itemid)
+        // Comments and reservations go through the same services as the customer portal (Services/CustomerPortal).
+        // Results are reported through TempData: ModelState does not survive the redirect back to this page.
+        public async Task<IActionResult> OnPostSubmitReviewAsync(Guid itemid, [FromServices] ApartmentComments comments)
         {
-            var apartmentHouse = await _context.ApartmentHouses.FindAsync(itemid);
-            if (apartmentHouse == null)
-            {
-                return NotFound();
-            }
-
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -149,95 +146,26 @@ namespace RadiantHomes.Pages.ApartmentHouses
                 TempData["Error"] = "Could not find your customer profile.";
                 return RedirectToPage(new { id = itemid });
             }
-            if (HouseReviews.Rating < 1 || HouseReviews.Rating > 5 || string.IsNullOrWhiteSpace(HouseReviews.Comment))
-            {
-                TempData["Error"] = "Please write a comment and choose a rating from 1 to 5.";
-                return RedirectToPage(new { id = itemid });
-            }
-            var review = new ApartmentHouseReview
-            {
-                Id = Guid.NewGuid(),
-                HouseId = itemid,
-                ReviewerCustomerId = reviewerId,
-                Rating = HouseReviews.Rating,
-                Comment = HouseReviews.Comment,
-                ReviewDate = DateTime.UtcNow
-            };
 
-            _context.ApartmentHouseReviews.Add(review);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Thank you for your review!";
+            var error = await comments.AddAsync(itemid, reviewerId, HouseReviews?.Rating ?? 0, HouseReviews?.Comment);
+            if (error is null) TempData["Success"] = "Thank you for your review!";
+            else TempData["Error"] = error;
             return RedirectToPage(new { id = itemid });
         }
-        public async Task<IActionResult> OnPostReserveHouseAsync(Guid itemid)
-        {
-            var house = _context.ApartmentHouses.Include(a=>a.Building).ThenInclude(a=>a.Project).ThenInclude(a=>a.Company).ThenInclude(a=>a.ContactPerson).FirstOrDefault(a=>a.Id==itemid);
-            if (house == null) return NotFound();
-            var user = await _userManager.GetUserAsync(User);
 
-            // Errors are reported through TempData: ModelState does not survive the redirect back to this page.
+        public async Task<IActionResult> OnPostReserveHouseAsync(Guid itemid, [FromServices] ReservationService reservations)
+        {
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 TempData["Error"] = "Please sign in to reserve this house.";
                 return RedirectToPage(new { id = itemid });
             }
-            if (user.CustomerId is not Guid customerId || customerId == Guid.Empty)
-            {
-                TempData["Error"] = "Could not find your customer profile.";
-                return RedirectToPage(new { id = itemid });
-            }
 
-            var company = house.Building?.Project?.Company;
-            var ownerId = company?.ContactPerson.FirstOrDefault()?.Id ?? Guid.Empty;
-            if (company == null || ownerId == Guid.Empty)
-            {
-                TempData["Error"] = "This house can't be reserved online yet: its real estate company has no contact person.";
-                return RedirectToPage(new { id = itemid });
-            }
-            if (!house.IsAvailable)
-            {
-                TempData["Error"] = "This house is no longer available for reservation.";
-                return RedirectToPage(new { id = itemid });
-            }
-
-            house.Status = "Reserved by Customer";
-            house.IsAvailable = false;
-            Transaction.Id = Guid.NewGuid(); // The model expects a NEWID() column default that the database no longer has, so the key is generated here.
-            Transaction.ApartmentHouseId = house.Id;
-            Transaction.OwnerId = ownerId;
-            Transaction.CustomerId = customerId;
-            Transaction.Notes ??= string.Empty;
-            Transaction.TransactionDate = DateTime.Now;
-            Transaction.CreatedOn = DateTime.Now;
-            Transaction.CreatedBy = Transaction.CustomerId.ToString();
-            Transaction.UpdatedBy = Transaction.CustomerId.ToString();
-            _context.ApartmentHouseSaleTransactions.Add(Transaction);
-            Notification notification = new Notification
-            {
-                Datatype = EntityAffecteds.ApartmentHouses.ToString(),
-                ReceiverAdminId = ownerId,
-                ReceiverCompanyId = company.CompanyId,
-                RecipientRole = MichuHomesRoles.MichuAdmin,
-                CreatedAt = DateTime.Now,
-                DataKey=house.Id.ToString(),
-                Message = $"House reservation request for {house.Id}",
-                Title = $"{CustomerName} reserved a house",
-                RedirectUrl = $"/ApartmentHouses/details?id={house.Id}"
-            };
-            try
-            {
-                // Save the reservation first: NotificationService swallows its own save errors.
-                await _context.SaveChangesAsync();
-                await _notification.CreateNotificationAsync(notification);
-
-                TempData["Success"] = "Reservation successful!";
-            }
-            catch (DbUpdateException)
-            {
-                TempData["Error"] = "The reservation could not be saved. Please try again.";
-            }
-
+            var result = await reservations.ReserveAsync(itemid, user.CustomerId, CustomerName, Transaction?.Notes);
+            if (result.Outcome == ReservationOutcome.NotFound) return NotFound();
+            if (result.Succeeded) TempData["Success"] = result.Message;
+            else TempData["Error"] = result.Message;
             return RedirectToPage(new { id = itemid });
         }
 

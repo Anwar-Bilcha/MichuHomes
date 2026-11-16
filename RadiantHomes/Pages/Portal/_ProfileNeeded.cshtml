@@ -1,0 +1,10 @@
+@model string
+@* Shown where an action needs a customer profile. Model: what the profile is needed for (one sentence). *@
+<div class="mh-pnotice">
+    <i class="bi bi-person-vcard" aria-hidden="true"></i>
+    <div class="min-w-0">
+        <strong>Complete your profile</strong>
+        <p class="mb-2">@Model</p>
+        <a class="btn btn-sm btn-accent" asp-page="/Portal/Profile" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)">Complete my profile</a>
+    </div>
+</div>

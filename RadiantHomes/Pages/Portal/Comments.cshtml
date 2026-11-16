@@ -1,0 +1,42 @@
+@page
+@model RadiantHomes.Pages.Portal.CommentsModel
+@{
+    ViewData["Title"] = "My comments";
+}
+
+@if (!Model.Me.HasProfile)
+{
+    <partial name="_ProfileNeeded" model="@("Your name is shown with your comments, so please complete your profile first.")" />
+    return;
+}
+
+@if (!Model.Items.Any())
+{
+    <div class="mh-empty">
+        <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-chat-left-text"></i></span>
+        <h2>No comments yet</h2>
+        <p>Open a home and share what you think, or ask a question.</p>
+        <a class="btn btn-primary" asp-page="/Portal/Browse"><i class="bi bi-search" aria-hidden="true"></i> Browse homes</a>
+    </div>
+}
+
+<ul class="mh-rlist">
+    @foreach (var c in Model.Items)
+    {
+        <li class="mh-rcard mh-rcard--text">
+            <div class="mh-rcard-body">
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <a class="mh-rcard-title" asp-page="/Portal/Apartment" asp-route-id="@c.HouseId" asp-fragment="comments">@c.ApartmentHouse?.Title</a>
+                    <small class="text-muted">@c.ReviewDate.ToLocalTime().ToString("d MMM yyyy")</small>
+                </div>
+                <div class="mh-stars" role="img" aria-label="@($"Rated {c.Rating} out of 5")">
+                    @for (var i = 1; i <= 5; i++)
+                    {
+                        <i class="bi @(i <= c.Rating ? "bi-star-fill" : "bi-star")" aria-hidden="true"></i>
+                    }
+                </div>
+                <p class="mb-0">@c.Comment</p>
+            </div>
+        </li>
+    }
+</ul>

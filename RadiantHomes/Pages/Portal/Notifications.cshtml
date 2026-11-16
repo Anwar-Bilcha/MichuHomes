@@ -1,0 +1,55 @@
+@page
+@model RadiantHomes.Pages.Portal.NotificationsModel
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+@section PageActions {
+    @if (Model.Items.Any(n => !n.IsRead))
+    {
+        <form method="post" asp-page-handler="ReadAll">
+            <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-check2-all" aria-hidden="true"></i> Mark all as read</button>
+        </form>
+    }
+}
+
+@if (!Model.Me.HasProfile)
+{
+    <partial name="_ProfileNeeded" model="@("Notifications about your reservations and friends are linked to your customer profile.")" />
+    return;
+}
+
+@if (!Model.Items.Any())
+{
+    <div class="mh-empty">
+        <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
+        <h2>No notifications yet</h2>
+        <p>Updates about your reservations and your friends appear here.</p>
+    </div>
+}
+
+<ul class="mh-nlist">
+    @foreach (var n in Model.Items)
+    {
+        <li class="mh-ncard @(n.IsRead ? null : "is-unread")">
+            <span class="mh-ncard-icon" aria-hidden="true"><i class="bi @RadiantHomes.Pages.Portal.NotificationsModel.Icon(n)"></i></span>
+            <div class="mh-ncard-body">
+                <strong class="mh-ncard-title">
+                    @if (!n.IsRead)
+                    {
+                        <span class="visually-hidden">Unread:</span>
+                    }
+                    @n.Title
+                </strong>
+                <time class="mh-ncard-time" datetime="@n.CreatedAt.ToString("s")">@n.CreatedAt.ToString("d MMM yyyy, HH:mm")</time>
+                <p class="mb-1">@n.Message</p>
+                @if (!string.IsNullOrWhiteSpace(n.RedirectUrl))
+                {
+                    <form method="post" asp-page-handler="Open" asp-route-id="@n.Id">
+                        <button type="submit" class="btn btn-link btn-sm p-0">Open <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+                    </form>
+                }
+            </div>
+        </li>
+    }
+</ul>

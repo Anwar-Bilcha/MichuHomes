@@ -1,0 +1,36 @@
+@model ApartmentCard
+@* One apartment in the portal's grids and sliders: photo, price, title, site and key facts. *@
+<a class="mh-pcard" asp-page="/Portal/Apartment" asp-route-id="@Model.Id">
+    <div class="mh-pcard-media">
+        @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+        {
+            <img src="@Model.PhotoUrl" alt="" loading="lazy"
+                 onerror="this.onerror=null;this.src='/images/brand/michu-homes-mark.svg';this.classList.add('is-logo')" />
+        }
+        else
+        {
+            <img src="/images/brand/michu-homes-mark.svg" class="is-logo" alt="" loading="lazy" />
+        }
+        @if (Model.Has3D)
+        {
+            <span class="mh-pcard-badges"><span class="mh-pbadge"><i class="bi bi-badge-3d" aria-hidden="true"></i> 3D</span></span>
+        }
+    </div>
+    <div class="mh-pcard-body">
+        <span class="mh-pcard-price">@(Model.HasPrice ? Model.PriceText : "Price not listed")</span>
+        <h3 class="mh-pcard-title">@Model.Title</h3>
+        <span class="mh-pcard-meta"><i class="bi bi-geo-alt" aria-hidden="true"></i> @(string.Join(" · ", new[] { Model.Site, Model.Area }.Where(s => !string.IsNullOrWhiteSpace(s))))</span>
+        <span class="mh-pcard-facts">
+            <span><i class="fa-solid fa-bed" aria-hidden="true"></i> @Model.Bedrooms</span>
+            <span><i class="fa-solid fa-bath" aria-hidden="true"></i> @Model.Bathrooms</span>
+            @if (Model.SquareMetres > 0)
+            {
+                <span><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i> @Model.SquareMetres.ToString("N0") m²</span>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Company))
+            {
+                <span class="mh-pcard-company">@Model.Company</span>
+            }
+        </span>
+    </div>
+</a>

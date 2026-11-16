@@ -1,0 +1,265 @@
+@page
+@model RadiantHomes.Pages.Portal.ApartmentModel
+@using RadiantHomes.Pages.ApartmentHouses
+@{
+    var a = Model.Apartment;
+    ViewData["Title"] = a.Title;
+    ViewData["PageHeader"] = false;
+    var priceText = a.SalePrice > 0 ? ApartmentHouseForm.Price(a.SalePrice, a.Currency) : "Price not listed";
+    var site = a.Building?.Project?.ProjectName;
+    var company = a.Building?.Project?.Company?.Name;
+    var place = string.Join(" · ", new[] { site, a.HouseAddress?.SubCity, a.HouseAddress?.City }.Where(s => !string.IsNullOrWhiteSpace(s)));
+    var mine = Model.MyReservation;
+    var amenities = new (bool Has, string Icon, string Label)[]
+    {
+        (a.HasBalcony, "bi-door-open", "Balcony"), (a.HasElevator, "bi-arrow-down-up", "Elevator"),
+        (a.HasParking, "bi-p-square", "Parking"), (a.IsFurnished, "bi-lamp", "Furnished"),
+    };
+}
+
+<a class="mh-backlink" asp-page="/Portal/Browse"><i class="bi bi-arrow-left" aria-hidden="true"></i> Browse homes</a>
+
+<div class="row g-4">
+    <div class="col-lg-8 col-xxl-9">
+        <div class="mh-pgallery">
+            <div class="swiper mh-pgallery-swiper">
+                <div class="swiper-wrapper">
+                    @if (Model.Photos.Any())
+                    {
+                        foreach (var photo in Model.Photos)
+                        {
+                            <div class="swiper-slide"><img src="@photo" alt="@ApartmentHouseForm.PhotoAlt(photo, a.Title)" /></div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="swiper-slide"><img src="/images/brand/michu-homes-mark.svg" class="is-logo" alt="" /></div>
+                    }
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+
+        <section class="mh-psheet">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                @if (Model.Model3D is not null)
+                {
+                    <a class="mh-pbadge" href="#model3d"><i class="bi bi-badge-3d" aria-hidden="true"></i> 3D view</a>
+                }
+                @if (Model.PriceCheck is { IsBest: true })
+                {
+                    <span class="mh-pbadge mh-pbadge--best"><i class="bi bi-award" aria-hidden="true"></i> Best price</span>
+                }
+                @if (!Model.CanBeReserved && mine is null)
+                {
+                    <span class="mh-pbadge mh-pbadge--muted">Not available</span>
+                }
+            </div>
+            <p class="mh-detail-price">@priceText</p>
+            <h1 class="mh-detail-title">@a.Title</h1>
+            @if (!string.IsNullOrWhiteSpace(place))
+            {
+                <p class="mh-detail-place"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> @place</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(company))
+            {
+                <p class="mh-detail-company"><i class="bi bi-buildings" aria-hidden="true"></i> @company</p>
+            }
+
+            @if (Model.PriceCheck is { } check)
+            {
+                <div class="mh-pricecheck @(check.IsBest ? "is-best" : null)">
+                    <i class="bi @(check.IsBest ? "bi-award" : "bi-graph-down-arrow")" aria-hidden="true"></i>
+                    <div class="min-w-0">
+                        @if (check.IsBest)
+                        {
+                            <strong>Lowest price for this number of bedrooms</strong>
+                            <span>@(check.Companies == 1 ? "Compared with 1 real estate company." : $"Compared with {check.Companies} real estate companies.")</span>
+                        }
+                        else
+                        {
+                            <strong>@($"{check.DifferenceText} above the lowest price")</strong>
+                            <span>@($"The lowest is {check.Best.LowestPriceText} at {check.Best.Company}.")</span>
+                        }
+                        <a asp-page="/Portal/Prices" asp-route-bedrooms="@Math.Min(a.Bedrooms, ApartmentCatalog.MaxBedroomFilter)">Compare prices</a>
+                    </div>
+                </div>
+            }
+        </section>
+
+        <section class="mh-psheet" aria-labelledby="factsHeading">
+            <h2 class="mh-psheet-title" id="factsHeading">About this home</h2>
+            <div class="mh-facts">
+                <div><i class="fa-solid fa-bed" aria-hidden="true"></i><strong>@a.Bedrooms</strong><span>Bedrooms</span></div>
+                <div><i class="fa-solid fa-bath" aria-hidden="true"></i><strong>@a.Bathrooms</strong><span>Bathrooms</span></div>
+                <div><i class="fa-solid fa-couch" aria-hidden="true"></i><strong>@a.LivingRooms</strong><span>Living rooms</span></div>
+                <div><i class="bi bi-arrows-angle-expand" aria-hidden="true"></i><strong>@(a.Area > 0 ? $"{a.Area:N0} m²" : "—")</strong><span>Area</span></div>
+                <div><i class="bi bi-building" aria-hidden="true"></i><strong>@a.FloorNumber</strong><span>Floor</span></div>
+                <div><i class="fa-solid fa-door-open" aria-hidden="true"></i><strong>@a.TotalRooms</strong><span>Total rooms</span></div>
+            </div>
+            @if (amenities.Any(x => x.Has))
+            {
+                <ul class="mh-amenities" aria-label="Amenities">
+                    @foreach (var amenity in amenities.Where(x => x.Has))
+                    {
+                        <li><i class="bi @amenity.Icon" aria-hidden="true"></i> @amenity.Label</li>
+                    }
+                </ul>
+            }
+            @if (!string.IsNullOrWhiteSpace(a.Description))
+            {
+                <p class="mh-detail-description">@a.Description</p>
+            }
+        </section>
+
+        @if (Model.Model3D is not null)
+        {
+            <partial name="~/Pages/ApartmentHouses/_ApartmentModelViewer.cshtml" model="Model.Model3D" />
+        }
+
+        <section class="mh-psheet" id="comments" aria-labelledby="commentsHeading">
+            <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mb-2">
+                <h2 class="mh-psheet-title mb-0" id="commentsHeading">Comments</h2>
+                @if (Model.Comments.Any())
+                {
+                    <span class="mh-rating-summary" role="img" aria-label="@($"Rated {Model.AverageRating:0.#} out of 5 by {Model.Comments.Count} people")">
+                        <i class="bi bi-star-fill" aria-hidden="true"></i> @Model.AverageRating.ToString("0.#") <span>(@Model.Comments.Count)</span>
+                    </span>
+                }
+            </div>
+
+            @if (Model.Me.HasProfile)
+            {
+                <form method="post" asp-page-handler="Comment" asp-route-id="@a.Id" class="mh-comment-form">
+                    <fieldset class="mh-stars-input">
+                        <legend class="form-label">Your rating</legend>
+                        <div class="mh-stars-pick">
+                            @for (var i = 5; i >= 1; i--)
+                            {
+                                <input type="radio" name="Rating" id="rate@(i)" value="@i" required />
+                                <label for="rate@(i)" title="@(i == 1 ? "1 star" : $"{i} stars")"><i class="bi bi-star-fill" aria-hidden="true"></i><span class="visually-hidden">@(i == 1 ? "1 star" : $"{i} stars")</span></label>
+                            }
+                        </div>
+                    </fieldset>
+                    <label for="commentText" class="form-label">Your comment</label>
+                    <textarea id="commentText" name="Comment" class="form-control mb-2" rows="3" maxlength="@ApartmentComments.MaxLength" required placeholder="What do you like about this home? Any questions?"></textarea>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-send" aria-hidden="true"></i> Post comment</button>
+                </form>
+            }
+            else
+            {
+                <partial name="_ProfileNeeded" model="@("Your name is shown with your comment, so please complete your profile first.")" />
+            }
+
+            @if (Model.Comments.Any())
+            {
+                <ul class="mh-comments">
+                    @foreach (var c in Model.Comments)
+                    {
+                        <li>
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <strong>@($"{c.ReviewerCustomer?.FirstName} {(string.IsNullOrWhiteSpace(c.ReviewerCustomer?.LastName) ? "" : c.ReviewerCustomer!.LastName.Trim()[0] + ".")}".Trim())</strong>
+                                <small class="text-muted">@c.ReviewDate.ToLocalTime().ToString("d MMM yyyy")</small>
+                            </div>
+                            <div class="mh-stars" role="img" aria-label="@($"Rated {c.Rating} out of 5")">
+                                @for (var i = 1; i <= 5; i++)
+                                {
+                                    <i class="bi @(i <= c.Rating ? "bi-star-fill" : "bi-star")" aria-hidden="true"></i>
+                                }
+                            </div>
+                            <p class="mb-0">@c.Comment</p>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted mb-0 mt-3">No comments yet. Be the first to comment on this home.</p>
+            }
+        </section>
+
+        @if (Model.Similar.Any())
+        {
+            <section class="mh-psection" aria-labelledby="similarHeading">
+                <div class="mh-psection-head">
+                    <h2 id="similarHeading">Similar homes</h2>
+                    <div class="mh-psection-tools">
+                        <partial name="_ScrollButtons" />
+                        <a asp-page="/Portal/Browse" asp-route-bedrooms="@Math.Min(a.Bedrooms, ApartmentCatalog.MaxBedroomFilter)">See all</a>
+                    </div>
+                </div>
+                <div class="mh-hscroll">
+                    @foreach (var card in Model.Similar)
+                    {
+                        <partial name="_ApartmentCard" model="card" />
+                    }
+                </div>
+            </section>
+        }
+    </div>
+
+    <div class="col-lg-4 col-xxl-3">
+        <aside class="mh-actionbar" aria-label="Reserve">
+            <div class="mh-actionbar-price">
+                <span class="mh-actionbar-label">Price</span>
+                <strong>@priceText</strong>
+            </div>
+            @if (mine is { Status: HouseReserveStatuses.Completed })
+            {
+                <a class="btn btn-success" asp-page="/Portal/Bought"><i class="bi bi-key" aria-hidden="true"></i> You bought this home</a>
+            }
+            else if (mine is not null)
+            {
+                <a class="btn btn-outline-primary" asp-page="/Portal/Reservations"><i class="bi bi-calendar-check" aria-hidden="true"></i> You reserved this home</a>
+            }
+            else if (!Model.CanBeReserved)
+            {
+                <button type="button" class="btn btn-secondary" disabled>Not available</button>
+            }
+            else if (!Model.Me.HasProfile)
+            {
+                <a class="btn btn-accent" asp-page="/Portal/Profile" asp-route-returnUrl="@Url.Page("/Portal/Apartment", new { id = a.Id })"><i class="bi bi-calendar-check" aria-hidden="true"></i> Reserve</a>
+            }
+            else
+            {
+                <button type="button" class="btn btn-accent" data-bs-toggle="offcanvas" data-bs-target="#reserveSheet" aria-controls="reserveSheet">
+                    <i class="bi bi-calendar-check" aria-hidden="true"></i> Reserve
+                </button>
+            }
+        </aside>
+    </div>
+</div>
+
+@if (Model.CanBeReserved && mine is null && Model.Me.HasProfile)
+{
+    <div class="offcanvas offcanvas-bottom mh-sheet" tabindex="-1" id="reserveSheet" aria-labelledby="reserveSheetLabel">
+        <div class="offcanvas-header">
+            <h2 class="offcanvas-title h5" id="reserveSheetLabel"><i class="bi bi-calendar-check" aria-hidden="true"></i> Reserve this home</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form method="post" asp-page-handler="Reserve" asp-route-id="@a.Id">
+                <p class="mb-3">@($"{company ?? "The real estate company"} is notified and will contact you. The home is held for you while they confirm.")</p>
+                <label for="reserveNotes" class="form-label">Message to the company <span class="text-muted fw-normal">(optional)</span></label>
+                <textarea id="reserveNotes" name="Notes" class="form-control mb-3" rows="3" maxlength="500" placeholder="For example: when you can visit, or a question about payment"></textarea>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-accent btn-lg"><i class="bi bi-check2-circle" aria-hidden="true"></i> Confirm reservation</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="offcanvas">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Shared photo slider (wwwroot/js/site.js): 5 s auto-advance, pause on hover, keyboard/swipe.
+        initPhotoSlider('.mh-pgallery-swiper');
+    </script>
+    @if (Model.Model3D is not null)
+    {
+        <script src="~/js/model-view.js" asp-append-version="true"></script>
+    }
+}

@@ -1,0 +1,63 @@
+@page
+@model RadiantHomes.Pages.Portal.PricesModel
+@using RadiantHomes.Pages.ApartmentHouses
+@{
+    ViewData["Title"] = "Best prices";
+    ViewData["Subtitle"] = "The lowest asking price of every real estate company. Choose the number of bedrooms you need.";
+}
+
+<nav class="mh-chiprow mh-chiprow--wrap mb-3" aria-label="Bedrooms">
+    <a class="mh-fchip @(Model.Bedrooms == null ? "active" : null)" asp-page="/Portal/Prices" aria-current="@(Model.Bedrooms == null ? "true" : null)">All homes</a>
+    @foreach (var group in Model.BedroomGroups)
+    {
+        var value = int.Parse(group.Key);
+        <a class="mh-fchip @(Model.Bedrooms == value ? "active" : null)" asp-page="/Portal/Prices" asp-route-bedrooms="@value" aria-current="@(Model.Bedrooms == value ? "true" : null)">@group.Name</a>
+    }
+</nav>
+
+@if (!Model.Rows.Any())
+{
+    <div class="mh-empty">
+        <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-graph-down-arrow"></i></span>
+        <h2>No prices to compare</h2>
+        <p>No listed homes with a price match this choice yet.</p>
+    </div>
+}
+else
+{
+    <ol class="mh-price-list">
+        @foreach (var row in Model.Rows)
+        {
+            var above = Model.AboveBest(row);
+            <li class="mh-price-row @(row.IsBest ? "is-best" : null)">
+                <span class="mh-price-logo">
+                    @if (!string.IsNullOrEmpty(row.LogoUrl))
+                    {
+                        <img src="@row.LogoUrl" alt="" loading="lazy" onerror="this.onerror=null;this.src='/images/brand/michu-homes-mark.svg'" />
+                    }
+                    else
+                    {
+                        <img src="/images/brand/michu-homes-mark.svg" alt="" />
+                    }
+                </span>
+                <span class="mh-price-main">
+                    <span class="mh-price-company">@row.Company</span>
+                    <span class="mh-price-meta">@(row.Count == 1 ? "1 home" : $"{row.Count} homes") · @row.CheapestTitle</span>
+                </span>
+                <span class="mh-price-value">
+                    <strong>@row.LowestPriceText</strong>
+                    @if (row.IsBest)
+                    {
+                        <span class="mh-pbadge mh-pbadge--best"><i class="bi bi-award" aria-hidden="true"></i> Best price</span>
+                    }
+                    else
+                    {
+                        <small>@($"{ApartmentHouseForm.Price(above, row.Currency)} more")</small>
+                    }
+                </span>
+                <a class="stretched-link" asp-page="/Portal/Apartment" asp-route-id="@row.CheapestId" aria-label="@($"View the cheapest home of {row.Company}")"></a>
+            </li>
+        }
+    </ol>
+    <p class="form-text mt-3">Prices are the companies' asking prices for listed homes. Prices in different currencies are compared separately.</p>
+}

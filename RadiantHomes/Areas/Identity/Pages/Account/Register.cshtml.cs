@@ -23,6 +23,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RadiantHomes.DAL;
 using RadiantHomes.Models;
+using RadiantHomes.Services.CustomerPortal;
 
 namespace RadiantHomes.Areas.Identity.Pages.Account
 {
@@ -123,6 +124,20 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
         public Guid? CompanyId { get; set; }
         public string Success { get; set; }
 
+        /// <summary>Referral code of a friend's invitation link (/r/{code}); the link also keeps it in a cookie.</summary>
+        [BindProperty(SupportsGet = true)]
+        public string? Ref { get; set; }
+
+        /// <summary>First name of the customer whose invitation brought the visitor here.</summary>
+        public string? InvitedBy { get; private set; }
+
+        private async Task ResolveReferralAsync(ReferralService referrals)
+        {
+            var referral = await referrals.FindActiveAsync(Ref ?? Request.Cookies[ReferralService.CookieName]);
+            Ref = referral?.Code;
+            InvitedBy = referral?.Customer?.FirstName;
+        }
+
         // customerId / companyId are optional query parameters (bound into CustomerId / CompanyId above):
         //   - /Identity/Account/Register                         plain sign-up (Login page link)
         //   - ?customerId=<profile id>                            link the new account to a just-created
@@ -130,11 +145,12 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
         //   - ?companyId=<company id>                             register a Real Estate Admin of that company
         //                                                         (AdminRegister, admin pre-creation flow)
         // A value that is missing, malformed or not usable is ignored so the visitor can still register.
-        public async Task<IActionResult> OnGetAsync(string returnUrl = null)
+        public async Task<IActionResult> OnGetAsync([FromServices] ReferralService referrals, string returnUrl = null)
         {
             // Invalid GUIDs leave binding errors (and their raw values) in ModelState; drop them so the
             // hidden fields render from the cleaned-up properties below.
             ModelState.Clear();
+            await ResolveReferralAsync(referrals);
 
             if (CustomerId.HasValue && await GetCustomerLinkErrorAsync(CustomerId.Value) != null)
             {
@@ -152,8 +168,9 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
             return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync([FromServices] ReferralService referrals, string returnUrl = null)
         {
+            await ResolveReferralAsync(referrals);
             returnUrl ??= Url.Content("~/");
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
@@ -217,6 +234,20 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
                     _logger.LogInformation("ReturnUrl: {ReturnUrl}", returnUrl);
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+                    // A friend's invitation (customer portal, "Refer a friend"): never blocks registration.
+                    if (User.Identity?.IsAuthenticated != true && !string.IsNullOrEmpty(Ref))
+                    {
+                        try
+                        {
+                            await referrals.RecordAsync(Ref, user);
+                            Response.Cookies.Delete(ReferralService.CookieName);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Could not record the referral {Code} for the new account.", Ref);
+                        }
+                    }
 
                     // Someone who is already signed in (e.g. an admin on AdminRegister) is registering an
                     // account for another person: keep them signed in as themselves.

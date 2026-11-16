@@ -1,0 +1,13 @@
+@model HouseReserveStatuses
+@* Status badge of a reservation, worded for the customer. *@
+@{
+    var (css, icon, text) = Model switch
+    {
+        HouseReserveStatuses.Pending => ("pending", "bi-hourglass-split", "Waiting for the company"),
+        HouseReserveStatuses.Approved => ("approved", "bi-check2-circle", "Approved"),
+        HouseReserveStatuses.Completed => ("completed", "bi-key", "Bought"),
+        HouseReserveStatuses.Cancelled => ("cancelled", "bi-x-circle", "Cancelled"),
+        _ => ("cancelled", "bi-archive", "Closed"),
+    };
+}
+<span class="mh-pstatus mh-pstatus--@css"><i class="bi @icon" aria-hidden="true"></i> @text</span>

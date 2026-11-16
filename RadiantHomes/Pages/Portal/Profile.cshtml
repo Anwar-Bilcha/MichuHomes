@@ -1,0 +1,76 @@
+@page
+@model RadiantHomes.Pages.Portal.ProfileModel
+@{
+    ViewData["Title"] = Model.Me.HasProfile ? "My profile" : "Complete your profile";
+    ViewData["Subtitle"] = Model.Me.HasProfile ? null : "Real estate companies use these details to contact you about the homes you reserve.";
+}
+
+<form method="post" class="card mh-profile-form" novalidate>
+    <div class="card-body">
+        <input type="hidden" asp-for="ReturnUrl" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Your details</h2>
+            <div class="row g-3">
+                <div class="col-sm-6 col-xl-3">
+                    <label asp-for="Input.FirstName" class="form-label"></label>
+                    <input asp-for="Input.FirstName" class="form-control" autocomplete="given-name" />
+                    <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <label asp-for="Input.LastName" class="form-label"></label>
+                    <input asp-for="Input.LastName" class="form-control" autocomplete="family-name" />
+                    <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                    <input asp-for="Input.PhoneNumber" class="form-control" type="tel" inputmode="tel" autocomplete="tel" placeholder="e.g. +251 911 000 000" />
+                    <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <span class="form-label d-block">Email</span>
+                    <p class="form-control-plaintext mb-0" translate="no">@Model.Me.Account.Email</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Your address</h2>
+            <div class="row g-3">
+                <div class="col-sm-6 col-xl-3">
+                    <label asp-for="Input.City" class="form-label"></label>
+                    <input asp-for="Input.City" class="form-control" autocomplete="address-level2" />
+                    <span asp-validation-for="Input.City" class="text-danger"></span>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <label asp-for="Input.SubCity" class="form-label"></label>
+                    <input asp-for="Input.SubCity" class="form-control" />
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <label asp-for="Input.Woreda" class="form-label"></label>
+                    <input asp-for="Input.Woreda" class="form-control" />
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <label asp-for="Input.Street" class="form-label"></label>
+                    <input asp-for="Input.Street" class="form-control" autocomplete="street-address" />
+                    <span asp-validation-for="Input.Street" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Me.Profile is { } profile)
+        {
+            <p class="form-text">@($"Profile status: {profile.ProfileStatus}")</p>
+        }
+
+        <div class="mh-form-actions">
+            <a class="btn btn-secondary" asp-page="/Portal/Index">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> @(Model.Me.HasProfile ? "Save changes" : "Save my profile")</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
