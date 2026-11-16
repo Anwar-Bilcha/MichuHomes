@@ -1,4 +1,5 @@
 ﻿using RadiantHomes.Models.Shared;
+using System.ComponentModel.DataAnnotations;
 
 namespace RadiantHomes.Models
 {
@@ -6,9 +7,11 @@ namespace RadiantHomes.Models
     {
         public int ID { get; set; }
         public string Key { get; set; }
+        [Display(Name = "Amharic")]
         public string AmharicValue { get; set; }
+        [Display(Name = "English")]
         public string EnglishValue { get; set; }
-        public string AfanOromoValue { get; set; }
+        [Display(Name = "Additional note")]
         public string? AdditionalNote { get; set; }
         public string? Page { get; set; }
 

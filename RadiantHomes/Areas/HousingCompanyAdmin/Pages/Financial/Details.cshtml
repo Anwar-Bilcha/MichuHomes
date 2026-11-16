@@ -2,70 +2,84 @@
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial.DetailsModel
 
 @{
-    ViewData["Title"] = "Financial Details";
+    ViewData["Title"] = "Financial details";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<h1 class="mb-4">Financial Details</h1>
+@section PageActions {
+    <a class="btn btn-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to list</a>
+    <a class="btn btn-primary" asp-page="./Edit" asp-route-id="@Model.CompanyFinancialDetail.Id"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+}
 
-<div>
-    <h4 class="text-primary">Company Financial Detail</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-3">Bank Name</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.BankName)</dd>
+<div class="card">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-bank" aria-hidden="true"></i> Company Financial Detail</h2>
+    </div>
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>Bank Name</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.BankName)</dd>
 
-        <dt class="col-sm-3">Account Number</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.AccountNumber)</dd>
+            <dt>Account Number</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.AccountNumber)</dd>
 
-        <dt class="col-sm-3">Tax ID</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.TaxId)</dd>
+            <dt>Tax ID</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.TaxId)</dd>
 
-        <dt class="col-sm-3">Annual Revenue</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.AnnualRevenue)</dd>
+            <dt>Annual Revenue</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.AnnualRevenue)</dd>
 
-        <dt class="col-sm-3">Is Primary Account</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.IsPrimary)</dd>
+            <dt>Budget Year</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.BudgetYear)</dd>
 
-        <dt class="col-sm-3">TIN Number</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.TinNumber)</dd>
+            <dt>Is Primary Account</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.IsPrimary)</dd>
 
-        <dt class="col-sm-3">VAT Registration No.</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.VatRegistrationNumber)</dd>
+            <dt>TIN Number</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.TinNumber)</dd>
 
-        <dt class="col-sm-3">Has Audited Financial Statement?</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.hasAuditedFinancialStatement)</dd>
+            <dt>VAT Registration No.</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.VatRegistrationNumber)</dd>
 
-        <dt class="col-sm-3">Audited Financial URL</dt>
-        <dd class="col-sm-9">
-            @if (!string.IsNullOrEmpty(Model.CompanyFinancialDetail.AuditedFinancialStatementUrl))
-            {
-                <a href="@Model.CompanyFinancialDetail.AuditedFinancialStatementUrl" target="_blank">View Document</a>
-            }
-            else
-            {
-                <span class="text-muted">N/A</span>
-            }
-        </dd>
+            <dt>Has Audited Financial Statement?</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.hasAuditedFinancialStatement)</dd>
 
-        <dt class="col-sm-3">Company ID</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.Company.CompanyId)</dd>
+            <dt>Audited Financial URL</dt>
+            <dd>
+                @if (!string.IsNullOrEmpty(Model.CompanyFinancialDetail.AuditedFinancialStatementUrl))
+                {
+                    <a href="@Model.CompanyFinancialDetail.AuditedFinancialStatementUrl" target="_blank" rel="noopener">View Document <i class="bi bi-box-arrow-up-right ms-1" aria-hidden="true"></i></a>
+                }
+                else
+                {
+                    <span class="text-muted">N/A</span>
+                }
+            </dd>
 
-        <dt class="col-sm-3">Created By</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.CreatedBy)</dd>
+            <dt>Company</dt>
+            <dd>
+                @if (Model.CompanyFinancialDetail.Company != null)
+                {
+                    <a asp-page="/Details" asp-route-id="@Model.CompanyFinancialDetail.CompanyId">@Model.CompanyFinancialDetail.Company.Name</a>
+                }
+                else
+                {
+                    <span class="text-muted">N/A</span>
+                }
+            </dd>
 
-        <dt class="col-sm-3">Created On</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.CreatedOn)</dd>
+            <dt>Created By</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.CreatedBy)</dd>
 
-        <dt class="col-sm-3">Updated By</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.UpdatedBy)</dd>
+            <dt>Created On</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.CreatedOn)</dd>
 
-        <dt class="col-sm-3">Updated On</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.UpdatedOn)</dd>
-    </dl>
-</div>
+            <dt>Updated By</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.UpdatedBy)</dd>
 
-<div class="mt-4">
-    <a class="btn btn-primary me-2" asp-page="./Edit" asp-route-id="@Model.CompanyFinancialDetail.Id">Edit</a>
-    <a class="btn btn-secondary" asp-page="./Index">Back to List</a>
+            <dt>Updated On</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.UpdatedOn)</dd>
+        </dl>
+    </div>
 </div>

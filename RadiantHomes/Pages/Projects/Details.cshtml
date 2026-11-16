@@ -1,325 +1,219 @@
 ﻿@page "{id:guid?}"
+@using RadiantHomes.DAL
 @model RadiantHomes.Pages.Projects.DetailsModel
 
 @{
-    ViewData["Title"] = "Project Details: " + Model.HouseProject?.ProjectName;
+    var companyName = Model.HouseProject?.Company?.Name;
+    ViewData["Title"] = Model.HouseProject?.ProjectName ?? "Project details";
+    ViewData["Subtitle"] = string.IsNullOrWhiteSpace(companyName) ? null : $"A housing project by {companyName}.";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-
-<style>
-    /* Hero Section Styles */
-    .hero-section {
-        background-color: #f8f9fa; /* Fallback color */
-        background-size: cover;
-        background-position: center;
-        position: relative;
-        color: white;
-        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
-        padding: 5rem 0;
-        margin-bottom: 3rem; /* Space below hero section */
-        min-height: 400px; /* Ensure a minimum height for the hero */
-        display: flex;
-        align-items: center;
-        justify-content: center; /* Center content horizontally if narrow */
-        text-align: center; /* Center text within hero */
-        border-radius: 0.5rem; /* Rounded corners for the container */
-        overflow: hidden; /* Ensure background doesn't leak */
+@section PageActions {
+    <a asp-page="./Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to projects
+    </a>
+    @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+    {
+        <a asp-page="./Edit" asp-route-id="@Model.HouseProject?.ProjectId" class="btn btn-primary">
+            <i class="bi bi-pencil" aria-hidden="true"></i> Edit project
+        </a>
     }
+}
 
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
-            z-index: 1;
-        }
+<div class="row g-4 mb-4">
+    @* Project photos (gallery with lightbox) *@
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-images" aria-hidden="true"></i> The Housing Project Sample Views</h2>
+            </div>
+            @if (Model.ProjectPhotoUrls != null && Model.ProjectPhotoUrls.Any())
+            {
+                <div class="card-body">
+                    <div class="gallery-container">
+                        @foreach (var photoUrl in Model.ProjectPhotoUrls)
+                        {
+                            <a href="@photoUrl" class="gallery-item">
+                                <img src="@photoUrl" alt="Project Photo" loading="lazy" />
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="mh-empty">
+                    <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-image"></i></span>
+                    <h3>No photos yet</h3>
+                    <p>No photos available for this project yet.</p>
+                </div>
+            }
+        </div>
+    </div>
 
-    .hero-content {
-        position: relative;
-        z-index: 2;
-        max-width: 800px; /* Limit content width */
-        margin: 0 auto;
-        padding: 0 1rem;
-    }
+    @* Project overview *@
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-info-circle" aria-hidden="true"></i> Project Overview</h2>
+            </div>
+            <div class="card-body">
+                <dl class="mh-dl mh-dl--compact">
+                    <dt>Company</dt>
+                    <dd>@(Model.HouseProject?.Company?.Name ?? "N/A")</dd>
 
-        .hero-content h1 {
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
+                    <dt>Location</dt>
+                    <dd><i class="bi bi-geo-alt text-accent me-1" aria-hidden="true"></i>@(Model.HouseProject?.Location ?? "N/A")</dd>
 
-        .hero-content p {
-            font-size: 1.5rem;
-            opacity: 0.9;
-            margin-bottom: 1.5rem;
-        }
+                    <dt>Description</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(Model.HouseProject?.Description) ? "No description provided." : Model.HouseProject.Description)</dd>
 
-    /* Adjust hero text for smaller screens */
-    
+                    <dt>Total Area</dt>
+                    <dd>@(Model.HouseProject?.TotalArea.ToString("N2") ?? "N/A") sqm</dd>
 
-    /* General Card Styles */
-    .card {
-        border-radius: 0.75rem !important; /* Slightly more rounded corners for cards */
-        border: none; /* Remove default card border */
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important; /* Stronger, softer shadow */
-    }
+                    <dt>Start Date</dt>
+                    <dd>@(Model.HouseProject?.StartDate.ToString("yyyy-MM-dd") ?? "N/A")</dd>
 
-    .card-header {
-        border-bottom: none !important; /* Remove border below header */
-        border-top-left-radius: calc(0.75rem - 1px) !important;
-        border-top-right-radius: calc(0.75rem - 1px) !important;
-        padding: 1rem 1.5rem; /* Adjust padding */
-    }
-
-    /* Project Overview Specifics */
-    .project-overview .card-header {
-        background-color: var(--bs-success) !important;
-    }
-
-    /* Auditing Info Specifics */
-    .auditing-info .card-header {
-        background-color: var(--bs-info) !important;
-    }
-
-    /* Buildings Section Specifics */
-    .buildings-section .card-header {
-        background-color: var(--bs-success) !important; /* Keeping success for consistency or could be primary */
-    }
-
-    /* Image Gallery Styles */
-    .gallery-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Responsive grid */
-        gap: 1rem;
-        padding: 1rem;
-        background-color: var(--bs-light); /* Light background for gallery body */
-        border-bottom-left-radius: calc(0.75rem - 1px);
-        border-bottom-right-radius: calc(0.75rem - 1px);
-    }
-
-    .gallery-item img {
-        width: 100%;
-        height: 150px; /* Fixed height for thumbnails */
-        object-fit: cover;
-        border-radius: 0.5rem;
-        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-
-        .gallery-item img:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
-        }
-
-    /* No photos available placeholder for gallery */
-    .no-photos-placeholder {
-        min-height: 200px; /* Adjusted height for better visual balance */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background-color: var(--bs-light);
-        color: var(--bs-secondary-text-emphasis);
-        padding: 2rem;
-        border-bottom-left-radius: calc(0.75rem - 1px);
-        border-bottom-right-radius: calc(0.75rem - 1px);
-    }
-
-    /* Building Card Image */
-    .building-card-img {
-        height: 180px;
-        object-fit: cover;
-        width: 100%;
-        border-bottom-left-radius: calc(0.75rem - 1px);
-        border-bottom-right-radius: calc(0.75rem - 1px);
-    }
-
-    /* Adjust button grouping on small screens */
-</style>
-
-<div class="hero-section" style="@(Model.ProjectPhotoUrls != null && Model.ProjectPhotoUrls.Any() ? $"background-image: url('{Model.ProjectPhotoUrls.First()}');" : "background-color: #343a40;")">
-    <div class="hero-content">
-        <h1 class="display-4 fw-bold mb-2">
-            @(Model.HouseProject?.ProjectName ?? "Project Details")
-        </h1>
-        @if (!string.IsNullOrWhiteSpace(Model.HouseProject?.Company?.Name))
-        {
-            <p class="lead">
-                from @Model.HouseProject.Company.Name
-            </p>
-        }
-        @if (!string.IsNullOrWhiteSpace(Model.HouseProject?.Location))
-        {
-            <p class="lead mb-4">
-                <i class="bi bi-geo-alt me-2"></i> @Model.HouseProject.Location
-            </p>
-        }
-        <div class="hero-buttons d-flex flex-column flex-sm-row justify-content-center gap-3">
-            <a asp-page="./Edit" asp-route-id="@Model.HouseProject?.ProjectId" class="btn btn-primary btn-lg">
-                <i class="bi bi-pencil-square me-2"></i> Edit Project
-            </a>
-            <a asp-page="./Index" class="btn btn-outline-light btn-lg">
-                <i class="bi bi-arrow-left-circle me-2"></i> Back to Projects
-            </a>
+                    <dt>End Date</dt>
+                    <dd>@(Model.HouseProject?.EndDate?.ToString("yyyy-MM-dd") ?? "Ongoing")</dd>
+                </dl>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="container py-4">
-
-    @* Project Overview Section *@
-    <div class="row g-4 mb-5 justify-content-center">
-        <div class="col-lg-10 col-md-12">
-            <div class="card bg-gradient h-100">
-                <div class="card-header text-success py-3 bg-gradient">
-                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i> Project Overview</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        @* Left column for main details *@
-                        <div class="col-lg-6 col-md-6 col-sm-12">
-                            <dl class="row gy-3 mb-0">
-                                <dt class="col-sm-4 fw-semibold text-dark"><i class="bi bi-building me-2"></i>Company</dt>
-                                <dd class="col-sm-8 text-muted">@(Model.HouseProject?.Company?.Name ?? "N/A")</dd>
-
-                                <dt class="col-sm-4 fw-semibold text-dark"><i class="bi bi-geo-alt me-2"></i>Location</dt>
-                                <dd class="col-sm-8 text-muted">@(Model.HouseProject?.Location ?? "N/A")</dd>
-
-                                <dt class="col-sm-4 fw-semibold text-dark"><i class="bi bi-text-left me-2"></i>Description</dt>
-                                <dd class="col-sm-8 text-muted">@(string.IsNullOrWhiteSpace(Model.HouseProject?.Description) ? "No description provided." : Model.HouseProject.Description)</dd>
-
-                                <dt class="col-sm-4 fw-semibold text-dark"><i class="bi bi-rulers me-2"></i>Total Area</dt>
-                                <dd class="col-sm-8 text-muted">@(Model.HouseProject?.TotalArea.ToString("N2") ?? "N/A") sqm</dd>
-
-                                <dt class="col-sm-4 fw-semibold text-dark"><i class="bi bi-calendar-check me-2"></i>Start Date</dt>
-                                <dd class="col-sm-8 text-muted">@(Model.HouseProject?.StartDate.ToString("yyyy-MM-dd") ?? "N/A")</dd>
-
-                                <dt class="col-sm-4 fw-semibold text-dark"><i class="bi bi-calendar-x me-2"></i>End Date</dt>
-                                <dd class="col-sm-8 text-muted">@(Model.HouseProject?.EndDate?.ToString("yyyy-MM-dd") ?? "Ongoing")</dd>
-                            </dl>
-                        </div>
-
-                        @* Right column for stats *@
-                        <div class="col-lg-6 col-md-6 col-sm-12 mt-4 mt-md-0 d-flex justify-content-end">
-                            <dl class="row gy-3 mb-0 w-100">
-                                <dt class="col-sm-6 fw-semibold text-dark text-md-end"><i class="bi bi-house-door me-2"></i>Total Houses</dt>
-                                <dd class="col-sm-6 text-muted text-md-start">@(Model.TotalHouses.ToString())</dd>
-
-                                <dt class="col-sm-6 fw-semibold text-dark text-md-end"><i class="bi bi-currency-dollar me-2"></i>Avg. Sale Price</dt>
-                                <dd class="col-sm-6 text-muted text-md-start">@(Model.AverageSalePrice > 0 ? Model.AverageSalePrice.ToString("C") : "N/A")</dd>
-
-                                <dt class="col-sm-6 fw-semibold text-dark text-md-end"><i class="bi bi-building-fill-check me-2"></i>Residential Houses</dt>
-                                <dd class="col-sm-6 text-muted text-md-start">@(Model.NumberOfResidentialHouses.ToString())</dd>
-
-                                <dt class="col-sm-6 fw-semibold text-dark text-md-end"><i class="bi bi-shop me-2"></i>Commercial Houses</dt>
-                                <dd class="col-sm-6 text-muted text-md-start">@(Model.NumberOfCommercialHouses.ToString())</dd>
-
-                                <dt class="col-sm-6 fw-semibold text-dark text-md-end"><i class="bi bi-graph-up-arrow me-2"></i>Houses Sold Recently</dt>
-                                <dd class="col-sm-6 text-muted text-md-start">@(Model.NumberOfHousesSoldRecently.ToString())</dd>
-                            </dl>
-                        </div>
-                    </div>
-                </div>
+@* Key figures *@
+<div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-3 mb-4 mh-project-stats">
+    <div class="col">
+        <div class="card mh-stat">
+            <div>
+                <p class="mh-stat-label">Total Houses</p>
+                <p class="mh-stat-value">@(Model.TotalHouses.ToString())</p>
             </div>
+            <span class="mh-stat-icon" aria-hidden="true"><i class="bi bi-house-door"></i></span>
         </div>
     </div>
-
-    @* Project Photos Section (Gallery with Lightbox) *@
-    <div class="card shadow-lg rounded-4 mb-5">
-        <div class="card-header bg-gradient text-success py-3">
-            <h5 class="mb-0"><i class="bi bi-images me-2"></i> The Housing Project Sample Views</h5>
-        </div>
-        @if (Model.ProjectPhotoUrls != null && Model.ProjectPhotoUrls.Any())
-        {
-            <div class="gallery-container">
-                @foreach (var photoUrl in Model.ProjectPhotoUrls)
-                {
-                    <a href="@photoUrl" class="gallery-item">
-                        <img src="@photoUrl" alt="Project Photo" />
-                    </a>
-                }
+    <div class="col">
+        <div class="card mh-stat">
+            <div>
+                <p class="mh-stat-label">Avg. Sale Price</p>
+                <p class="mh-stat-value">@(string.IsNullOrEmpty(Model.AverageSalePriceText) ? "N/A" : Model.AverageSalePriceText)</p>
             </div>
-        }
-        else
-        {
-            <div class="no-photos-placeholder text-center p-4">
-                <i class="bi bi-image-fill fs-1 mb-3"></i>
-                <p class="lead">No photos available for this project yet.</p>
-            </div>
-        }
-    </div>
-
-    @* Auditing Information Section *@
-    <div class="card bg-gradient shadow-sm rounded-4 mb-5">
-        <div class="card-header bg-gradient text-success py-3">
-            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i> Auditing Information</h5>
-        </div>
-        <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-sm-4 text-dark"><i class="bi bi-person me-2"></i>Created By</dt>
-                <dd class="col-sm-8 text-muted">@(Model.HouseProject?.CreatedBy ?? "N/A")</dd>
-
-                <dt class="col-sm-4 text-dark"><i class="bi bi-calendar-plus me-2"></i>Created On</dt>
-                <dd class="col-sm-8 text-muted">@(Model.HouseProject?.CreatedOn.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</dd>
-
-                <dt class="col-sm-4 text-dark"><i class="bi bi-person-check me-2"></i>Last Updated By</dt>
-                <dd class="col-sm-8 text-muted">@(Model.HouseProject?.UpdatedBy ?? "N/A")</dd>
-
-                <dt class="col-sm-4 text-dark"><i class="bi bi-calendar-check me-2"></i>Last Updated On</dt>
-                <dd class="col-sm-8 text-muted">@(Model.HouseProject?.UpdatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</dd>
-            </dl>
+            <span class="mh-stat-icon mh-stat-icon--accent" aria-hidden="true"><i class="bi bi-cash-coin"></i></span>
         </div>
     </div>
+    <div class="col">
+        <div class="card mh-stat">
+            <div>
+                <p class="mh-stat-label">Residential Houses</p>
+                <p class="mh-stat-value">@(Model.NumberOfResidentialHouses.ToString())</p>
+            </div>
+            <span class="mh-stat-icon" aria-hidden="true"><i class="bi bi-building-check"></i></span>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card mh-stat">
+            <div>
+                <p class="mh-stat-label">Commercial Houses</p>
+                <p class="mh-stat-value">@(Model.NumberOfCommercialHouses.ToString())</p>
+            </div>
+            <span class="mh-stat-icon" aria-hidden="true"><i class="bi bi-shop"></i></span>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card mh-stat">
+            <div>
+                <p class="mh-stat-label">Houses Sold Recently</p>
+                <p class="mh-stat-value">@(Model.NumberOfHousesSoldRecently.ToString())</p>
+            </div>
+            <span class="mh-stat-icon mh-stat-icon--accent" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
+        </div>
+    </div>
+</div>
 
-    @* Buildings Section (if available) *@
+@* Buildings section *@
+<section class="mb-4" aria-labelledby="projectBuildingsTitle">
+    <h2 class="mh-section-title mb-3" id="projectBuildingsTitle"><i class="bi bi-buildings" aria-hidden="true"></i> Buildings in this Project</h2>
     @if (Model.HouseProject?.Buildings != null && Model.HouseProject.Buildings.Any())
     {
-        <div class="card bg-gradient shadow-sm rounded-4 mb-5">
-            <div class="card-header bg-gradient text-success py-3">
-                <h5 class="mb-0"><i class="bi bi-bricks me-2"></i> Buildings in this Project</h5>
-            </div>
-            <div class="card-body">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    @foreach (var building in Model.HouseProject.Buildings)
-                    {
-                        <div class="col">
-                            <a asp-page="/Buildings/Details" asp-route-id="@building.Id" class="card h-100 shadow-sm text-decoration-none border rounded-3 overflow-hidden d-block">
-                                <div class="card-body">
-                                    <h5 class="card-title text-primary mb-1"><i class="bi bi-building me-2"></i> @building.BuildingName</h5>
-                                    <p class="card-text text-muted mb-0"><i class="bi bi-layers me-2"></i> Floors: @building.NumberOfFloors</p>
-                                </div>
-                                @if (building.Photos != null && building.Photos.Any())
-                                {
-                                    <img src="@building.Photos.First().PhotoPath" class="building-card-img" alt="@building.BuildingName Image" />
-                                }
-                                else
-                                {
-                                    <div class="d-flex align-items-center justify-content-center bg-light text-muted" style="height: 180px; border-bottom-left-radius: calc(0.75rem - 1px); border-bottom-right-radius: calc(0.75rem - 1px);">
-                                        <i class="bi bi-image fs-3"></i>
-                                    </div>
-                                }
-                            </a>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+            @foreach (var building in Model.HouseProject.Buildings)
+            {
+                <div class="col">
+                    <a asp-page="/Buildings/Details" asp-route-id="@building.Id" class="card mh-media-card h-100 text-decoration-none">
+                        @if (building.Photos != null && building.Photos.Any())
+                        {
+                            <img src="@building.Photos.First().PhotoPath" class="card-img-top" alt="@building.BuildingName Image" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="card-img-top mh-media-placeholder" aria-hidden="true"><i class="bi bi-image"></i></div>
+                        }
+                        <div class="card-body">
+                            <h3 class="h5 card-title mb-1">@building.BuildingName</h3>
+                            <p class="card-text text-muted mb-0"><i class="bi bi-layers me-1" aria-hidden="true"></i> Floors: @building.NumberOfFloors</p>
                         </div>
-                    }
+                    </a>
                 </div>
-            </div>
+            }
         </div>
     }
     else
     {
-        <div class="alert alert-info text-center shadow-sm rounded-4 p-4">
-            <i class="bi bi-info-circle-fill fs-4 me-2"></i> No buildings associated with this project yet.
+        <div class="card">
+            <div class="mh-empty">
+                <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+                <h3>No buildings yet</h3>
+                <p>No buildings associated with this project yet.</p>
+            </div>
         </div>
     }
+</section>
 
+@* Auditing information *@
+<div class="card">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-clock-history" aria-hidden="true"></i> Auditing Information</h2>
+    </div>
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>Created By</dt>
+            <dd>@(Model.HouseProject?.CreatedBy ?? "N/A")</dd>
+
+            <dt>Created On</dt>
+            <dd>@(Model.HouseProject?.CreatedOn.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</dd>
+
+            <dt>Last Updated By</dt>
+            <dd>@(Model.HouseProject?.UpdatedBy ?? "N/A")</dd>
+
+            <dt>Last Updated On</dt>
+            <dd>@(Model.HouseProject?.UpdatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</dd>
+        </dl>
+    </div>
 </div>
 
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Photo gallery: first photo large, the rest as thumbnails */
+        .gallery-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .75rem; }
+        .gallery-container .gallery-item { display: block; overflow: hidden; border-radius: var(--mh-radius-sm); background: var(--mh-surface-3); }
+        .gallery-container .gallery-item img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .2s ease; }
+        .gallery-container .gallery-item:hover img { transform: scale(1.03); }
+        .gallery-container .gallery-item:first-child { grid-column: 1 / -1; }
+        .gallery-container .gallery-item:first-child img { aspect-ratio: 16 / 9; }
+
+        @@media (min-width: 576px) { .mh-dl--compact { grid-template-columns: minmax(110px, 150px) 1fr; } }
+
+        .mh-project-stats .mh-stat-value { font-size: clamp(1.2rem, 1rem + .6vw, 1.6rem); overflow-wrap: anywhere; }
+
+        .mh-media-placeholder { display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; background: var(--mh-surface-3); color: var(--mh-ink-3); font-size: 2rem; }
+    </style>
+}
+
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.js" integrity="sha512-RzU6j8f5T+4Tf0m0x9G4r0h7LwM/n5lF+w6qQ/1d7M5tG6f3s9V0f2/V+4W8bQ/4b2G5/z+G9/6V1Q+Q/5t+Q=" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             new SimpleLightbox('.gallery-container a', {

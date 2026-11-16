@@ -1,0 +1,77 @@
+@page
+@model RadiantHomes.Pages.ApartmentHouses.TourModel
+@{
+    ViewData["Title"] = "3D tour rooms";
+    ViewData["Subtitle"] = Model.Apartment.Title;
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    // Suggestions for the room name (stored as typed; these common names are shown translated to visitors).
+    string[] roomNames = { "Living room", "Kitchen", "Dining room", "Bedroom", "Master bedroom", "Second bedroom", "Third bedroom",
+                           "Bathroom", "Toilet", "Balcony", "Corridor", "Entrance", "Study", "Guest room", "Laundry room", "Storage room" };
+}
+
+@section PageActions {
+    <a asp-page="./Edit" asp-route-id="@Model.Apartment.Id" class="btn btn-secondary"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to apartment</a>
+    <a asp-page="./Details" asp-route-id="@Model.Apartment.Id" asp-fragment="model3d" class="btn btn-outline-primary" target="_blank" rel="noopener">
+        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> Preview
+    </a>
+}
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <partial name="_ApartmentModelViewer" model="Model.Viewer" />
+    </div>
+
+    <div class="col-xl-4">
+        <form method="post" class="card mh-tour-editor" data-tour-editor>
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-door-open" aria-hidden="true"></i> Rooms</h2>
+            </div>
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <ol class="mh-tour-steps">
+                    <li>Press "Go inside", or tap a floor in the 3D view.</li>
+                    <li>Tap the floor to walk; drag to look around.</li>
+                    <li>In each room, stand where a visitor should start, face the best view, then name the room and add it.</li>
+                </ol>
+
+                <div class="d-grid mb-3">
+                    <button type="button" class="btn btn-outline-primary" data-tour-inside disabled>
+                        <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Go inside
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-tour-outside hidden disabled>
+                        <i class="bi bi-box" aria-hidden="true"></i> Overview
+                    </button>
+                </div>
+
+                <label class="form-label" for="tourRoomName">Room name</label>
+                <input id="tourRoomName" class="form-control" list="tourRoomNames" maxlength="@ApartmentModel3D.MaxRoomNameLength"
+                       placeholder="e.g. Living room" autocomplete="off" data-tour-name aria-describedby="tourRoomNameError tourHelp" />
+                <datalist id="tourRoomNames">
+                    @foreach (var name in roomNames)
+                    {
+                        <option value="@name">@name</option>
+                    }
+                </datalist>
+                <div id="tourRoomNameError" class="text-danger small" data-tour-name-error></div>
+                <button type="button" class="btn btn-primary w-100 mt-2" data-tour-add-spot disabled>
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add this spot as a room
+                </button>
+                <p id="tourHelp" class="form-text mb-0" data-tour-help aria-live="polite">Go inside first: rooms are saved where you stand.</p>
+
+                <h3 class="h6 mt-4 mb-2">Rooms in the tour</h3>
+                <p class="text-muted small mb-0" data-tour-empty>No rooms yet. Visitors only see the outside of the model until you add one.</p>
+                <ol class="mh-tour-list" data-tour-list></ol>
+                <input type="hidden" asp-for="RoomsJson" data-tour-json />
+            </div>
+            <div class="card-footer d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <span class="small text-warning-emphasis" data-tour-dirty hidden><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Unsaved changes</span>
+                <button type="submit" class="btn btn-primary ms-auto"><i class="bi bi-check-lg" aria-hidden="true"></i> Save rooms</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/model-view.js" asp-append-version="true"></script>
+    <script src="~/js/tour-editor.js" asp-append-version="true"></script>
+}

@@ -30,6 +30,8 @@ namespace RadiantHomes.Pages.Projects
         // --- NEW PROPERTIES FOR PROJECT STATISTICS ---
         public int TotalHouses { get; set; }
         public double AverageSalePrice { get; set; }
+        /// <summary>Average price per currency ("2,400,000 ETB" or "2,400,000 ETB · 85,000 USD"); empty when nothing is sold.</summary>
+        public string AverageSalePriceText { get; set; } = string.Empty;
         public int NumberOfResidentialHouses { get; set; }
         public int NumberOfCommercialHouses { get; set; }
         public int NumberOfHousesSoldRecently { get; set; }
@@ -101,6 +103,11 @@ namespace RadiantHomes.Pages.Projects
             AverageSalePrice =soldHousesWithPrice.Any() ?
                                soldHousesWithPrice.Average(h => h.SalePrice) :
                                0; // Default to 0 if no sold houses with price
+            // Prices in different currencies can't be averaged together: one average per currency.
+            AverageSalePriceText = string.Join(" · ", soldHousesWithPrice
+                .GroupBy(h => ApartmentHouses.ApartmentHouseForm.CurrencyOrDefault(h.Currency))
+                .OrderByDescending(g => g.Count())
+                .Select(g => ApartmentHouses.ApartmentHouseForm.Price(g.Average(h => h.SalePrice), g.Key)));
 
             // Calculate Houses Sold Recently (e.g., in the last 90 days)
             var ninetyDaysAgo = DateTime.UtcNow.AddDays(-90);

@@ -2,85 +2,120 @@
 @model RadiantHomes.Pages.Houses.Actions.Rent.CreateModel
 
 @{
-    ViewData["Title"] = "Create House Rent Transaction";
+    ViewData["Title"] = "New rent transaction";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    if (Model.IsChoosingHouse)
+    {
+        ViewData["Subtitle"] = "Choose the house to rent.";
+    }
+    var rentInfo = Model.RentedHouse?.HouseRentInfo;
 }
 
-<h1 class="mb-4">Create Rent Transaction</h1>
-
-<hr />
-
-<form method="post" class="needs-validation" novalidate>
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group mb-3">
-                <input type="hidden" asp-for="HouseId" class="form-control" />
-                <span asp-validation-for="HouseId" class="text-danger"></span>
+@if (Model.IsChoosingHouse)
+{
+    @if (Model.RentableHouses is null || !Model.RentableHouses.Any())
+    {
+        <div class="card">
+            <div class="mh-empty">
+                <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-house-door"></i></span>
+                <h2>No houses available for rent</h2>
+                <p>Houses listed for rent that aren't rented out yet appear here.</p>
+                <a asp-page="/Houses/Index" class="btn btn-primary"><i class="bi bi-search" aria-hidden="true"></i> Browse houses</a>
             </div>
-
-            <div class="form-group mb-3">
-                <input type="hidden" asp-for="CustomerId" class="form-control" />
-                <span asp-validation-for="CustomerId" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <input type="hidden" asp-for="HouseOwnerId" class="form-control" />
-                <span asp-validation-for="HouseOwnerId" class="text-danger"></span>
-            </div>
-
-            @* <div class="form-group mb-3">
-                <label asp-for="HouseRentTransaction.TransactionDate" class="form-label">Transaction Date</label>
-                <input asp-for="HouseRentTransaction.TransactionDate" class="form-control" type="date" />
-                <span asp-validation-for="HouseRentTransaction.TransactionDate" class="text-danger"></span>
-            </div> *@
-
-            @* <div class="form-group mb-3">
-                <label asp-for="HouseRentTransaction.Status" class="form-label">Status</label>
-                <select asp-for="HouseRentTransaction.Status" class="form-control">
-                    <option value="">-- Select Status --</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Active">Active</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
+        </div>
+    }
+    else
+    {
+        <form method="get" class="card">
+            <div class="card-body">
+                <label for="houseToRent" class="form-label">House</label>
+                <select id="houseToRent" name="id" class="form-select" asp-items="Model.RentableHouses" required>
+                    <option value="">-- Select House --</option>
                 </select>
-                <span asp-validation-for="HouseRentTransaction.Status" class="text-danger"></span>
-            </div> *@
+                <div class="mh-form-actions">
+                    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-right" aria-hidden="true"></i> Continue</button>
+                </div>
+            </div>
+        </form>
+    }
+}
+else
+{
+    @if (Model.RentedHouse is not null)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <dl class="mh-dl">
+                    <dt>House</dt>
+                    <dd><a asp-page="/Houses/Details" asp-route-id="@Model.RentedHouse.Id">@Model.RentedHouse.Title</a></dd>
+                    <dt>Address</dt>
+                    <dd>@Model.RentedHouse.HouseAddress?.FormattedAddressCompact</dd>
+                    <dt>Rent</dt>
+                    <dd>
+                        ETB @HouseAvailability.ListingPrice(Model.RentedHouse).ToString("N0")
+                        @if (rentInfo is not null)
+                        {
+                            <span class="text-muted">/ @HouseAvailability.RentTermLabel(rentInfo.RentTerm).ToLowerInvariant()</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
         </div>
+    }
 
-        <div class="col-md-6">
-            <div class="form-group mb-3">
-                <label asp-for="HouseRentTransaction.RentDuration" class="form-label">Rent Duration (in months)</label>
-                <input asp-for="HouseRentTransaction.RentDuration" class="form-control" type="number" min="1" />
-                <span asp-validation-for="HouseRentTransaction.RentDuration" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="HouseRentTransaction.RentStartingDate" class="form-label">Start Date</label>
-                <input asp-for="HouseRentTransaction.RentStartingDate" class="form-control" type="date" />
-                <span asp-validation-for="HouseRentTransaction.RentStartingDate" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="HouseRentTransaction.RentEndDate" class="form-label">End Date</label>
-                <input asp-for="HouseRentTransaction.RentEndDate" class="form-control" type="date" />
-                <span asp-validation-for="HouseRentTransaction.RentEndDate" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="HouseRentTransaction.Notes" class="form-label">Additional Notes</label>
-                <textarea asp-for="HouseRentTransaction.Notes" class="form-control" rows="3" placeholder="Enter any comments or special terms..."></textarea>
-                <span asp-validation-for="HouseRentTransaction.Notes" class="text-danger"></span>
-            </div>
+    @if ((Model.ProfileMissingMessage ?? Model.OwnHouseMessage) is string notice)
+    {
+        <div class="alert alert-warning" role="status">@notice</div>
+        <div class="mh-form-actions">
+            <a asp-page="Index" class="btn btn-secondary">Back to rent transactions</a>
         </div>
-    </div>
+    }
+    else
+    {
+        <form method="post" class="card needs-validation" novalidate>
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <div class="mt-4">
-        <button type="submit" class="btn btn-primary me-2">Create Transaction</button>
-        <a asp-page="Index" class="btn btn-secondary">Cancel</a>
-    </div>
-</form>
+                <input type="hidden" asp-for="HouseId" class="form-control" />
+                <input type="hidden" asp-for="CustomerId" class="form-control" />
+                <input type="hidden" asp-for="HouseOwnerId" class="form-control" />
+                <span asp-validation-for="HouseId" class="text-danger small d-block"></span>
+                <span asp-validation-for="CustomerId" class="text-danger small d-block"></span>
+                <span asp-validation-for="HouseOwnerId" class="text-danger small d-block"></span>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="HouseRentTransaction.RentDuration" class="form-label">Rent Duration (in months)</label>
+                        <input asp-for="HouseRentTransaction.RentDuration" class="form-control" type="number" min="1" />
+                        <span asp-validation-for="HouseRentTransaction.RentDuration" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="HouseRentTransaction.RentStartingDate" class="form-label">Start Date</label>
+                        <input asp-for="HouseRentTransaction.RentStartingDate" class="form-control" type="date" />
+                        <span asp-validation-for="HouseRentTransaction.RentStartingDate" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="HouseRentTransaction.RentEndDate" class="form-label">End Date</label>
+                        <input asp-for="HouseRentTransaction.RentEndDate" class="form-control" type="date" />
+                        <span asp-validation-for="HouseRentTransaction.RentEndDate" class="text-danger small"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="HouseRentTransaction.Notes" class="form-label">Additional Notes</label>
+                        <textarea asp-for="HouseRentTransaction.Notes" class="form-control" rows="3" placeholder="Enter any comments or special terms..."></textarea>
+                        <span asp-validation-for="HouseRentTransaction.Notes" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mh-form-actions">
+                    <a asp-page="Index" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Create Transaction</button>
+                </div>
+            </div>
+        </form>
+    }
+}
 
 @section Scripts {
     @{

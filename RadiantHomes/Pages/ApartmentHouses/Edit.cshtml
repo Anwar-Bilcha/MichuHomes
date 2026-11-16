@@ -1,112 +1,223 @@
 ﻿@page
 @model RadiantHomes.Pages.ApartmentHouses.EditModel
 @{
-    ViewData["Title"] = "Edit Apartment House";
+    ViewData["Title"] = "Edit apartment";
+    ViewData["Subtitle"] = string.IsNullOrWhiteSpace(Model.ApartmentHouse?.Title) ? null : Model.ApartmentHouse.Title;
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
 
-<div class="container py-5">
-    <h2 class="mb-4">Edit Apartment House</h2>
+@section PageActions {
+    <a asp-page="./Details" asp-route-id="@Model.ApartmentHouse.Id" class="btn btn-secondary"><i class="bi bi-eye" aria-hidden="true"></i> View apartment</a>
+}
 
-    <form method="post" enctype="multipart/form-data">
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<form method="post" enctype="multipart/form-data" class="card">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
         <input type="hidden" asp-for="ApartmentHouse.Id" />
 
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label asp-for="ApartmentHouse.Title" class="form-label"></label>
-                <input asp-for="ApartmentHouse.Title" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.Title" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="ApartmentHouse.HouseNumber" class="form-label"></label>
-                <input asp-for="ApartmentHouse.HouseNumber" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.HouseNumber" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-12">
-                <label asp-for="ApartmentHouse.Description" class="form-label"></label>
-                <textarea asp-for="ApartmentHouse.Description" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="ApartmentHouse.Description" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="ApartmentHouse.SalePrice" class="form-label"></label>
-                <input asp-for="ApartmentHouse.SalePrice" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.SalePrice" class="text-danger"></span>
-            </div>
-
-            
-
-            <!-- Main Photo Upload -->
-            
-
-            <!-- Multiple Photos Upload -->
-            <div class="col-md-6">
-                <label class="form-label">Gallery Photos</label>
-                <input type="file" name="GalleryPhotos" class="form-control" accept="image/*" multiple />
-                <small class="form-text text-muted">You can select multiple images.</small>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="ApartmentHouse.HouseCategoryId" class="form-label"></label>
-                <select asp-for="ApartmentHouse.HouseCategoryId" class="form-select" asp-items="ViewBag.HouseCategoryId"></select>
-                <span asp-validation-for="ApartmentHouse.HouseCategoryId" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6">
-                <label asp-for="ApartmentHouse.AddressId" class="form-label"></label>
-                <select asp-for="ApartmentHouse.AddressId" class="form-select" asp-items="ViewBag.AddressId"></select>
-                <span asp-validation-for="ApartmentHouse.AddressId" class="text-danger"></span>
-            </div>
-
-            <!-- Example Boolean Checkboxes -->
-            <div class="col-12">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" asp-for="ApartmentHouse.IsAvailable" />
-                    <label class="form-check-label" asp-for="ApartmentHouse.IsAvailable">Available</label>
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Basic Info</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.Title" class="form-label"></label>
+                    <input asp-for="ApartmentHouse.Title" class="form-control" />
+                    <span asp-validation-for="ApartmentHouse.Title" class="text-danger"></span>
                 </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" asp-for="ApartmentHouse.HasParking" />
-                    <label class="form-check-label" asp-for="ApartmentHouse.HasParking">Parking</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" asp-for="ApartmentHouse.HasBalcony" />
-                    <label class="form-check-label" asp-for="ApartmentHouse.HasBalcony">Balcony</label>
-                </div>
-            </div>
 
-            <!-- More Fields -->
-            <div class="col-md-6">
-                <label asp-for="ApartmentHouse.FloorNumber" class="form-label"></label>
-                <input asp-for="ApartmentHouse.FloorNumber" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.FloorNumber" class="text-danger"></span>
-            </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.HouseNumber" class="form-label"></label>
+                    <input asp-for="ApartmentHouse.HouseNumber" class="form-control" />
+                    <span asp-validation-for="ApartmentHouse.HouseNumber" class="text-danger"></span>
+                </div>
 
-            <div class="col-md-6">
-                <label asp-for="ApartmentHouse.HouseType" class="form-label"></label>
-                <input asp-for="ApartmentHouse.HouseType" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.HouseType" class="text-danger"></span>
-            </div>
-            <div class="col-md-6">
-                <input type="hidden" asp-for="ApartmentHouse.BuildingId" class="form-control" />
-            </div>
-            <!-- Submit -->
-            <div class="col-12 mt-4">
-                <button type="submit" class="btn btn-primary w-100">Update Apartment House</button>
+                <div class="col-12">
+                    <label asp-for="ApartmentHouse.Description" class="form-label"></label>
+                    <textarea asp-for="ApartmentHouse.Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="ApartmentHouse.Description" class="text-danger"></span>
+                </div>
             </div>
         </div>
-    </form>
 
-    <div class="mt-4">
-        <a asp-page="./Index" class="btn btn-outline-secondary">Back to List</a>
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Pricing</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.SalePrice" class="form-label"></label>
+                    <input asp-for="ApartmentHouse.SalePrice" class="form-control" type="number" min="0" step="any"
+                           data-val-range="Sale price can&#39;t be negative." data-val-range-min="0" data-val-range-max="1000000000000" />
+                    <span asp-validation-for="ApartmentHouse.SalePrice" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.Currency" class="form-label"></label>
+                    <select asp-for="ApartmentHouse.Currency" class="form-select" asp-items="ApartmentHouseForm.CurrencyItems(Model.ApartmentHouse?.Currency)">
+                        <option value="">-- Select Currency --</option>
+                    </select>
+                    <span asp-validation-for="ApartmentHouse.Currency" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Location</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.BuildingId" class="form-label"></label>
+                    <select asp-for="ApartmentHouse.BuildingId" class="form-select" asp-items="ViewBag.BuildingId">
+                        <option value="">-- Select Building --</option>
+                    </select>
+                    <span asp-validation-for="ApartmentHouse.BuildingId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.HouseCategoryId" class="form-label"></label>
+                    <select asp-for="ApartmentHouse.HouseCategoryId" class="form-select" asp-items="ViewBag.HouseCategoryId">
+                        <option value="">-- Select Category --</option>
+                    </select>
+                    <span asp-validation-for="ApartmentHouse.HouseCategoryId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.AddressId" class="form-label"></label>
+                    <select asp-for="ApartmentHouse.AddressId" class="form-select" asp-items="ViewBag.AddressId">
+                        <option value="">-- Select Address --</option>
+                    </select>
+                    <span asp-validation-for="ApartmentHouse.AddressId" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Specifications</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.HouseType" class="form-label"></label>
+                    <select asp-for="ApartmentHouse.HouseType" class="form-select"
+                            asp-items="@(Enum.GetValues<HouseTypesCateg>().Select(t => new SelectListItem(t.GetDisplayName(), t.ToString())))"></select>
+                    <span asp-validation-for="ApartmentHouse.HouseType" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.AvailableFor" class="form-label"></label>
+                    <select asp-for="ApartmentHouse.AvailableFor" class="form-select"
+                            asp-items="@(ApartmentHouseForm.AvailableForOptions.Select(o => new SelectListItem(o.Text, o.Value)))">
+                        <option value="">-- Select Availability --</option>
+                    </select>
+                    <span asp-validation-for="ApartmentHouse.AvailableFor" class="text-danger"></span>
+                </div>
+                <partial name="_ApartmentNumbers" for="ApartmentHouse" />
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Availability &amp; amenities</h2>
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" asp-for="ApartmentHouse.IsAvailable" aria-describedby="isAvailableHelp" />
+                        <label class="form-check-label" asp-for="ApartmentHouse.IsAvailable">Available for buyers or tenants</label>
+                    </div>
+                    <div id="isAvailableHelp" class="form-text">Only available, approved apartments are shown in the public listing.</div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" asp-for="ApartmentHouse.HasBalcony" />
+                        <label class="form-check-label" asp-for="ApartmentHouse.HasBalcony"></label>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" asp-for="ApartmentHouse.HasElevator" />
+                        <label class="form-check-label" asp-for="ApartmentHouse.HasElevator"></label>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" asp-for="ApartmentHouse.HasParking" />
+                        <label class="form-check-label" asp-for="ApartmentHouse.HasParking"></label>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" asp-for="ApartmentHouse.IsFurnished" />
+                        <label class="form-check-label" asp-for="ApartmentHouse.IsFurnished"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photos: the current ones (tick to remove) and new uploads -->
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Apartment Photos</h2>
+            @if (Model.Photos.Any())
+            {
+                <p class="form-text mt-0">Tick a photo to remove it when you save.</p>
+                <div class="mh-photo-grid mb-3">
+                    @for (var i = 0; i < Model.Photos.Count; i++)
+                    {
+                        var photo = Model.Photos[i];
+                        <div class="mh-photo-tile">
+                            <img src="@photo.Url" alt="@ApartmentHouseForm.PhotoAlt(photo.FileName, Model.ApartmentHouse.Title)" loading="lazy" />
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="RemovePhotos" value="@photo.FileName" id="removePhoto@(i)"
+                                       checked="@Model.RemovePhotos.Contains(photo.FileName)" />
+                                <label class="form-check-label" for="removePhoto@(i)">Remove</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="form-text mt-0">This apartment has no photos of its own yet.</p>
+            }
+
+            <p class="form-text">Add photos: JPG, PNG, GIF or WebP, up to 10 MB each.</p>
+            <div id="photo-section">
+                <div class="photo-item mh-photo-item">
+                    <label class="form-label" for="photoFile0">Photo</label>
+                    <input type="file" id="photoFile0" name="Photos[0].PhotoFile" class="form-control mb-2" accept=".jpg,.jpeg,.png,.gif,.webp" />
+                    <label class="form-label" for="photoDescription0">Description</label>
+                    <input type="text" id="photoDescription0" name="Photos[0].Description" class="form-control" placeholder="e.g. Front View" />
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addPhotoInput()"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add Another Photo</button>
+        </div>
+
+        <partial name="_ApartmentModelField" model="Model.Model3D" />
+
+        <div class="mh-form-actions">
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save changes</button>
+        </div>
     </div>
-</div>
+</form>
+
+@section Styles {
+    <style>
+        .mh-photo-item { margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--mh-border); border-radius: var(--mh-radius-sm); background: var(--mh-surface-2); }
+        .mh-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .75rem; }
+        .mh-photo-tile { padding: .5rem; border: 1px solid var(--mh-border); border-radius: var(--mh-radius-sm); background: var(--mh-surface-2); }
+        .mh-photo-tile img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--mh-radius-sm); margin-bottom: .4rem; background: var(--mh-surface-3); }
+    </style>
+}
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let photoIndex = 1;
+        function addPhotoInput() {
+            const t = (window.MichuI18n ? MichuI18n.t : (s => s));
+            const section = document.getElementById("photo-section");
+            const html = `
+                <div class="photo-item mh-photo-item">
+                    <label class="form-label" for="photoFile${photoIndex}">${t("Photo")}</label>
+                    <input type="file" id="photoFile${photoIndex}" name="Photos[${photoIndex}].PhotoFile" class="form-control mb-2" accept=".jpg,.jpeg,.png,.gif,.webp" />
+                    <label class="form-label" for="photoDescription${photoIndex}">${t("Description")}</label>
+                    <input type="text" id="photoDescription${photoIndex}" name="Photos[${photoIndex}].Description" class="form-control" />
+                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="this.parentElement.remove()">${t("Remove")}</button>
+                </div>`;
+            section.insertAdjacentHTML("beforeend", html);
+            photoIndex++;
+        }
+    </script>
 }

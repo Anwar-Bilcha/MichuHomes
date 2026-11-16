@@ -3,18 +3,20 @@
 @model RadiantHomes.Pages.RealEstates.OnBoarding.FinancialDetails.CreateModel
 
 @{
-    ViewData["Title"] = "Create Company Financial Detail";
+    ViewData["Title"] = "Onboarding: financial details";
+    ViewData["Subtitle"] = "Step 2 of 4. Bank, tax and annual financial information for the company.";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
-<link rel="stylesheet" href="~/css/OnboardingStepper.css" />
 
-<div class="container-fluid px-3 px-md-5 py-4">
-    <div class="stepper-wrapper mb-4 mt-3">
-        <div class="stepper-item">
+@* Onboarding stepper *@
+<nav aria-label="Onboarding progress">
+    <div class="stepper-wrapper">
+        <div class="stepper-item completed">
             <div class="step-counter">1</div>
             <div class="step-name">Company Profile</div>
         </div>
-        <div class="stepper-item active">
+        <div class="stepper-item active" aria-current="step">
             <div class="step-counter">2</div>
             <div class="step-name">Financial Details</div>
         </div>
@@ -27,119 +29,128 @@
             <div class="step-name">Housing Project</div>
         </div>
     </div>
+</nav>
 
-    <div class="bg-white p-4 rounded shadow-sm">
-        <h3 class="mb-4 text-primary"><i class="bi bi-building me-2"></i>@ViewData["Title"]</h3>
-        <hr class="mb-4" />
+@* Messages carried over from the previous step *@
+@* Results of the previous action are shown as toasts by _FlashMessages. *@
 
-        <form method="post" class="needs-validation" id="financialDetailForm">
-            <div asp-validation-summary="All" class="text-danger mb-3 fs-6"></div>
-            <div class="mb-4">
-                @* Added margin-bottom for spacing *@
-                @if (User.IsInRole(MichuHomesRoles.MichuAdmin) && Model.SelectedCompanyId == Guid.Empty)
-                {
-                    <h5 class="text-secondary mb-3">Select Target Company</h5>
-                    <div class="row">
-                        <div class="col-lg-6 col-md-8 col-sm-10">
-                            <label asp-for="CompanyFinancialDetail.CompanyId" class="form-label fw-semibold">Company Name</label>
-                            <select asp-for="CompanyFinancialDetail.CompanyId" class="form-select form-select-lg" asp-items="Model.CompanySelectList">
-                                <option value="">-- Choose Company --</option>
-                            </select>
-                            <span asp-validation-for="CompanyFinancialDetail.CompanyId" class="text-danger mt-1 d-block"></span> @* Added mt-1 d-block for spacing/display *@
-                        </div>
+<form method="post" class="card needs-validation" id="financialDetailForm">
+    <div class="card-body">
+        <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+        <div class="mh-fieldset">
+            @if (User.IsInRole(MichuHomesRoles.MichuAdmin) && Model.SelectedCompanyId == Guid.Empty)
+            {
+                <h2 class="mh-fieldset-title">Select Target Company</h2>
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label asp-for="SelectedCompanyId" class="form-label">Company Name</label>
+                        <select asp-for="SelectedCompanyId" class="form-select" asp-items="Model.CompanySelectList" required>
+                            <option value="">-- Choose Company --</option>
+                        </select>
+                        <span asp-validation-for="SelectedCompanyId" class="text-danger d-block"></span>
                     </div>
-                }
-                else
-                {
-                    @* This assumes you can pass the CompanyName from the model if not MichuAdmin.
-                       You'd need to add a property like `public string CompanyName { get; set; }` to your Model. *@
-                    <h5 class="text-secondary mb-3">Company: <span class="text-dark">@Model.CompanyName</span></h5>
-                    <input type="hidden" asp-for="SelectedCompanyId" />
-                    <input type="hidden" asp-for="CompanyFinancialDetail.CompanyId" /> @* Ensure this is also bound for submission *@
-                }
-            </div>
+                </div>
+            }
+            else
+            {
+                <h2 class="mh-fieldset-title">Company</h2>
+                <p class="mb-0">Company: <strong class="text-navy">@Model.CompanyName</strong></p>
+                <input type="hidden" asp-for="SelectedCompanyId" />
+                <input type="hidden" asp-for="CompanyFinancialDetail.CompanyId" /> @* Ensure this is also bound for submission *@
+            }
+        </div>
 
-            <h5 class="text-primary mb-3"><i class="bi bi-bank me-2"></i>Bank Account Details</h5>
-            <div class="row g-3 mb-4">
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Bank Account Details</h2>
+            <div class="row g-3">
                 <div class="col-md-6">
-                    <label asp-for="CompanyFinancialDetail.BankName" class="form-label fw-semibold"></label>
-                    <input asp-for="CompanyFinancialDetail.BankName" class="form-control form-control-lg" placeholder="e.g., Commercial Bank of Ethiopia" />
+                    <label asp-for="CompanyFinancialDetail.BankName" class="form-label"></label>
+                    <input asp-for="CompanyFinancialDetail.BankName" class="form-control" placeholder="e.g., Commercial Bank of Ethiopia" />
                     <span asp-validation-for="CompanyFinancialDetail.BankName" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="CompanyFinancialDetail.AccountNumber" class="form-label fw-semibold"></label>
-                    <input asp-for="CompanyFinancialDetail.AccountNumber" class="form-control form-control-lg" placeholder="e.g., 1000123456789" />
+                    <label asp-for="CompanyFinancialDetail.AccountNumber" class="form-label"></label>
+                    <input asp-for="CompanyFinancialDetail.AccountNumber" class="form-control" placeholder="e.g., 1000123456789" />
                     <span asp-validation-for="CompanyFinancialDetail.AccountNumber" class="text-danger"></span>
                 </div>
                 <div class="col-12">
-                    <div class="form-check pt-2">
+                    <div class="form-check">
                         <input class="form-check-input" asp-for="CompanyFinancialDetail.IsPrimary" id="isPrimaryCheckbox" />
-                        <label class="form-check-label fw-semibold" asp-for="CompanyFinancialDetail.IsPrimary"></label>
+                        <label class="form-check-label" asp-for="CompanyFinancialDetail.IsPrimary" for="isPrimaryCheckbox"></label>
                         <small class="text-muted ms-2">(Mark as the primary bank account for transactions)</small>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <h5 class="text-primary mb-3"><i class="bi bi-receipt me-2"></i>Tax & VAT Information</h5>
-            <div class="row g-3 mb-4">
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Tax &amp; VAT Information</h2>
+            <div class="row g-3">
                 <div class="col-md-6">
-                    <label asp-for="CompanyFinancialDetail.TinNumber" class="form-label fw-semibold"></label>
-                    <input asp-for="CompanyFinancialDetail.TinNumber" class="form-control form-control-lg" placeholder="e.g., 0012345678" />
+                    <label asp-for="CompanyFinancialDetail.TinNumber" class="form-label"></label>
+                    <input asp-for="CompanyFinancialDetail.TinNumber" class="form-control" placeholder="e.g., 0012345678" />
                     <span asp-validation-for="CompanyFinancialDetail.TinNumber" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="CompanyFinancialDetail.TaxId" class="form-label fw-semibold"></label>
-                    <input asp-for="CompanyFinancialDetail.TaxId" class="form-control form-control-lg" placeholder="e.g., ABCDE12345" />
+                    <label asp-for="CompanyFinancialDetail.TaxId" class="form-label"></label>
+                    <input asp-for="CompanyFinancialDetail.TaxId" class="form-control" placeholder="e.g., ABCDE12345" />
                     <span asp-validation-for="CompanyFinancialDetail.TaxId" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="form-label fw-semibold"></label>
-                    <input asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="form-control form-control-lg" placeholder="e.g., VAT123456789" />
+                    <label asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="form-label"></label>
+                    <input asp-for="CompanyFinancialDetail.VatRegistrationNumber" class="form-control" placeholder="e.g., VAT123456789" />
                     <span asp-validation-for="CompanyFinancialDetail.VatRegistrationNumber" class="text-danger"></span>
                 </div>
             </div>
+        </div>
 
-            <h5 class="text-primary mb-3"><i class="bi bi-cash-stack me-2"></i>Annual Financial Details</h5>
-            <div class="row g-3 mb-4">
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Annual Financial Details</h2>
+            <div class="row g-3">
                 <div class="col-md-6">
-                    <label asp-for="CompanyFinancialDetail.BudgetYear" class="form-label fw-semibold"></label>
-                    <input asp-for="CompanyFinancialDetail.BudgetYear" class="form-control form-control-lg" placeholder="e.g., 2025" />
+                    <label asp-for="CompanyFinancialDetail.BudgetYear" class="form-label"></label>
+                    <input asp-for="CompanyFinancialDetail.BudgetYear" class="form-control" placeholder="e.g., 2025" />
                     <span asp-validation-for="CompanyFinancialDetail.BudgetYear" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="CompanyFinancialDetail.AnnualRevenue" class="form-label fw-semibold"></label>
-                    <input asp-for="CompanyFinancialDetail.AnnualRevenue" class="form-control form-control-lg" placeholder="e.g., 5,000,000 ETB" />
+                    <label asp-for="CompanyFinancialDetail.AnnualRevenue" class="form-label"></label>
+                    <input asp-for="CompanyFinancialDetail.AnnualRevenue" class="form-control" placeholder="e.g., 5,000,000 ETB" />
                     <span asp-validation-for="CompanyFinancialDetail.AnnualRevenue" class="text-danger"></span>
                 </div>
             </div>
+        </div>
 
-            <h5 class="text-primary mb-3"><i class="bi bi-file-earmark-check me-2"></i>Audit Information</h5>
-            <div class="row g-3 mb-4">
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Audit Information</h2>
+            <div class="row g-3">
                 <div class="col-12">
-                    <div class="form-check pt-2">
+                    <div class="form-check">
                         <input class="form-check-input" asp-for="CompanyFinancialDetail.hasAuditedFinancialStatement" id="hasAuditedFinancialStatementCheckbox" />
-                        <label class="form-check-label fw-semibold" asp-for="CompanyFinancialDetail.hasAuditedFinancialStatement"></label>
+                        <label class="form-check-label" asp-for="CompanyFinancialDetail.hasAuditedFinancialStatement" for="hasAuditedFinancialStatementCheckbox"></label>
                         <small class="text-muted ms-2">(Check if an audited financial statement is available)</small>
                     </div>
                 </div>
                 <div class="col-12" id="auditedStatementUrlContainer">
-                    <label asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="form-label fw-semibold"></label>
-                    <input asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="form-control form-control-lg" placeholder="Provide URL or Path to Audited Statement" />
+                    <label asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="form-label"></label>
+                    <input asp-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="form-control" placeholder="Provide URL or Path to Audited Statement" />
                     <span asp-validation-for="CompanyFinancialDetail.AuditedFinancialStatementUrl" class="text-danger"></span>
                 </div>
             </div>
+        </div>
 
-            <div class="mt-4 pt-3 border-top">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="bi bi-save me-1"></i> Save Financial Details
-                </button>
-                <a asp-page="./Index" class="btn btn-outline-secondary btn-lg ms-2">
-                    <i class="bi bi-x-circle me-1"></i> Cancel
-                </a>
-            </div>
-        </form>
+        <div class="mh-form-actions">
+            <a asp-page="/RealEstates/Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg" aria-hidden="true"></i> Save Financial Details
+            </button>
+        </div>
     </div>
-</div>
+</form>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/OnboardingStepper.css" asp-append-version="true" />
+}
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

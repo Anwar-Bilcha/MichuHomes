@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Pages.Projects
 {
@@ -19,8 +20,9 @@ namespace RadiantHomes.Pages.Projects
         {
             _context = context;
         }
-        [BindProperty]
-        public HousingCompany Company { get; set; } = default!;
+        /// <summary>The project's company (shown on the page; it isn't edited here).</summary>
+        public HousingCompany Company { get; set; } = new();
+
         [BindProperty]
         public HouseProject HouseProject { get; set; } = default!;
 
@@ -30,28 +32,64 @@ namespace RadiantHomes.Pages.Projects
             {
                 return NotFound();
             }
-            var houseproject =  await _context.Projects.FirstOrDefaultAsync(m => m.ProjectId == id);
+            var houseproject = await _context.Projects.AsNoTracking().FirstOrDefaultAsync(m => m.ProjectId == id);
 
             if (houseproject == null)
             {
                 return NotFound();
             }
-            Company = _context.HousingCompanies.Find(houseproject.HousingCompanyId) ?? new();
+            // Real Estate Admins may only edit their own company's projects
+            if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(houseproject.HousingCompanyId))
+            {
+                return Forbid();
+            }
+            Company = await _context.HousingCompanies.AsNoTracking().FirstOrDefaultAsync(c => c.CompanyId == houseproject.HousingCompanyId) ?? new();
 
             HouseProject = houseproject;
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    return Page();
-            //}
-            HouseProject.HousingCompanyId = Company.CompanyId;
-            _context.Attach(HouseProject).State = EntityState.Modified;
+            if (HouseProject == null)
+            {
+                return BadRequest();
+            }
+
+            var existing = await _context.Projects.FirstOrDefaultAsync(p => p.ProjectId == HouseProject.ProjectId);
+            if (existing == null)
+            {
+                return NotFound();
+            }
+            if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(existing.HousingCompanyId))
+            {
+                return Forbid();
+            }
+
+            // Company and address aren't on this form (nor their navigations): they keep their saved values.
+            foreach (var key in new[] { nameof(HouseProject.Company), nameof(HouseProject.Address), nameof(HouseProject.HousingCompanyId),
+                                        nameof(HouseProject.AddressId), nameof(HouseProject.Buildings), nameof(HouseProject.Photos) })
+            {
+                ModelState.Remove($"{nameof(HouseProject)}.{key}");
+            }
+            if (HouseProject.EndDate is DateTime end && end < HouseProject.StartDate)
+            {
+                ModelState.AddModelError($"{nameof(HouseProject)}.{nameof(HouseProject.EndDate)}", "End Date cannot be before the Start Date.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                Company = await _context.HousingCompanies.AsNoTracking().FirstOrDefaultAsync(c => c.CompanyId == existing.HousingCompanyId) ?? new();
+                return Page();
+            }
+
+            // UpdatedOn/UpdatedBy are stamped by ApplicationDbContext.
+            existing.ProjectName = HouseProject.ProjectName;
+            existing.Location = HouseProject.Location;
+            existing.TotalArea = HouseProject.TotalArea;
+            existing.StartDate = HouseProject.StartDate;
+            existing.EndDate = HouseProject.EndDate;
+            existing.Description = HouseProject.Description;
 
             try
             {

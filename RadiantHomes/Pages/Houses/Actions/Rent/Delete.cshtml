@@ -2,100 +2,54 @@
 @model RadiantHomes.Pages.Houses.Actions.Rent.DeleteModel
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete rent transaction";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Delete</h1>
+<div class="card mh-confirm">
+    <div class="card-header">
+        <h2 class="mh-section-title text-reset"><i class="bi bi-exclamation-triangle text-reset" aria-hidden="true"></i> Are you sure you want to delete this rent transaction?</h2>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">This permanently removes the record below. It can't be undone.</p>
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.House)</dt>
+            <dd><a asp-page="/Houses/Details" asp-route-id="@Model.HouseRentTransaction.HouseId">@Model.HouseRentTransaction.House?.Title</a></dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.Receiver)</dt>
+            <dd>@DisplayText.PersonName(Model.HouseRentTransaction.Receiver)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.HomeOwner)</dt>
+            <dd>@DisplayText.PersonName(Model.HouseRentTransaction.HomeOwner)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.TransactionDate)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.TransactionDate)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.RentDuration)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.RentDuration)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.RentStartingDate)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.RentStartingDate)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.RentEndDate)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.RentEndDate)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.Status)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.Status)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.Notes)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.Notes)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.CreatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.CreatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.CreatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.CreatedOn)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.UpdatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.UpdatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseRentTransaction.UpdatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseRentTransaction.UpdatedOn)</dd>
+        </dl>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>HouseRentTransaction</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.House)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.House.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.Receiver)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.Receiver.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.HomeOwner)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.HomeOwner.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.TransactionDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.TransactionDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.RentDuration)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.RentDuration)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.RentStartingDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.RentStartingDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.RentEndDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.RentEndDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.Status)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.Notes)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.Notes)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.CreatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.CreatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.CreatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.CreatedOn)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.UpdatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.UpdatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseRentTransaction.UpdatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseRentTransaction.UpdatedOn)
-        </dd>
-    </dl>
-    
-    <form method="post">
-        <input type="hidden" asp-for="HouseRentTransaction.Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-page="./Index">Back to List</a>
-    </form>
+        @if (Model.ErrorMessage is not null)
+        {
+            <div class="alert alert-danger" role="alert">@Model.ErrorMessage</div>
+        }
+        <form method="post" class="mh-form-actions">
+            <input type="hidden" asp-for="HouseRentTransaction.Id" />
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash" aria-hidden="true"></i> Delete transaction</button>
+        </form>
+    </div>
 </div>

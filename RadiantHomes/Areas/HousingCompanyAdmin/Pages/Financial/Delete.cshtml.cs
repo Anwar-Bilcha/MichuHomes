@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
 {
@@ -29,10 +30,17 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
                 return NotFound();
             }
 
-            var companyfinancialdetail = await _context.HousingCompanyFinancialDetails.FirstOrDefaultAsync(m => m.Id == id);
+            var companyfinancialdetail = await _context.HousingCompanyFinancialDetails
+                .Include(c => c.Company)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (companyfinancialdetail is not null)
             {
+                // Real Estate Admins may only open their own company's records
+                if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(companyfinancialdetail.CompanyId))
+                {
+                    return Forbid();
+                }
                 CompanyFinancialDetail = companyfinancialdetail;
 
                 return Page();
@@ -51,6 +59,10 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
             var companyfinancialdetail = await _context.HousingCompanyFinancialDetails.FindAsync(id);
             if (companyfinancialdetail != null)
             {
+                if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(companyfinancialdetail.CompanyId))
+                {
+                    return Forbid();
+                }
                 CompanyFinancialDetail = companyfinancialdetail;
                 _context.HousingCompanyFinancialDetails.Remove(CompanyFinancialDetail);
                 await _context.SaveChangesAsync();

@@ -2,82 +2,48 @@
 @model RadiantHomes.Pages.Houses.Actions.Sales.DeleteModel
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete house sale";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Delete</h1>
+<div class="card mh-confirm">
+    <div class="card-header">
+        <h2 class="mh-section-title text-reset"><i class="bi bi-exclamation-triangle text-reset" aria-hidden="true"></i> Are you sure you want to delete this sale transaction?</h2>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">This permanently removes the record below. It can't be undone.</p>
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.House)</dt>
+            <dd><a asp-page="/Houses/Details" asp-route-id="@Model.HouseSaleTransaction.HouseId">@Model.HouseSaleTransaction.House?.Title</a></dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.Receiver)</dt>
+            <dd>@DisplayText.PersonName(Model.HouseSaleTransaction.Receiver)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.HomeOwner)</dt>
+            <dd>@DisplayText.PersonName(Model.HouseSaleTransaction.HomeOwner)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.TransactionDate)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.TransactionDate)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.Status)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.Status)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.Notes)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.Notes)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.CreatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.CreatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.CreatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.CreatedOn)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.UpdatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.UpdatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.UpdatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.UpdatedOn)</dd>
+        </dl>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>HouseSaleTransaction</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.House)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.House.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.Receiver)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.Receiver.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.HomeOwner)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.HomeOwner.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.TransactionDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.TransactionDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.Status)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.Notes)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.Notes)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.CreatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.CreatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.CreatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.CreatedOn)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.UpdatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.UpdatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.UpdatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.UpdatedOn)
-        </dd>
-    </dl>
-    
-    <form method="post">
-        <input type="hidden" asp-for="HouseSaleTransaction.Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-page="./Index">Back to List</a>
-    </form>
+        @if (Model.ErrorMessage is not null)
+        {
+            <div class="alert alert-danger" role="alert">@Model.ErrorMessage</div>
+        }
+        <form method="post" class="mh-form-actions">
+            <input type="hidden" asp-for="HouseSaleTransaction.Id" />
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash" aria-hidden="true"></i> Delete sale</button>
+        </form>
+    </div>
 </div>

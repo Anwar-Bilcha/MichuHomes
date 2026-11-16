@@ -26,11 +26,12 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
         }
 
         [BindProperty]
-        public CompanyFinancialDetail CompanyFinancialDetail { get; set; }
+        public CompanyFinancialDetail CompanyFinancialDetail { get; set; } = default!;
+        // Set when the company is fixed (company admin, or a Michu Admin arriving with ?companyId=)
         [BindProperty]
         public Guid SelectedCompanyId { get; set; }
         public SelectList? CompanySelectList { get; set; }
-        public string CompanyName { get; set; }
+        public string CompanyName { get; set; } = string.Empty;
         private bool IsRealEstateAdmin { get; set; }
         private bool IsSuperAdmin { get; set; }
 
@@ -47,31 +48,28 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
                 return Forbid();
             CompanyFinancialDetail = new CompanyFinancialDetail();
 
-            if (User.IsInRole(MichuHomesRoles.MichuAdmin))
+            if (IsSuperAdmin)
             {
-                CompanySelectList = new SelectList(_context.HousingCompanies.OrderBy(c => c.Name), "Id", "Name");
-                if (companyId.HasValue && companyId.Value != Guid.Empty)
+                if (companyId.HasValue && companyId.Value != Guid.Empty
+                    && await _context.HousingCompanies.AnyAsync(c => c.CompanyId == companyId.Value))
                 {
                     SelectedCompanyId = companyId.Value;
                     CompanyFinancialDetail.CompanyId = companyId.Value;
-                    // You might want to fetch the company name here too if coming from a link
-                    CompanyName = _context.HousingCompanies.FirstOrDefault(c => c.CompanyId == companyId.Value)?.Name??"";
                 }
             }
-            else // HousingCompanyAdmin
+            else // Real Estate (company) admin: always their own company
             {
-                var user = await _userManager.GetUserAsync(User);
-                var company = _context.HousingCompanies.FirstOrDefault(c => c.CompanyId == user.HousingCompanyId);
-                if (company == null)
+                var ownCompanyId = await GetOwnCompanyIdAsync(currentUser);
+                if (ownCompanyId == null)
                 {
                     TempData["error"] = "Associated company not found.";
-                    return RedirectToPage("./Index"); // Or some other error handling
+                    return RedirectToPage("./Index");
                 }
-                SelectedCompanyId = company.CompanyId;
-                CompanyFinancialDetail.CompanyId = company.CompanyId; // Ensure this is set for model binding
-                CompanyName = company.Name; // Populate the new property
+                SelectedCompanyId = ownCompanyId.Value;
+                CompanyFinancialDetail.CompanyId = ownCompanyId.Value;
             }
 
+            await LoadFormDataAsync();
             return Page();
         }
 
@@ -87,44 +85,49 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
             if (!IsRealEstateAdmin && !IsSuperAdmin)
                 return Forbid();
 
+            // Which company the record belongs to
+            if (IsSuperAdmin)
+            {
+                // Either fixed by ?companyId= (SelectedCompanyId) or chosen in the company dropdown
+                var chosen = SelectedCompanyId != Guid.Empty ? SelectedCompanyId : CompanyFinancialDetail.CompanyId;
+                if (chosen == Guid.Empty || !await _context.HousingCompanies.AnyAsync(c => c.CompanyId == chosen))
+                {
+                    ModelState.Remove("CompanyFinancialDetail.CompanyId"); // replaces the binder's "The value '' is invalid."
+                    ModelState.AddModelError("CompanyFinancialDetail.CompanyId", "Please select a company.");
+                }
+                CompanyFinancialDetail.CompanyId = chosen;
+            }
+            else
+            {
+                var ownCompanyId = await GetOwnCompanyIdAsync(currentUser);
+                if (ownCompanyId == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Your Real Estate Admin account is not associated with a housing company.");
+                }
+                else
+                {
+                    SelectedCompanyId = ownCompanyId.Value;
+                    CompanyFinancialDetail.CompanyId = ownCompanyId.Value;
+                }
+            }
+
+            // The statement URL is only asked for when an audited statement exists (the field is disabled otherwise)
+            if (!CompanyFinancialDetail.hasAuditedFinancialStatement)
+            {
+                CompanyFinancialDetail.AuditedFinancialStatementUrl = string.Empty;
+                ModelState.Remove("CompanyFinancialDetail.AuditedFinancialStatementUrl");
+            }
+
             if (!ModelState.IsValid)
             {
-                if (IsSuperAdmin && SelectedCompanyId == Guid.Empty)
-                    await PopulateCompanySelectList();
-
+                await LoadFormDataAsync();
                 return Page();
             }
 
-            if (IsRealEstateAdmin && !IsSuperAdmin)
-            {
-                var userProfile = await _context.UserProfiles.FirstOrDefaultAsync(u => u.Id == currentUser.CustomerId);
-
-                if (userProfile?.CompanyId != null && userProfile.CompanyId != Guid.Empty)
-                {
-                    CompanyFinancialDetail.CompanyId = userProfile.CompanyId.Value;
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Your Real Estate Admin account is not associated with a housing company.");
-                    return Page();
-                }
-            }
-            else if (IsSuperAdmin)
-            {
-                if (SelectedCompanyId != Guid.Empty)
-                {
-                    CompanyFinancialDetail.CompanyId = SelectedCompanyId;
-                }
-                else
-                {
-                    ModelState.AddModelError("SelectedCompanyId", "Please select a company.");
-                    await PopulateCompanySelectList();
-                    return Page();
-                }
-            }
-
-            CompanyFinancialDetail.CreatedOn = DateTime.UtcNow;
-            CompanyFinancialDetail.CreatedBy = User.Identity?.Name ?? "System";
+            // The EF model declares NEWID() as the key default, but the database column has no default,
+            // so EF would insert NULL for an empty Guid key: generate it here (as Projects/Create does).
+            // CreatedOn/CreatedBy are stamped by ApplicationDbContext.SaveChanges
+            CompanyFinancialDetail.Id = Guid.NewGuid();
 
             _context.HousingCompanyFinancialDetails.Add(CompanyFinancialDetail);
 
@@ -136,31 +139,48 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
             {
                 Console.WriteLine($"Database error: {ex.InnerException?.Message ?? ex.Message}");
                 ModelState.AddModelError(string.Empty, "An error occurred while saving the financial details.");
-                if (IsSuperAdmin && SelectedCompanyId == Guid.Empty)
-                    await PopulateCompanySelectList();
-
-                return Page();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Unexpected error: {ex.Message}");
-                ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please contact support.");
-                if (IsSuperAdmin && SelectedCompanyId == Guid.Empty)
-                    await PopulateCompanySelectList();
-
+                await LoadFormDataAsync();
                 return Page();
             }
 
             return RedirectToPage("/Projects/Create", new { companyId = CompanyFinancialDetail.CompanyId });
         }
 
-        private async Task PopulateCompanySelectList()
+        // The company admin's own company: AppUser.HousingCompanyId, falling back to their Customer profile's CompanyId
+        private async Task<Guid?> GetOwnCompanyIdAsync(AppUser user)
         {
-            var companies = await _context.HousingCompanies
-                                          .OrderBy(h => h.Name)
-                                          .Select(h => new { h.CompanyId, h.Name })
-                                          .ToListAsync();
-            CompanySelectList = new SelectList(companies, "CompanyId", "Name");
+            Guid? companyId = user.HousingCompanyId;
+            if ((companyId == null || companyId == Guid.Empty) && user.CustomerId != null)
+            {
+                companyId = await _context.UserProfiles
+                    .Where(p => p.Id == user.CustomerId)
+                    .Select(p => p.CompanyId)
+                    .FirstOrDefaultAsync();
+            }
+            if (companyId == null || companyId == Guid.Empty)
+                return null;
+
+            return await _context.HousingCompanies.AnyAsync(c => c.CompanyId == companyId) ? companyId : null;
+        }
+
+        // Company name for a fixed company, or the company dropdown for a Michu Admin
+        private async Task LoadFormDataAsync()
+        {
+            if (SelectedCompanyId != Guid.Empty)
+            {
+                CompanyName = await _context.HousingCompanies
+                    .Where(c => c.CompanyId == SelectedCompanyId)
+                    .Select(c => c.Name)
+                    .FirstOrDefaultAsync() ?? string.Empty;
+            }
+            else
+            {
+                var companies = await _context.HousingCompanies
+                    .OrderBy(h => h.Name)
+                    .Select(h => new { h.CompanyId, h.Name })
+                    .ToListAsync();
+                CompanySelectList = new SelectList(companies, "CompanyId", "Name");
+            }
         }
     }
 }

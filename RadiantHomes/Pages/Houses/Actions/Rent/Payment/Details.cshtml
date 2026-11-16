@@ -16,7 +16,7 @@
     <div class="card-body">
         <dl class="mh-dl">
             <dt>@Html.DisplayNameFor(model => model.HouseRentPayment.Transaction)</dt>
-            <dd>@Html.DisplayFor(model => model.HouseRentPayment.Transaction.Id)</dd>
+            <dd><a asp-page="/Houses/Actions/Rent/Details" asp-route-id="@Model.HouseRentPayment.TransactionId">@DisplayText.RentTransaction(Model.HouseRentPayment.Transaction)</a></dd>
             <dt>@Html.DisplayNameFor(model => model.HouseRentPayment.RentCommision)</dt>
             <dd>@Html.DisplayFor(model => model.HouseRentPayment.RentCommision)</dd>
             <dt>@Html.DisplayNameFor(model => model.HouseRentPayment.RentPricePerTerm)</dt>

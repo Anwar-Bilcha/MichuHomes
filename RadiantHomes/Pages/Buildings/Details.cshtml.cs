@@ -31,9 +31,14 @@ namespace RadiantHomes.Pages.Buildings
                 return NotFound();
             }
 
+            // Building photos are ApartmentPhotos rows whose HouseId is the building's Id
+            // (Building.Photos is configured with HouseId as its foreign key in ApplicationDbContext).
             var building = await _context.Buildings
                 .Include(a=>a.Project).ThenInclude(a=>a.Company)
-                .Include(a=>a.Houses).FirstOrDefaultAsync(m => m.Id == id);
+                .Include(a=>a.Photos)
+                .Include(a=>a.Houses)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (building is not null)
             {

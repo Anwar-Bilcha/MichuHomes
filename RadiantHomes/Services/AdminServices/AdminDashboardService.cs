@@ -47,11 +47,23 @@ namespace RadiantHomes.Services.AdminServices
             return _context.HousingCompanies.ToList();
         }
 
+        Dictionary<Guid, int> IAdminDashboard.GetApartmentHouseCountsByCompany()
+        {
+            return _context.ApartmentHouses
+                .Where(a => a.Building != null && a.Building.Project != null)
+                .GroupBy(a => a.Building!.Project!.HousingCompanyId)
+                .Select(g => new { CompanyId = g.Key, Count = g.Count() })
+                .ToDictionary(x => x.CompanyId, x => x.Count);
+        }
+
+        // Houses with a sale transaction dated within the range (both dates included)
         List<ApartmentHouse> IAdminDashboard.GetSoldHouses(dynamic companyId, DateTime startDate, DateTime endDate, bool isSuperAdmin)
         {
-            var apartmentSaleTransactions = _context.ApartmentHouseSaleTransactions.ToList().Select(a=>a.ApartmentHouseId);
-        var result = _context.ApartmentHouses.Where(a => apartmentSaleTransactions.Contains(a.Id) && a.CreatedOn >= startDate && a.CreatedOn <= endDate);
-        return result.ToList();
+            var from = startDate.Date;
+            var toExclusive = endDate.Date.AddDays(1);
+            return _context.ApartmentHouses
+                .Where(h => h.SaleTransactions.Any(t => t.TransactionDate >= from && t.TransactionDate < toExclusive))
+                .ToList();
         }
     }
 }

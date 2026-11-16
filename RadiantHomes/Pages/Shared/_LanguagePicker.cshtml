@@ -1,0 +1,21 @@
+@using RadiantHomes.Localization
+@inject TranslationCatalog Catalog
+@*
+    Language picker used by both layouts. Choosing a language switches straight away: wwwroot/js/site.js
+    sends the browser to /language/{code}, which stores the choice in the culture cookie and reloads the same
+    page (data-return-url) in that language — see Localization/LocalizationSetup.cs.
+    The option labels are each language's own name, so they are never translated (translate="no"); that also
+    keeps the page translator away from the aria-label, so it is translated here.
+*@
+@{
+    var current = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var returnUrl = (Context.Request.Path + Context.Request.QueryString).ToString();
+    var cssClass = Model as string ?? "form-select form-select-sm language-selector";
+}
+<select class="@cssClass" aria-label="@Catalog.T("Language", current)" translate="no" autocomplete="off"
+        data-language-picker data-return-url="@returnUrl">
+    @foreach (var language in LocalizationSetup.Languages)
+    {
+        <option value="@language.Code" lang="@language.Code" selected="@(language.Code == current)">@language.NativeName</option>
+    }
+</select>

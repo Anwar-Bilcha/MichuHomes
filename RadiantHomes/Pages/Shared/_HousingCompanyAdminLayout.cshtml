@@ -42,7 +42,13 @@
             customerProfile = _context.UserProfiles.FirstOrDefault(u => u.Id == currentCustomerId);
         }
 
-        if (customerProfile?.CompanyId != null)
+        // Michu admins see every notification (same list as Admin/Notifications/NotificationsAll);
+        // company admins see their own company's.
+        if (isMichuAdmin)
+        {
+            notifications = await NotificationService.GetForMichuAdminAsync();
+        }
+        else if (customerProfile?.CompanyId != null)
         {
             notifications = (await NotificationService.GetAllNotifications(customerProfile.CompanyId.Value)).ToList();
         }
@@ -57,6 +63,11 @@
         }
     }
     var unreadCount = notifications.Count(n => !n.IsRead);
+
+    // The signed-in admin's own company (Real Estate Admins), used for the "Company profile" link.
+    RadiantHomes.Services.AdminServices.CompanyScope? companyScope = User.Identity?.IsAuthenticated == true
+        ? await RadiantHomes.Services.AdminServices.CompanyScope.ForAsync(User, _context)
+        : null;
 }
 <!DOCTYPE html>
 <html lang="@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName">
@@ -97,7 +108,14 @@
 
                         <div class="mh-sidenav-label">Company</div>
                         <ul>
-                            <li><a class="nav-link @Exact("/RealEstates/OnBoarding/CompanyProfile")" aria-current="@Current(Exact("/RealEstates/OnBoarding/CompanyProfile"))" asp-area="" asp-page="/RealEstates/OnBoarding/CompanyProfile"><i class="bi bi-building" aria-hidden="true"></i>Company profile</a></li>
+                            @if (isMichuAdmin)
+                            {
+                                <li><a class="nav-link @Exact("/RealEstates/OnBoarding/CompanyProfile")" aria-current="@Current(Exact("/RealEstates/OnBoarding/CompanyProfile"))" asp-area="" asp-page="/RealEstates/OnBoarding/CompanyProfile"><i class="bi bi-building-add" aria-hidden="true"></i>Onboard a company</a></li>
+                            }
+                            else if (companyScope?.CompanyId is Guid ownCompanyId)
+                            {
+                                <li><a class="nav-link @Exact("/RealEstates/Edit")" aria-current="@Current(Exact("/RealEstates/Edit"))" asp-area="" asp-page="/RealEstates/Edit" asp-route-id="@ownCompanyId"><i class="bi bi-building" aria-hidden="true"></i>Company profile</a></li>
+                            }
                             <li><a class="nav-link @Exact("/Admin/Notifications/NotificationsAll")" aria-current="@Current(Exact("/Admin/Notifications/NotificationsAll"))" asp-area="" asp-page="/Admin/Notifications/NotificationsAll"><i class="bi bi-bell" aria-hidden="true"></i>Approve notifications @if (unreadCount > 0) { <span class="badge bg-warning ms-auto">@unreadCount</span> }</a></li>
                         </ul>
 
@@ -150,7 +168,7 @@
 
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <p class="mh-topbar-title d-none d-md-block text-truncate">Welcome back, <strong>@userName</strong></p>
+                    <p class="mh-topbar-title d-none d-xl-block text-truncate">Welcome back, <strong>@userName</strong></p>
                 }
 
                 <div class="mh-topbar-tools">
@@ -158,12 +176,7 @@
                         <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> View site
                     </a>
 
-                    <select class="form-select form-select-sm language-selector d-none d-sm-block" onchange="loadLanguage(this.value)" aria-label="Language">
-                        <option value="en">English</option>
-                        <option value="am">አማርኛ</option>
-                        <option value="or">Afaan Oromoo</option>
-                        <option value="tg">ትግርኛ</option>
-                    </select>
+                    <partial name="_LanguagePicker" model="@("form-select form-select-sm language-selector d-none d-sm-block")" />
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
@@ -250,63 +263,66 @@
     @if (isMichuAdmin)
     {
         var companies = _context.HousingCompanies.ToList();
-        var curUser = await userManager.GetUserAsync(User);
         <div class="modal fade" id="createAdminModal" tabindex="-1" aria-labelledby="createAdminModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header mh-modal-header--brand">
-                        <h2 class="modal-title fs-5" id="createAdminModalLabel">Create real estate admin profile</h2>
+            <div class="modal-dialog modal-dialog-centered">
+                <form class="modal-content" id="createAdminForm" novalidate data-no-loader>
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="createAdminModalLabel"><i class="bi bi-person-plus" aria-hidden="true"></i> Create real estate admin</h2>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form>
-                            <p class="text-muted">Select a housing company to pre-create a profile.</p>
-                            <div class="mb-3">
-                                <label for="companySelectAdminLayout" class="form-label">Housing company</label>
-                                <select id="companySelectAdminLayout" class="form-select">
-                                    <option value="">-- Select a company --</option>
-                                    @foreach (var company in companies)
-                                    {
-                                        <option value="@company.CompanyId">@company.Name</option>
-                                    }
-                                </select>
-                            </div>
-                            <button id="createContactPersonBtnAdminLayout" type="button" class="btn btn-primary w-100">
-                                <i class="bi bi-person-plus" aria-hidden="true"></i> Proceed to create profile
-                            </button>
-                            <input type="hidden" id="UserId" value="@curUser?.Id" />
-                        </form>
+                        <p class="mh-modal-lead">Choose the housing company. You'll then fill in the admin's profile and create their account.</p>
+                        <label for="companySelectAdminLayout" class="form-label">Housing company</label>
+                        <select id="companySelectAdminLayout" class="form-select" required aria-describedby="companySelectAdminLayoutError">
+                            <option value="">-- Select a company --</option>
+                            @foreach (var company in companies)
+                            {
+                                <option value="@company.CompanyId">@company.Name</option>
+                            }
+                        </select>
+                        <div class="invalid-feedback" id="companySelectAdminLayoutError">Please select a housing company.</div>
                     </div>
-                </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="createContactPersonBtnAdminLayout">Continue</button>
+                    </div>
+                </form>
             </div>
         </div>
     }
 
     <partial name="_CoreScripts" />
+    <partial name="_FlashMessages" />
     @RenderSection("Scripts", required: false)
-    <partial name="_LoginModal" />
+    @if (User.Identity?.IsAuthenticated != true && area != "Identity")
+    {
+        <partial name="_LoginModal" />
+    }
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Michu admin: pre-create a real estate admin profile for the selected company
-            const proceedButton = document.getElementById('createContactPersonBtnAdminLayout');
+            const createAdminForm = document.getElementById('createAdminForm');
             const companySelect = document.getElementById('companySelectAdminLayout');
-            if (proceedButton && companySelect) {
-                proceedButton.addEventListener('click', function () {
+            if (createAdminForm && companySelect) {
+                companySelect.addEventListener('change', () => companySelect.classList.remove('is-invalid'));
+                createAdminForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
                     const companyId = companySelect.value;
                     if (!companyId) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Selection required',
-                            text: 'Please select a housing company to proceed.',
-                            confirmButtonText: 'OK',
-                            customClass: { confirmButton: 'btn btn-primary' },
-                            buttonsStyling: false
-                        });
+                        // Same as every other form: the problem is shown on the field itself.
+                        companySelect.classList.add('is-invalid');
+                        companySelect.focus();
                         return;
                     }
-                    const userId = document.getElementById('UserId').value;
-                    window.location.href = `/HouseOwner/Create?ProposedContactPersonId=${userId}&TargetCompanyId=${companyId}`;
+                    // HouseOwner/Create binds UserId (the id the new contact-person profile will get) and CompanyId.
+                    const newProfileId = (window.crypto && crypto.randomUUID)
+                        ? crypto.randomUUID()
+                        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                            const r = Math.random() * 16 | 0;
+                            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                        });
+                    window.location.href = `/HouseOwner/Create?UserId=${newProfileId}&CompanyId=${companyId}`;
                 });
             }
         });

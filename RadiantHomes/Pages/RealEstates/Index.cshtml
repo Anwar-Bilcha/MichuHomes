@@ -3,155 +3,119 @@
 @model RadiantHomes.Pages.RealEstates.IndexModel
 
 @{
-    ViewData["Title"] = "Housing Companies";
+    ViewData["Title"] = "Real estate companies";
+    ViewData["Subtitle"] = "Housing companies registered on Michu Homes.";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    var canManage = User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin);
 }
 
-@* Custom styles for this page - CONSIDER MOVING TO GLOBAL CSS (e.g., site.css) *@
-<style>
-    /* Ensure icons in the title align well */
-    .section-title i {
-        vertical-align: middle;
-    }
-
-    /* Style for the company logo/placeholder */
-    .company-logo {
-        width: 70px; /* Slightly larger logo */
-        height: 70px;
-        object-fit: contain; /* Use contain for logos to prevent cropping */
-        border-radius: 8px; /* Slightly rounded corners for logos */
-        background-color: var(--bs-light); /* Light background for placeholder */
-        border: 1px solid var(--bs-gray-300); /* Subtle border for images */
-    }
-
-    /* Consistent styling for card details */
-    .card-text-detail {
-        font-size: 0.95rem; /* Slightly smaller font for details */
-        margin-bottom: 0.3rem; /* Tighter spacing */
-        /* Ensure --text-color-dark is defined in your global CSS or Bootstrap variables */
-        color: var(--text-color-dark, #555); /* Added fallback color */
-    }
-
-    .card-text-detail strong {
-        /* Ensure --bs-dark is a distinct color for labels */
-        color: var(--bs-dark, #212529); /* Added fallback color */
-        min-width: 80px; /* Align labels */
-        display: inline-block;
-    }
-
-    /* Action buttons in footer */
-    .card-footer .btn {
-        padding: 0.5rem 0.8rem; /* Larger padding for better tap target */
-        font-size: 0.9rem; /* Adjust font size */
-        border-radius: 0.3rem; /* Slightly rounded buttons */
-    }
-</style>
-
-<div class="container py-5 mt-5">
-    @* Added py-5 for vertical spacing, mt-5 to clear fixed navbar *@
-
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5">
-        @* Adjusted for mobile stacking *@
-        <h1 class="fw-bold text-primary mb-3 mb-md-0 section-title">
-            @* Changed to h1 for main title, added section-title *@
-            <i class="fas fa-building me-3"></i>@ViewData["Title"] @* Use ViewData["Title"] here too *@
-        </h1>
-        @* The "Create New" button should likely also be role-restricted, e.g., only for MichuAdmin/RealEstateAdmin *@
-        @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
-        {
-            <a asp-page="Create" class="btn btn-primary btn-lg rounded-pill px-4 shadow-sm">
-                @* Primary button, larger, rounded *@
-                <i class="fas fa-plus-circle me-2"></i> Create New
-            </a>
-        }
-    </div>
-
-    @if (Model.HousingCompany != null && Model.HousingCompany.Any())
+@section PageActions {
+    @* The "New company" button is only for MichuAdmin/RealEstateAdmin *@
+    @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
     {
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            @* Responsive grid *@
-            @foreach (var item in Model.HousingCompany)
-            {
-                <div class="col">
-                    <div class="card h-100 shadow-lg border-0 rounded-3 animate__animated animate__fadeInUp">
-                        @* Sharper shadow, rounded corners, animation *@
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                @if (!string.IsNullOrEmpty(item.LogoUrl))
-                                {
-                                    <img src="@item.LogoUrl" alt="@item.Name Logo" class="company-logo me-3" />
-                                }
-                                else
-                                {
-                                    <div class="bg-secondary bg-opacity-25 text-primary d-flex align-items-center justify-content-center me-3 company-logo">
-                                        @* Better placeholder styling *@
-                                        <i class="fas fa-building fa-xl"></i> @* Larger icon for placeholder *@
-                                    </div>
-                                }
-                                <div>
-                                    <h5 class="card-title mb-0 fw-bold text-dark">@item.Name</h5>
-                                    <small class="text-muted">@item.CompanyCategory</small>
-                                </div>
-                            </div>
+        <a asp-page="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> New company
+        </a>
+    }
+}
 
-                            <p class="card-text-detail"><strong class="me-2">License:</strong> @item.LicenseNumber</p>
-                            <p class="card-text-detail"><strong class="me-2">Established:</strong> @item.EstablishedDate.ToShortDateString()</p>
-                            <p class="card-text-detail"><strong class="me-2">Address:</strong> @(item.Address?.City ?? "N/A")</p>
-                            <p class="card-text-detail"><strong class="me-2">Email:</strong> @item.Email</p>
-                            <p class="card-text-detail"><strong class="me-2">Phone:</strong> @item.PhoneNumber</p>
-                            <p class="card-text-detail">
-                                <strong class="me-2">Website:</strong>
+@if (Model.HousingCompany != null && Model.HousingCompany.Any())
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        @foreach (var item in Model.HousingCompany)
+        {
+            <div class="col">
+                <div class="card mh-media-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            @if (!string.IsNullOrEmpty(item.LogoUrl))
+                            {
+                                <img src="@item.LogoUrl" alt="@item.Name Logo" class="company-logo" />
+                            }
+                            else
+                            {
+                                <div class="company-logo company-logo--placeholder" aria-hidden="true">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                            }
+                            <div class="mh-min-w-0">
+                                <h2 class="h5 card-title mb-0">@item.Name</h2>
+                                <small class="text-muted">@item.CompanyCategory.GetDisplayName()</small>
+                            </div>
+                        </div>
+
+                        <dl class="mh-company-facts">
+                            <dt>License</dt>
+                            <dd>@item.LicenseNumber</dd>
+                            <dt>Established</dt>
+                            <dd>@item.EstablishedDate.ToShortDateString()</dd>
+                            <dt>Address</dt>
+                            <dd>@(item.Address?.City ?? "N/A")</dd>
+                            <dt>Email</dt>
+                            <dd>@item.Email</dd>
+                            <dt>Phone</dt>
+                            <dd>@item.PhoneNumber</dd>
+                            <dt>Website</dt>
+                            <dd>
                                 @if (!string.IsNullOrEmpty(item.Website))
                                 {
-                                    <a href="@(item.Website.StartsWith("http") ? item.Website : "http://" + item.Website)" target="_blank" class="text-decoration-none text-primary hover-underline">@item.Website</a>
+                                    <a href="@(item.Website.StartsWith("http") ? item.Website : "http://" + item.Website)" target="_blank" rel="noopener">@item.Website</a>
                                 }
                                 else
                                 {
                                     <span>N/A</span>
                                 }
-                            </p>
-                            <p class="card-text-detail"><strong class="me-2">Status:</strong> <span class="badge @(item.Status == "Active" ? "bg-success" : "bg-warning text-dark")">@item.Status</span></p>
-                        </div>
-                        <div class="card-footer bg-light border-top d-flex justify-content-end p-3">
-                            @* Consistent light background for footer *@
-                            <a asp-page="./Details" asp-route-id="@item.CompanyId" class="btn btn-outline-info me-2" title="View Details">
-                                <i class="fas fa-eye"></i> Details
+                            </dd>
+                            <dt>Status</dt>
+                            <dd><span class="badge @(item.Status == "Active" ? "bg-success" : "bg-warning")">@item.Status</span></dd>
+                        </dl>
+                    </div>
+                    <div class="card-footer d-flex align-items-center gap-2">
+                        <a asp-page="./Details" asp-route-id="@item.CompanyId" class="btn btn-primary btn-sm me-auto">
+                            <i class="bi bi-eye" aria-hidden="true"></i> View details
+                        </a>
+                        @* Conditional rendering for Edit and Delete buttons *@
+                        @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+                        {
+                            <a asp-page="./Edit" asp-route-id="@item.CompanyId" class="btn btn-sm btn-outline-primary btn-icon" title="Edit Company" aria-label="Edit @item.Name">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
                             </a>
-                            @* Conditional rendering for Edit and Delete buttons *@
-                            @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
-                            {
-                                <a asp-page="./Edit" asp-route-id="@item.CompanyId" class="btn btn-outline-primary me-2" title="Edit Company">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <a asp-page="./Delete" asp-route-id="@item.CompanyId" class="btn btn-outline-danger" title="Delete Company">
-                                    <i class="fas fa-trash-alt"></i> Delete
-                                </a>
-                            }
-                        </div>
+                            <a asp-page="./Delete" asp-route-id="@item.CompanyId" class="btn btn-sm btn-outline-danger btn-icon" title="Delete Company" aria-label="Delete @item.Name">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                            </a>
+                        }
                     </div>
                 </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-building"></i></span>
+            <h2>No Housing Companies Found!</h2>
+            <p>It looks like there are no housing companies registered yet. Be the first to add one!</p>
+            @if (canManage)
+            {
+                <a asp-page="Create" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> New company</a>
+            }
+            else
+            {
+                <p class="mb-0">Please contact an administrator to add new companies.</p>
             }
         </div>
-    }
-    else
-    {
-        <div class="alert alert-info text-center" role="alert">
-            <h4 class="alert-heading">No Housing Companies Found!</h4>
-            <p>It looks like there are no housing companies registered yet. Be the first to add one!</p>
-            <hr>
-            <p class="mb-0">
-                @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
-                {
-                    <span>Click the "Create New" button above to get started.</span>
-                }
-                else
-                {
-                    <span>Please contact an administrator to add new companies.</span>
-                }
-            </p>
-        </div>
-    }
-</div>
+    </div>
+}
 
-@section Scripts {
+@section Styles {
+    <style>
+        .company-logo { flex: 0 0 auto; width: 64px; height: 64px; object-fit: contain; padding: .35rem; border-radius: var(--mh-radius-sm); border: 1px solid var(--mh-border); background: var(--mh-surface); }
+        .company-logo--placeholder { display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: var(--mh-navy); background: var(--mh-navy-50); }
+        .mh-min-w-0 { min-width: 0; }
+        .mh-company-facts { display: grid; grid-template-columns: auto 1fr; gap: .4rem 1rem; margin: 0; font-size: .875rem; }
+        .mh-company-facts dt { font-weight: 500; color: var(--mh-ink-3); }
+        .mh-company-facts dd { margin: 0; color: var(--mh-ink); word-break: break-word; }
+    </style>
 }

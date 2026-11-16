@@ -1,0 +1,77 @@
+@using RadiantHomes.Localization
+@inject TranslationCatalog Catalog
+@*
+    Texts that JavaScript puts on screen (they never pass through the HTML translator).
+    window.MichuI18n.t("Cancel") returns the current language's text; "{0}" placeholders are filled from the
+    extra arguments. Add a key to ScriptTexts below and its translation to Resources/Translations/*.json.
+*@
+@{
+    var culture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    string[] ScriptTexts =
+    {
+        // Dialogs (wwwroot/js/michu-dialogs.js)
+        "Are you sure?", "Confirm", "Cancel", "OK", "Close",
+        // Photo slider (wwwroot/js/site.js)
+        "Previous photo", "Next photo", "Go to photo {{index}}",
+        // Client-side form validation (jQuery Validate defaults)
+        "This field is required.", "Please fix this field.", "Please enter a valid email address.", "Please enter a valid URL.",
+        "Please enter a valid date.", "Please enter a valid date (ISO).", "Please enter a valid number.", "Please enter only digits.",
+        "Please enter the same value again.", "Please enter no more than {0} characters.", "Please enter at least {0} characters.",
+        "Please enter a value between {0} and {1} characters long.", "Please enter a value between {0} and {1}.",
+        "Please enter a value less than or equal to {0}.", "Please enter a value greater than or equal to {0}.",
+        "Please enter a multiple of {0}.",
+        // Searchable dropdowns (select2)
+        "No results found", "Searching…", "Loading more results…", "Remove all items", "Remove item",
+        "Please enter {0} or more characters", "Please delete {0} character(s)", "The results could not be loaded.",
+        // Apartment 3D live view (wwwroot/js/model-view.js), including the viewer's own screen-reader texts
+        "Loading the 3D model…", "3D model loaded.", "Full screen", "Exit full screen",
+        "Use the mouse, touch or arrow keys to turn the model.",
+        "Front view", "Back view", "Left side view", "Right side view",
+        "Front view from above", "Back view from above", "Left side view from above", "Right side view from above",
+        "Front view from below", "Back view from below", "Left side view from below", "Right side view from below",
+        "Drag to look around. Tap the floor to walk there.", "Drag to turn the model; pinch or scroll to zoom.",
+        "Tap the floor to walk there.", "Overview",
+        // 3D tour rooms editor (wwwroot/js/tour-editor.js)
+        "Room name", "Visit this room", "Use the spot where you stand now", "Move up", "Move down", "Delete room",
+        "Go inside first: rooms are saved where you stand.", "Room \"{0}\" now starts where you stand.",
+        "Room deleted. Press \"Save rooms\" to keep the change.", "Give the room a name.",
+        "Room \"{0}\" added. Walk to the next room, or press \"Save rooms\".",
+        "Tap the floor to walk; drag to look around. Face the best view of the room, then add it.",
+        // File checks before upload (wwwroot/js/site.js)
+        "\"{0}\" is not an allowed file type ({1}).", "\"{0}\" is larger than {1} MB.",
+        // Page scripts (photo rows, searchable-dropdown placeholders)
+        "Remove", "Photo", "Description", "Add another photo", "Photo description", "Choose a photo", "Uploading…", "Saving…", "—",
+        "-- Select Address --", "-- Select Bed Count --", "-- Select Project --", "-- Select Company --", "Select or search an address",
+    };
+    var map = new Dictionary<string, string>();
+    if (culture != TranslationCatalog.SourceCulture)
+    {
+        foreach (var text in ScriptTexts)
+        {
+            var translated = Catalog.Translate(text, culture);
+            if (translated != null) map[text] = translated;
+        }
+    }
+}
+<script>
+    window.MichuI18n = (function (texts, lang) {
+        function t(text) {
+            var value = Object.prototype.hasOwnProperty.call(texts, text) ? texts[text] : text;
+            for (var i = 1; i < arguments.length; i++) value = value.split('{' + (i - 1) + '}').join(arguments[i]);
+            return value;
+        }
+        if (window.jQuery && jQuery.validator && lang !== 'en') {
+            var m = jQuery.validator.messages, f = jQuery.validator.format;
+            m.required = t('This field is required.'); m.remote = t('Please fix this field.');
+            m.email = t('Please enter a valid email address.'); m.url = t('Please enter a valid URL.');
+            m.date = t('Please enter a valid date.'); m.dateISO = t('Please enter a valid date (ISO).');
+            m.number = t('Please enter a valid number.'); m.digits = t('Please enter only digits.');
+            m.equalTo = t('Please enter the same value again.');
+            m.maxlength = f(t('Please enter no more than {0} characters.')); m.minlength = f(t('Please enter at least {0} characters.'));
+            m.rangelength = f(t('Please enter a value between {0} and {1} characters long.')); m.range = f(t('Please enter a value between {0} and {1}.'));
+            m.max = f(t('Please enter a value less than or equal to {0}.')); m.min = f(t('Please enter a value greater than or equal to {0}.'));
+            m.step = f(t('Please enter a multiple of {0}.'));
+        }
+        return { lang: lang, t: t };
+    })(@Html.Raw(Json.Serialize(map)), @Html.Raw(Json.Serialize(culture)));
+</script>

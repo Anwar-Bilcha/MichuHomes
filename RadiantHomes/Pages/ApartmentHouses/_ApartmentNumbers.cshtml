@@ -1,0 +1,43 @@
+@model RadiantHomes.Models.HousingCompanies.ApartmentHouse
+@* The apartment's numeric specifications, shared by Create and Edit. Render with
+   <partial name="_ApartmentNumbers" for="ApartmentHouse" /> so the inputs are named "ApartmentHouse.*".
+   The limits match ApartmentHouseForm.ValidateAsync, which checks them again on the server. *@
+
+<div class="col-6 col-md-4">
+    <label asp-for="Bedrooms" class="form-label"></label>
+    <input asp-for="Bedrooms" class="form-control" type="number" min="0" max="50" step="1"
+           data-val-range="Bedrooms must be between 0 and 50." data-val-range-min="0" data-val-range-max="50" />
+    <span asp-validation-for="Bedrooms" class="text-danger"></span>
+</div>
+<div class="col-6 col-md-4">
+    <label asp-for="TotalRooms" class="form-label"></label>
+    <input asp-for="TotalRooms" class="form-control" type="number" min="1" max="200" step="1" aria-describedby="totalRoomsHelp"
+           data-val-range="Total rooms must be between 1 and 200." data-val-range-min="1" data-val-range-max="200" />
+    <div id="totalRoomsHelp" class="form-text">Bedrooms included.</div>
+    <span asp-validation-for="TotalRooms" class="text-danger"></span>
+</div>
+<div class="col-6 col-md-4">
+    <label asp-for="Area" class="form-label">Area (m²)</label>
+    <input asp-for="Area" class="form-control" type="number" min="0" max="100000" step="any"
+           data-val-range="Area must be between 0 and 100,000 m²." data-val-range-min="0" data-val-range-max="100000" />
+    <span asp-validation-for="Area" class="text-danger"></span>
+</div>
+<div class="col-6 col-md-4">
+    <label asp-for="Bathrooms" class="form-label"></label>
+    <input asp-for="Bathrooms" class="form-control" type="number" min="0" max="50" step="1"
+           data-val-range="Bathrooms must be between 0 and 50." data-val-range-min="0" data-val-range-max="50" />
+    <span asp-validation-for="Bathrooms" class="text-danger"></span>
+</div>
+<div class="col-6 col-md-4">
+    <label asp-for="LivingRooms" class="form-label"></label>
+    <input asp-for="LivingRooms" class="form-control" type="number" min="0" max="50" step="1"
+           data-val-range="Living rooms must be between 0 and 50." data-val-range-min="0" data-val-range-max="50" />
+    <span asp-validation-for="LivingRooms" class="text-danger"></span>
+</div>
+<div class="col-6 col-md-4">
+    <label asp-for="FloorNumber" class="form-label"></label>
+    <input asp-for="FloorNumber" class="form-control" type="number" min="-5" max="200" step="1" aria-describedby="floorNumberHelp"
+           data-val-range="Floor number must be between -5 and 200." data-val-range-min="-5" data-val-range-max="200" />
+    <div id="floorNumberHelp" class="form-text">0 is the ground floor.</div>
+    <span asp-validation-for="FloorNumber" class="text-danger"></span>
+</div>

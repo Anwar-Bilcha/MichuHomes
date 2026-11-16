@@ -1,0 +1,98 @@
+@using RadiantHomes.Pages.ApartmentHouses
+@model ApartmentModel3D.Viewer
+@*
+    "3D live view" card of an apartment that has a 3D model (ApartmentModel3D). Used by the public and the
+    company-admin Details pages and by the rooms editor (ApartmentHouses/Tour); the page must also load
+    ~/js/model-view.js.
+
+    Visitors: nothing heavy is downloaded until they press "View in 3D" (viewer library ~1 MB + the model), which
+    matters on mobile data. With rooms set up, the view starts inside the first room: drag to look around, tap the
+    floor to walk there, or pick a room; "Overview" shows the whole model from outside.
+    The <model-viewer> element is Google's open-source web component (wwwroot/lib/model-viewer, Apache-2.0).
+    Room names are rendered here (server side) so that common names ("Living room"…) are translated; the script
+    reads the positions from the JSON block below.
+*@
+@{
+    var hasRooms = Model.Rooms.Count > 0;
+    var tour = hasRooms || Model.Editor;
+}
+<section class="card mb-4 overflow-hidden mh-model-card" id="model3d" aria-labelledby="model3dTitle" data-mode="overview">
+    <div class="card-header">
+        <h2 class="mh-section-title" id="model3dTitle"><i class="bi bi-badge-3d" aria-hidden="true"></i> 3D live view</h2>
+    </div>
+
+    <div class="mh-model-stage" data-model-stage data-tour="@(tour ? "true" : "false")" data-autoload="@(Model.Editor ? "true" : "false")"
+         data-model-src="@Model.Model.Url" data-viewer-src="@Url.Content("~/lib/model-viewer/model-viewer.min.js")">
+        <model-viewer class="mh-model-viewer" alt="3D model of @Model.Title"
+                      camera-orbit="@(tour ? "0deg 50deg 105%" : "0deg 75deg 105%")"
+                      camera-controls touch-action="pan-y" loading="eager" interaction-prompt="@(tour ? "none" : "auto")"
+                      shadow-intensity="1" exposure="1" ar ar-modes="webxr scene-viewer quick-look">
+            <button type="button" slot="ar-button" class="btn btn-light mh-model-ar">
+                <i class="bi bi-phone" aria-hidden="true"></i> View in your room
+            </button>
+            <div slot="progress-bar"></div>
+        </model-viewer>
+
+        <p class="mh-tour-tip" data-tour-tip aria-hidden="true" hidden>
+            <i class="bi bi-hand-index" aria-hidden="true"></i> Drag to look around. Tap the floor to walk there.
+        </p>
+
+        <div class="mh-model-cover" data-model-cover>
+            @if (!string.IsNullOrEmpty(Model.PosterUrl))
+            {
+                <img src="@Url.Content(Model.PosterUrl)" class="mh-model-poster" alt="" loading="lazy" />
+            }
+            <div class="mh-model-cover-content">
+                <button type="button" class="btn btn-accent btn-lg" data-model-start hidden="@Model.Editor">
+                    <i class="bi bi-badge-3d" aria-hidden="true"></i> @(hasRooms ? "Walk through in 3D" : "View in 3D")
+                </button>
+                @if (!Model.Editor)
+                {
+                    <p class="mh-model-note mb-0">@(hasRooms ? "Go inside, look around and walk from room to room." : "Turn the apartment around and see it from every side.")</p>
+                    <p class="mh-model-note mh-model-size mb-0">Download size: @Model.Model.Size</p>
+                }
+                <div class="mh-model-progress" data-model-progress hidden>
+                    <div class="progress" role="progressbar" aria-label="Loading the 3D model…" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <div class="progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <p class="mh-model-error mb-0" data-model-error role="alert" hidden>The 3D model could not be loaded. Please try again later.</p>
+            </div>
+        </div>
+    </div>
+
+    @if (hasRooms && !Model.Editor)
+    {
+        <nav class="mh-tour-rooms" aria-label="Rooms" data-tour-rooms hidden>
+            <button type="button" class="btn btn-sm mh-tour-chip" data-tour-overview aria-pressed="false">
+                <i class="bi bi-box" aria-hidden="true"></i> Overview
+            </button>
+            @for (var i = 0; i < Model.Rooms.Count; i++)
+            {
+                <button type="button" class="btn btn-sm mh-tour-chip" data-tour-room="@i" aria-pressed="false">
+                    <i class="bi bi-door-open" aria-hidden="true"></i> <span data-room-label>@Model.Rooms[i].Name</span>
+                </button>
+            }
+        </nav>
+    }
+
+    <div class="card-footer mh-model-toolbar" data-model-toolbar hidden>
+        <p class="mh-model-hint mb-0"><i class="bi bi-hand-index" aria-hidden="true"></i> <span data-model-hint>Drag to turn the model; pinch or scroll to zoom.</span></p>
+        <div class="mh-model-actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-model-action="rotate" aria-pressed="true">
+                <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Auto-rotate
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-model-action="reset">
+                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reset view
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-model-action="fullscreen">
+                <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i> <span>Full screen</span>
+            </button>
+        </div>
+    </div>
+    <p class="visually-hidden" aria-live="polite" data-model-status></p>
+    @if (tour)
+    {
+        <script type="application/json" data-tour-data>@Html.Raw(ApartmentModel3D.RoomsToJson(Model.Rooms))</script>
+    }
+</section>

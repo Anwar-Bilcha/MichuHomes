@@ -2,79 +2,39 @@
 @model RadiantHomes.Pages.Houses.Actions.Sales.DetailsModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "House sale details";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Details</h1>
+@section PageActions {
+    <a class="btn btn-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to list</a>
+    <a class="btn btn-primary" asp-page="./Edit" asp-route-id="@Model.HouseSaleTransaction.Id"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+}
 
-<div>
-    <h4>HouseSaleTransaction</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.House)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.House.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.Receiver)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.Receiver.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.HomeOwner)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.HomeOwner.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.TransactionDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.TransactionDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.Status)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.Notes)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.Notes)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.CreatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.CreatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.CreatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.CreatedOn)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.UpdatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.UpdatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseSaleTransaction.UpdatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseSaleTransaction.UpdatedOn)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-page="./Edit" asp-route-id="@Model.HouseSaleTransaction.Id">Edit</a> |
-    <a asp-page="./Index">Back to List</a>
+<div class="card">
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.House)</dt>
+            <dd><a asp-page="/Houses/Details" asp-route-id="@Model.HouseSaleTransaction.HouseId">@Model.HouseSaleTransaction.House?.Title</a></dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.Receiver)</dt>
+            <dd>@DisplayText.PersonName(Model.HouseSaleTransaction.Receiver)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.HomeOwner)</dt>
+            <dd>@DisplayText.PersonName(Model.HouseSaleTransaction.HomeOwner)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.TransactionDate)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.TransactionDate)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.Status)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.Status)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.Notes)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.Notes)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.CreatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.CreatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.CreatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.CreatedOn)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.UpdatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.UpdatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseSaleTransaction.UpdatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseSaleTransaction.UpdatedOn)</dd>
+        </dl>
+    </div>
 </div>

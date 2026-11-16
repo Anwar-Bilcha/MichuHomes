@@ -2,108 +2,79 @@
 @model RadiantHomes.Pages.Houses.Actions.Rent.IndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Rent transactions";
+    ViewData["Subtitle"] = "House rent agreements between owners and tenants.";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    var hasRows = Model.HouseRentTransaction is not null && Model.HouseRentTransaction.Any();
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].House)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].Receiver)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].HomeOwner)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].TransactionDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].RentDuration)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].RentStartingDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].RentEndDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].Notes)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].CreatedBy)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].CreatedOn)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].UpdatedBy)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HouseRentTransaction[0].UpdatedOn)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.HouseRentTransaction) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.House.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Receiver.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HomeOwner.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TransactionDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RentDuration)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RentStartingDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RentEndDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Notes)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedBy)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedOn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UpdatedBy)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UpdatedOn)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@section PageActions {
+    <a class="btn btn-primary" asp-page="Create">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New rent transaction
+    </a>
 }
-    </tbody>
-</table>
+
+
+<div class="card">
+    @if (!hasRows)
+    {
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-house-door"></i></span>
+            <h2>No rent transactions yet</h2>
+            <p>Rent transactions appear here once a house is rented.</p>
+            <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New rent transaction</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].House)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].Receiver)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].HomeOwner)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].TransactionDate)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].RentDuration)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].RentStartingDate)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].RentEndDate)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].Status)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].Notes)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].CreatedBy)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].CreatedOn)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].UpdatedBy)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.HouseRentTransaction[0].UpdatedOn)</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.HouseRentTransaction!)
+                    {
+                        <tr>
+                            <td><a asp-page="/Houses/Details" asp-route-id="@item.HouseId">@item.House?.Title</a></td>
+                            <td>@DisplayText.PersonName(item.Receiver)</td>
+                            <td>@DisplayText.PersonName(item.HomeOwner)</td>
+                            <td>@Html.DisplayFor(modelItem => item.TransactionDate)</td>
+                            <td>@Html.DisplayFor(modelItem => item.RentDuration)</td>
+                            <td>@Html.DisplayFor(modelItem => item.RentStartingDate)</td>
+                            <td>@Html.DisplayFor(modelItem => item.RentEndDate)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Notes)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CreatedBy)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CreatedOn)</td>
+                            <td>@Html.DisplayFor(modelItem => item.UpdatedBy)</td>
+                            <td>@Html.DisplayFor(modelItem => item.UpdatedOn)</td>
+                            <td class="text-end">
+                                <div class="mh-row-actions">
+                                    <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@item.Id" title="View details" aria-label="View details"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                                    <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                    <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

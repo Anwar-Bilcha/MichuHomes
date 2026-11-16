@@ -2,85 +2,43 @@
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects.DetailsModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Project details";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<h1>Details</h1>
+@section PageActions {
+    <a class="btn btn-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to list</a>
+    <a class="btn btn-primary" asp-page="./Edit" asp-route-id="@Model.HouseProject.ProjectId"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+}
 
-<div>
-    <h4>HouseProject</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.Company)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.Company.CompanyId)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.ProjectName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.ProjectName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.Location)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.Location)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.Description)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.Description)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.StartDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.StartDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.EndDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.EndDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.TotalArea)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.TotalArea)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.CreatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.CreatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.CreatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.CreatedOn)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.UpdatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.UpdatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HouseProject.UpdatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HouseProject.UpdatedOn)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-page="./Edit" asp-route-id="@Model.HouseProject.ProjectId">Edit</a> |
-    <a asp-page="./Index">Back to List</a>
+<div class="card">
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.Company)</dt>
+            <dd>@(Model.HouseProject.Company?.Name ?? "—")</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.ProjectName)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.ProjectName)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.Location)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.Location)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.AddressId)</dt>
+            <dd>@(Model.HouseProject.Address?.FormattedAddressCompact ?? "—")</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.Description)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.Description)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.StartDate)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.StartDate)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.EndDate)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.EndDate)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.TotalArea)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.TotalArea)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.CreatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.CreatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.CreatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.CreatedOn)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.UpdatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.UpdatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HouseProject.UpdatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HouseProject.UpdatedOn)</dd>
+        </dl>
+    </div>
 </div>

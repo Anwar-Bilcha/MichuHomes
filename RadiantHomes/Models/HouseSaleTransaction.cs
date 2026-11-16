@@ -1,5 +1,6 @@
 ﻿using RadiantHomes.Models.HousingCompanies;
 using RadiantHomes.Models.Shared;
+using System.ComponentModel.DataAnnotations;
 
 namespace RadiantHomes.Models
 {
@@ -10,18 +11,24 @@ namespace RadiantHomes.Models
         // Type of transaction: Rent or Purchase
 
         // House involved in the transaction
+        [Display(Name = "House")]
         public Guid HouseId { get; set; }
         public House? House { get; set; }
 
         // Customer who is buying or renting the house
+        [Display(Name = "Buyer")]
         public Guid CustomerId { get; set; }
+        [Display(Name = "Buyer")]
         public Customer Receiver { get; set; }
 
         // Owner of the house (seller/landlord)
+        [Display(Name = "Seller")]
         public Guid OwnerId { get; set; }
+        [Display(Name = "Seller")]
         public Customer HomeOwner { get; set; }
 
         // Date the transaction took place
+        [Display(Name = "Transaction date")]
         public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
 
         //// For rentals: lease start and end

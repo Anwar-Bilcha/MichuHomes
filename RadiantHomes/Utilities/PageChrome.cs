@@ -106,12 +106,15 @@ namespace RadiantHomes.Utilities
             var folderCount = segments.Length - 1;
             if (segments[^1].Equals("Index", StringComparison.OrdinalIgnoreCase)) folderCount--;
 
+            // Folders without an Index page are code organisation (e.g. "Actions", "Admin"), not
+            // places a user can go, so they are left out of the trail.
             for (var i = 0; i < folderCount; i++)
             {
-                var folderPath = "/" + string.Join('/', segments.Take(i + 1));
-                var indexPath = folderPath + "/Index";
-                var link = known.Contains($"{area}:{indexPath}") ? url.Page(indexPath, new { area }) : null;
-                crumbs.Add(new(Humanize(segments[i]), link));
+                var indexPath = "/" + string.Join('/', segments.Take(i + 1)) + "/Index";
+                if (known.Contains($"{area}:{indexPath}"))
+                {
+                    crumbs.Add(new(Humanize(segments[i]), url.Page(indexPath, new { area })));
+                }
             }
 
             crumbs.Add(new(currentTitle, null));

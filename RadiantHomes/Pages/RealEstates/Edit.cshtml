@@ -2,113 +2,88 @@
 @model RadiantHomes.Pages.RealEstates.EditModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit housing company";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Edit</h1>
+<form method="post" class="card">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="HousingCompany.CompanyId" />
 
-<h4>HousingCompany</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="HousingCompany.CompanyId" />
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.Name" class="control-label"></label>
-                <input asp-for="HousingCompany.Name" class="form-control" />
-                <span asp-validation-for="HousingCompany.Name" class="text-danger"></span>
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Company</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="HousingCompany.Name" class="form-label"></label>
+                    <input asp-for="HousingCompany.Name" class="form-control" />
+                    <span asp-validation-for="HousingCompany.Name" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="HousingCompany.LicenseNumber" class="form-label"></label>
+                    <input asp-for="HousingCompany.LicenseNumber" class="form-control" />
+                    <span asp-validation-for="HousingCompany.LicenseNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="HousingCompany.EstablishedDate" class="form-label"></label>
+                    <input asp-for="HousingCompany.EstablishedDate" class="form-control" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           value="@(Model.HousingCompany?.EstablishedDate is DateTime established && established != default ? established.ToString("yyyy-MM-dd") : "")" />
+                    <span asp-validation-for="HousingCompany.EstablishedDate" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="HousingCompany.CompanyCategory" class="form-label"></label>
+                    <select asp-for="HousingCompany.CompanyCategory" class="form-select"
+                            asp-items="@(Enum.GetValues<RadiantHomes.Models.HousingCompanies.HousingCompany.CompanyType>().Select(c => new SelectListItem(c.GetDisplayName(), c.ToString())))"></select>
+                    <span asp-validation-for="HousingCompany.CompanyCategory" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="HousingCompany.Status" class="form-label"></label>
+                    <select asp-for="HousingCompany.Status" class="form-select" asp-items="CompanyForm.StatusItems(Model.HousingCompany?.Status)"></select>
+                    <span asp-validation-for="HousingCompany.Status" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.LicenseNumber" class="control-label"></label>
-                <input asp-for="HousingCompany.LicenseNumber" class="form-control" />
-                <span asp-validation-for="HousingCompany.LicenseNumber" class="text-danger"></span>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Contact</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="HousingCompany.AddressId" class="form-label"></label>
+                    <select asp-for="HousingCompany.AddressId" class="form-select" asp-items="ViewBag.AddressId">
+                        <option value="">-- Select Address --</option>
+                    </select>
+                    <span asp-validation-for="HousingCompany.AddressId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="HousingCompany.Email" class="form-label"></label>
+                    <input asp-for="HousingCompany.Email" class="form-control" type="email" />
+                    <span asp-validation-for="HousingCompany.Email" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="HousingCompany.PhoneNumber" class="form-label"></label>
+                    <input asp-for="HousingCompany.PhoneNumber" class="form-control" />
+                    <span asp-validation-for="HousingCompany.PhoneNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="HousingCompany.Website" class="form-label"></label>
+                    <input asp-for="HousingCompany.Website" class="form-control" data-val="false" placeholder="Optional" />
+                    <span asp-validation-for="HousingCompany.Website" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="HousingCompany.LogoUrl" class="form-label"></label>
+                    <input asp-for="HousingCompany.LogoUrl" class="form-control" data-val="false" placeholder="Optional, e.g. /uploads/CompanyLogos/…" />
+                    <span asp-validation-for="HousingCompany.LogoUrl" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.EstablishedDate" class="control-label"></label>
-                <input asp-for="HousingCompany.EstablishedDate" class="form-control" />
-                <span asp-validation-for="HousingCompany.EstablishedDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.AddressId" class="control-label"></label>
-                <select asp-for="HousingCompany.AddressId" class="form-control" asp-items="ViewBag.AddressId"></select>
-                <span asp-validation-for="HousingCompany.AddressId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.Email" class="control-label"></label>
-                <input asp-for="HousingCompany.Email" class="form-control" />
-                <span asp-validation-for="HousingCompany.Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.PhoneNumber" class="control-label"></label>
-                <input asp-for="HousingCompany.PhoneNumber" class="form-control" />
-                <span asp-validation-for="HousingCompany.PhoneNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.Website" class="control-label"></label>
-                <input asp-for="HousingCompany.Website" class="form-control" />
-                <span asp-validation-for="HousingCompany.Website" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.LogoUrl" class="control-label"></label>
-                <input asp-for="HousingCompany.LogoUrl" class="form-control" />
-                <span asp-validation-for="HousingCompany.LogoUrl" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.Status" class="control-label"></label>
-                <input asp-for="HousingCompany.Status" class="form-control" />
-                <span asp-validation-for="HousingCompany.Status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.CompanyCategory" class="control-label"></label>
-                <input asp-for="HousingCompany.CompanyCategory" class="form-control" />
-                <span asp-validation-for="HousingCompany.CompanyCategory" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.CreatedBy" class="control-label"></label>
-                <input asp-for="HousingCompany.CreatedBy" class="form-control" />
-                <span asp-validation-for="HousingCompany.CreatedBy" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.CreatedOn" class="control-label"></label>
-                <input asp-for="HousingCompany.CreatedOn" class="form-control" />
-                <span asp-validation-for="HousingCompany.CreatedOn" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.UpdatedBy" class="control-label"></label>
-                <input asp-for="HousingCompany.UpdatedBy" class="form-control" />
-                <span asp-validation-for="HousingCompany.UpdatedBy" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="HousingCompany.UpdatedOn" class="control-label"></label>
-                <input asp-for="HousingCompany.UpdatedOn" class="form-control" />
-                <span asp-validation-for="HousingCompany.UpdatedOn" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
+
+        <div class="mh-form-actions">
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save changes</button>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-page="./Index">Back to List</a>
-</div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

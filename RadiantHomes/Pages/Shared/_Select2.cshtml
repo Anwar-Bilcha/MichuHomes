@@ -1,0 +1,30 @@
+@*
+    Select2 (searchable / multi-select dropdowns), themed to match Bootstrap 5 + Michu Homes.
+    Render inside the page's Scripts section, before the code that calls .select2():
+        @section Scripts {
+            <partial name="_Select2" />
+            <script> $('#mySelect').select2(); </script>
+        }
+    jQuery is already loaded by the layout. Assets live in wwwroot/lib/select2.
+*@
+<link rel="stylesheet" href="~/lib/select2/css/select2.min.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/lib/select2/css/select2-bootstrap-5-theme.min.css" asp-append-version="true" />
+<script src="~/lib/select2/js/select2.min.js" asp-append-version="true"></script>
+<script>
+    if (window.jQuery && jQuery.fn.select2) {
+        jQuery.fn.select2.defaults.set('theme', 'bootstrap-5');
+        jQuery.fn.select2.defaults.set('width', '100%');
+        // select2's own messages in the page language (see _ScriptTranslations)
+        var t = window.MichuI18n ? window.MichuI18n.t : function (s) { return s; };
+        jQuery.fn.select2.defaults.set('language', {
+            noResults: function () { return t('No results found'); },
+            searching: function () { return t('Searching…'); },
+            loadingMore: function () { return t('Loading more results…'); },
+            errorLoading: function () { return t('The results could not be loaded.'); },
+            removeAllItems: function () { return t('Remove all items'); },
+            removeItem: function () { return t('Remove item'); },
+            inputTooShort: function (a) { return t('Please enter {0} or more characters', a.minimum - a.input.length); },
+            inputTooLong: function (a) { return t('Please delete {0} character(s)', a.input.length - a.maximum); }
+        });
+    }
+</script>

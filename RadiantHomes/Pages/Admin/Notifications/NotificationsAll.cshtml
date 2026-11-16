@@ -1,32 +1,32 @@
 ﻿@page
 @model RadiantHomes.Pages.Admin.Notifications.NotificationsAllModel
 @{
-    ViewData["Title"] = "All Notifications";
+    ViewData["Title"] = "All notifications";
+    ViewData["Subtitle"] = "Review admin notifications, mark them as read or delete them.";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
-}
 
-<div class="container-fluid">
-    <h2 class="mb-4">All Notifications</h2>
-
+<div class="card">
     @if (Model.Notifications == null || !Model.Notifications.Any())
     {
-        <div class="alert alert-info" role="alert">
-            No notifications found.
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
+            <h2>No notifications found.</h2>
+            <p>New notifications for admins appear here.</p>
         </div>
     }
     else
     {
         <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
+            <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Message</th>
-                        <th>Created Date</th>
-                        <th>Read Status</th>
-                        <th>Approval Status</th>
-                        <th>Actions</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Created Date</th>
+                        <th scope="col">Read Status</th>
+                        <th scope="col">Approval Status</th>
+                        <th scope="col" class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -35,7 +35,7 @@
                         <tr class="@(notification.IsRead ? "text-muted" : "fw-bold")">
                             <td>@notification.Title</td>
                             <td>@notification.Message</td>
-                            <td>@notification.CreatedAt.ToShortDateString() @notification.CreatedAt.ToShortTimeString()</td>
+                            <td class="text-nowrap">@notification.CreatedAt.ToShortDateString() @notification.CreatedAt.ToShortTimeString()</td>
                             <td>
                                 @if (notification.IsRead)
                                 {
@@ -47,32 +47,40 @@
                                 }
                             </td>
                             <td>
-                                @if (notification.IsRead)
+                                @{ var approval = Model.ApprovalFor(notification); }
+                                @if (approval.IsApplicable)
                                 {
-                                    <span class="badge bg-success">Approved</span>
+                                    <span class="@approval.BadgeClass text-nowrap">@approval.Label</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    <span class="text-muted" title="Nothing to approve" aria-hidden="true">—</span><span class="visually-hidden">Nothing to approve</span>
                                 }
                             </td>
-                            <td>
-                                <form method="post" class="d-inline notification-action-form">
+                            <td class="text-end">
+                                <form method="post" class="mh-row-actions notification-action-form">
                                     <input type="hidden" name="notificationId" value="@notification.Id" />
+                                    <a asp-page="./NotificationDetails" asp-route-notificationId="@notification.Id" class="btn btn-sm btn-outline-secondary btn-icon" title="View details" aria-label="View details">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </a>
                                     @if (notification.IsRead)
                                     {
-                                        <button type="submit" asp-page-handler="MarkAsUnread" class="btn btn-info btn-sm me-2" title="Mark as Unread">
-                                            <i class="bi bi-envelope-open-fill"></i>
+                                        <button type="submit" asp-page-handler="MarkAsUnread" class="btn btn-sm btn-outline-secondary btn-icon" title="Mark as unread" aria-label="Mark as unread">
+                                            <i class="bi bi-envelope-open-fill" aria-hidden="true"></i>
                                         </button>
                                     }
                                     else
                                     {
-                                        <button type="submit" asp-page-handler="MarkAsRead" class="btn btn-secondary btn-sm me-2" title="Mark as Read">
-                                            <i class="bi bi-envelope-fill"></i>
+                                        <button type="submit" asp-page-handler="MarkAsRead" class="btn btn-sm btn-outline-primary btn-icon" title="Mark as read" aria-label="Mark as read">
+                                            <i class="bi bi-envelope-fill" aria-hidden="true"></i>
                                         </button>
                                     }
-                                    <button type="submit" asp-page-handler="Delete" class="btn btn-danger btn-sm" title="Delete Notification">
-                                        <i class="bi bi-trash"></i>
+                                    <button type="submit" asp-page-handler="Delete" class="btn btn-sm btn-outline-danger btn-icon" title="Delete notification" aria-label="Delete notification"
+                                            data-confirm-title="Delete this notification?"
+                                            data-confirm="“@notification.Title” will be removed permanently. This can't be undone."
+                                            data-confirm-ok="Delete"
+                                            data-confirm-variant="danger">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
                                     </button>
                                 </form>
                             </td>
@@ -84,84 +92,4 @@
     }
 </div>
 
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.notification-action-form').forEach(form => {
-                form.addEventListener('submit', function (event) {
-                    event.preventDefault(); // Prevent default form submission
-
-                    const handler = event.submitter.getAttribute('asp-page-handler');
-                    let title, text, icon;
-
-                    switch (handler) {
-                        case 'MarkAsRead':
-                            title = 'Mark as Read?';
-                            text = 'Are you sure you want to mark this notification as read?';
-                            icon = 'question';
-                            break;
-                        case 'MarkAsUnread':
-                            title = 'Mark as Unread?';
-                            text = 'Are you sure you want to mark this notification as unread?';
-                            icon = 'question';
-                            break;
-                        case 'Delete':
-                            title = 'Delete Notification?';
-                            text = 'Are you sure you want to permanently delete this notification? This action cannot be undone.';
-                            icon = 'warning';
-                            break;
-                        default:
-                            form.submit(); // Submit for unknown handlers
-                            return;
-                    }
-
-                    Swal.fire({
-                        title: title,
-                        text: text,
-                        icon: icon,
-                        showCancelButton: true,
-                        confirmButtonText: `Yes, ${handler.replace(/([A-Z])/g, ' $1').trim()}!`, // e.g., "Yes, Mark As Read!"
-                        cancelButtonText: 'No, cancel!',
-                        customClass: {
-                            confirmButton: 'btn btn-primary me-2',
-                            cancelButton: 'btn btn-danger'
-                        },
-                        buttonsStyling: false
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Create a hidden input for the handler and submit the form
-                            const hiddenHandlerInput = document.createElement('input');
-                            hiddenHandlerInput.type = 'hidden';
-                            hiddenHandlerInput.name = 'handler';
-                            hiddenHandlerInput.value = handler;
-                            form.appendChild(hiddenHandlerInput);
-                            form.submit(); // Submit the form programmatically
-                        }
-                    });
-                });
-            });
-
-            // Display success/error messages from TempData
-            const successMessage = '@TempData["SuccessMessage"]';
-            const errorMessage = '@TempData["ErrorMessage"]';
-
-            if (successMessage && successMessage !== '') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: successMessage,
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-            } else if (errorMessage && errorMessage !== '') {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: errorMessage,
-                    showConfirmButton: true,
-                    confirmButtonText: 'OK'
-                });
-            }
-        });
-    </script>
-}
+@* Delete uses the standard data-confirm dialog (wwwroot/js/michu-dialogs.js); results are shown as toasts by _FlashMessages. *@

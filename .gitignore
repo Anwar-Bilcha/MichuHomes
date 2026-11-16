@@ -88,3 +88,6 @@ $RECYCLE.BIN/
 # Others
 *.vspscc
 *.vssscc
+
+# Application logs (Serilog writes RadiantHomes/Logs/log-YYYYMMDD.txt)
+RadiantHomes/Logs/

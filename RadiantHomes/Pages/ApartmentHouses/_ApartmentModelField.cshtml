@@ -1,0 +1,52 @@
+@using RadiantHomes.Pages.ApartmentHouses
+@model ApartmentModel3D.Field
+@*
+    The optional 3D model field of the apartment forms (Create/Edit here and in the HousingCompanyAdmin area).
+    Model: the apartment's current model (or null) and, on the Edit forms, its id and number of tour rooms.
+    The form must be multipart/form-data; the page model reads it with ApartmentModel3D.CollectAsync /
+    RemoveRequested and applies it with ApartmentModel3D.ApplyAsync.
+    Errors are keyed "Model3D", so they are shown here (the forms' summaries only show page-level errors).
+*@
+@{
+    var current = Model.Model;
+    var errors = ViewData.ModelState.TryGetValue(ApartmentModel3D.FileField, out var entry)
+        ? entry.Errors.Select(e => e.ErrorMessage).ToList()
+        : new List<string>();
+    var removeTicked = Context.Request.HasFormContentType && ApartmentModel3D.RemoveRequested(Context.Request);
+    var maxMb = ApartmentModel3D.MaxBytes / (1024 * 1024);
+}
+<div class="mh-fieldset">
+    <h2 class="mh-fieldset-title">3D model</h2>
+    @if (current is not null)
+    {
+        <div class="mh-model-current">
+            <i class="bi bi-badge-3d" aria-hidden="true"></i>
+            <span>This apartment has a 3D model (@current.Size).</span>
+        </div>
+        @if (Model.ApartmentId is Guid apartmentId)
+        {
+            <div class="mh-model-tour">
+                <span>@(Model.RoomCount == 0 ? "No rooms are set up for the walk-through yet." : $"Rooms in the walk-through: {Model.RoomCount}")</span>
+                <a class="btn btn-sm btn-outline-primary" href="@Url.Page("/ApartmentHouses/Tour", new { area = "", id = apartmentId })">
+                    <i class="bi bi-door-open" aria-hidden="true"></i> Set up the rooms
+                </a>
+            </div>
+        }
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="@ApartmentModel3D.RemoveField" value="true" id="removeModel3D" checked="@removeTicked" />
+            <label class="form-check-label" for="removeModel3D">Remove the 3D model</label>
+        </div>
+    }
+    <label class="form-label" for="model3DFile">@(current is null ? "3D model file (optional)" : "Replace it with a new 3D model")</label>
+    <input type="file" id="model3DFile" name="@ApartmentModel3D.FileField" class="form-control@(errors.Count > 0 ? " is-invalid" : "")"
+           accept=".glb,model/gltf-binary" data-max-bytes="@ApartmentModel3D.MaxBytes" data-extensions=".glb"
+           aria-describedby="model3DHelp model3DError" />
+    <div id="model3DHelp" class="form-text">A GLB file (.glb) up to @maxMb MB, for example a scan made with a 3D scanning app. Buyers can turn it around on the apartment page and see it in their own room with AR on their phone. Files under 20 MB open faster.</div>
+    <div class="form-text">For a walk-through, use a model of the inside (with rooms and floors), then set up the rooms after saving.</div>
+    <div id="model3DError" class="text-danger small" data-file-error>
+        @foreach (var error in errors)
+        {
+            <div>@error</div>
+        }
+    </div>
+</div>

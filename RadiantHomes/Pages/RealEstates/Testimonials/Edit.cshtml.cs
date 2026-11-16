@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Pages.RealEstates.Testimonials
 {
@@ -35,9 +36,14 @@ namespace RadiantHomes.Pages.RealEstates.Testimonials
             {
                 return NotFound();
             }
+            // Real Estate Admins may only edit their own company's testimonials
+            _scope = await CompanyScope.ForAsync(User, _context);
+            if (!_scope.CanAccess(customertestimonial.CompanyId))
+            {
+                return Forbid();
+            }
             CustomerTestimonial = customertestimonial;
-           ViewData["CompanyId"] = new SelectList(_context.HousingCompanies, "CompanyId", "CompanyId");
-           ViewData["CustomerId"] = new SelectList(_context.UserProfiles, "Id", "Id");
+            PopulateSelectLists();
             return Page();
         }
 
@@ -45,8 +51,28 @@ namespace RadiantHomes.Pages.RealEstates.Testimonials
         // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            _scope = await CompanyScope.ForAsync(User, _context);
+            var storedCompanyId = await _context.CustomerTestimonials.AsNoTracking()
+                .Where(t => t.Id == CustomerTestimonial.Id)
+                .Select(t => (Guid?)t.CompanyId)
+                .FirstOrDefaultAsync();
+            if (storedCompanyId == null)
+            {
+                return NotFound();
+            }
+            if (!_scope.CanAccess(storedCompanyId))
+            {
+                return Forbid();
+            }
+            // ...and it stays with their own company, whatever company id is posted
+            if (_scope.IsRestricted) CustomerTestimonial.CompanyId = _scope.CompanyId!.Value;
+
+            // The navigations are never posted (only their ids), so their required errors don't apply.
+            ModelState.Remove($"{nameof(CustomerTestimonial)}.{nameof(CustomerTestimonial.Company)}");
+            ModelState.Remove($"{nameof(CustomerTestimonial)}.{nameof(CustomerTestimonial.Customer)}");
             if (!ModelState.IsValid)
             {
+                PopulateSelectLists();
                 return Page();
             }
 
@@ -69,6 +95,16 @@ namespace RadiantHomes.Pages.RealEstates.Testimonials
             }
 
             return RedirectToPage("./Index");
+        }
+
+        // Set by each handler: the user's company scope
+        private CompanyScope _scope = default!;
+
+        // Show names, not ids, in the company / customer dropdowns (a Real Estate Admin is only offered their own company).
+        private void PopulateSelectLists()
+        {
+            ViewData["CompanyId"] = new SelectList(_scope.Companies(_context.HousingCompanies).OrderBy(c => c.Name).Select(c => new { c.CompanyId, c.Name }).ToList(), "CompanyId", "Name");
+            ViewData["CustomerId"] = new SelectList(_context.UserProfiles.OrderBy(c => c.FirstName).ThenBy(c => c.LastName).Select(c => new { c.Id, Name = c.FirstName + " " + c.LastName }).ToList(), "Id", "Name");
         }
 
         private bool CustomerTestimonialExists(Guid id)

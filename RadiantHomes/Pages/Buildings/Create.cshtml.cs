@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Pages.Buildings
 {
@@ -26,96 +27,100 @@ namespace RadiantHomes.Pages.Buildings
         }
         [BindProperty]
         public Guid ProjectId { get; set; }
-public async Task<IActionResult> OnPostUploadBuildingsAsync()
-    {
-           
-                    using (var stream = new MemoryStream())
-                    {
-                        await file.CopyToAsync(stream);
-                    // Load the Excel file using ClosedXML
-                    stream.Position = 0;
-                    using (var workbook = new XLWorkbook(stream))
-                        {
-                            var worksheet = workbook.Worksheets.Worksheet(1); // Get the first worksheet
-                        int lastRow = worksheet.LastRowUsed().RowNumber();
+        // Problems found in an uploaded Excel file (nothing is saved when there are any)
+        public List<string> UploadErrors { get; private set; } = new();
 
-                        // Loop through rows in Excel sheet
-                        for (int row = 2; row <= lastRow; row++)
-                            {
-                                var projectName = worksheet.Cell(row, 1).GetString(); // Assuming ProjectName is in the first column
-                                Guid projectId = await GetProjectIdByNameAsync(projectName);
+        // Every row is checked first (BuildingImport); the buildings are saved together only when the whole file is
+        // valid. A Real Estate Admin's rows can only name their own company's projects.
+        public async Task<IActionResult> OnPostUploadBuildingsAsync()
+        {
+            var scope = await CompanyScope.ForAsync(User, _context);
+            if (scope.HasNoCompany) return RedirectToPage("./Index"); // the list explains why
 
-                                if (projectId !=Guid.Empty)
-                                {
-                            var proJect = _context.Projects.FirstOrDefault(a=>a.ProjectId==projectId);
-                                    var building = new Building
-                                    {
-                                        ProjectId = projectId,
-                                        BuildingName = worksheet.Cell(row, 2).GetString(), // Adjust column indexes based on your Excel file
-                                        NumberOfFloors = int.Parse(worksheet.Cell(row, 3).GetString()),
-                                        BuildingType = worksheet.Cell(row, 4).GetString(),
-                                        ConstructionStatus = worksheet.Cell(row, 5).GetString(),
-                                        CreatedBy = "Admin", // Or fetch from session/user context
-                                        CreatedOn = DateTime.Now,
-                                        UpdatedBy = "Admin",
-                                        UpdatedOn=DateTime.Now,
-                                        AddressId = proJect.AddressId
-                                    };
+            var (buildings, errors) = await BuildingImport.ReadAsync(file, scope.Projects(_context.Projects));
+            if (errors.Count > 0)
+            {
+                UploadErrors = errors;
+                PopulateProjects(scope);
+                return Page();
+            }
 
-                                    _context.Buildings.Add(building);
-                                await _context.SaveChangesAsync();
+            // All or nothing: one SaveChanges (a single transaction) for the whole file
+            _context.Buildings.AddRange(buildings);
+            await _context.SaveChangesAsync();
 
-                            }
-                        }
+            TempData["SuccessMessage"] = $"{buildings.Count} building{(buildings.Count == 1 ? "" : "s")} uploaded.";
+            return RedirectToPage("./Index");
+        }
 
-                            await _context.SaveChangesAsync();
-                        }
-                    }
-                
-                return RedirectToPage("./Index");
-    }
-
-    public IActionResult OnGetDownloadTemplate()
+        public IActionResult OnGetDownloadTemplate()
         {
             var filePath = Path.Combine(_env.WebRootPath, "templates", "BuildingTemplate.xlsx");
             var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             return PhysicalFile(filePath, contentType, "BuildingTemplate.xlsx");
         }
 
-        public IActionResult OnGet(Guid projectId)
+        /// <param name="projectId">Preselects a project (?projectId=…).</param>
+        /// <param name="id">Same, as sent by the project's "Register buildings" button (?id=…).</param>
+        public async Task<IActionResult> OnGetAsync(Guid? projectId, Guid? id)
         {
-            
-       ViewData["ProjectId"] = new SelectList(_context.Projects, "ProjectId", "ProjectName");
+            var scope = await CompanyScope.ForAsync(User, _context);
+            if (scope.HasNoCompany) return RedirectToPage("./Index"); // the list explains why
+            Building = new Building { ProjectId = projectId ?? id ?? Guid.Empty };
+            PopulateProjects(scope);
             return Page();
         }
-       
+
         [BindProperty]
         public Building Building { get; set; } = new Building();
 
         // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    return Page();
-            //}
-            Building.ProjectId = ProjectId;
-            var addressId = _context.Projects.FirstOrDefault(a => a.ProjectId == Building.ProjectId).AddressId;
-            Building.AddressId = addressId!=Guid.Empty?addressId:Guid.Empty;
+            var scope = await CompanyScope.ForAsync(User, _context);
+            if (scope.HasNoCompany) return RedirectToPage("./Index");
+
+            // The form posts Building.ProjectId; the top-level ProjectId is only set by other callers.
+            if (ProjectId != Guid.Empty)
+                Building.ProjectId = ProjectId;
+
+            BuildingOptions.Validate(ModelState, Building);
+            // An empty project choice is a binding error ("The value '' is invalid."); replaced by the check below.
+            ModelState.Remove($"{nameof(Building)}.{nameof(Building.ProjectId)}");
+            // Only the user's own projects (all projects for a Michu Admin)
+            var project = await scope.Projects(_context.Projects).AsNoTracking().FirstOrDefaultAsync(a => a.ProjectId == Building.ProjectId);
+            if (project == null)
+                ModelState.AddModelError($"{nameof(Building)}.{nameof(Building.ProjectId)}", "Please select the project this building belongs to.");
+
+            if (!ModelState.IsValid)
+            {
+                PopulateProjects(scope);
+                return Page();
+            }
+
+            // The building takes its project's address; CreatedOn/CreatedBy are stamped by ApplicationDbContext.
+            Building.AddressId = project!.AddressId;
+            Building.Id = Guid.NewGuid();
             _context.Buildings.Add(Building);
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Index");
         }
-        public async Task<Guid> GetProjectIdByNameAsync(string projectName)
-        {
-            var project =  _context.Projects
-        .AsEnumerable() // 👈 Forces EF to switch from SQL to LINQ-to-Objects
-        .FirstOrDefault(p =>
-            p.ProjectName?.Trim().Equals(projectName.Trim(), StringComparison.OrdinalIgnoreCase) == true);
 
-            return project?.ProjectId ?? Guid.Empty;
+        private void PopulateProjects(CompanyScope scope) => ViewData["ProjectId"] = ProjectSelectList(_context, scope, Building?.ProjectId);
+
+        /// <summary>Projects by name (with their company), for the Create and Edit dropdowns: a Real Estate Admin's own only.</summary>
+        internal static SelectList ProjectSelectList(ApplicationDbContext context, CompanyScope scope, Guid? selected)
+        {
+            var projects = scope.Projects(context.Projects)
+                .AsNoTracking()
+                .Include(p => p.Company)
+                .OrderBy(p => p.ProjectName)
+                .Select(p => new { p.ProjectId, Name = p.Company != null ? p.ProjectName + " (" + p.Company.Name + ")" : p.ProjectName })
+                .ToList();
+            return new SelectList(projects, "ProjectId", "Name", selected);
         }
+
 
     }
 }

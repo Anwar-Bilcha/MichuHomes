@@ -2,228 +2,96 @@
 @model RadiantHomes.Pages.Houses.DeleteModel
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete house";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Delete</h1>
+<div class="card mh-confirm">
+    <div class="card-header">
+        <h2 class="mh-section-title text-reset"><i class="bi bi-exclamation-triangle text-reset" aria-hidden="true"></i> Are you sure you want to delete this house?</h2>
+    </div>
+    <div class="card-body">
+        @if (Model.ErrorMessage is not null)
+        {
+            <div class="alert alert-danger" role="alert">@Model.ErrorMessage</div>
+        }
+        <p class="text-muted">This permanently removes the record below. It can't be undone.</p>
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(model => model.House.Title)</dt>
+            <dd>@Html.DisplayFor(model => model.House.Title)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.Description)</dt>
+            <dd>@Html.DisplayFor(model => model.House.Description)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.Price)</dt>
+            <dd>@Html.DisplayFor(model => model.House.Price)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.TotalBedRooms)</dt>
+            <dd>@Html.DisplayFor(model => model.House.TotalBedRooms)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.TotalRooms)</dt>
+            <dd>@Html.DisplayFor(model => model.House.TotalRooms)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.TotalArea)</dt>
+            <dd>@Html.DisplayFor(model => model.House.TotalArea)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.HasOwnershipDocument)</dt>
+            <dd>@Html.DisplayFor(model => model.House.HasOwnershipDocument)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.OwnershipDocumentUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.OwnershipDocumentUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.HouseCategory)</dt>
+            <dd>@Html.DisplayFor(model => model.House.HouseCategory.Id)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.AvailableFor)</dt>
+            <dd>@Html.DisplayFor(model => model.House.AvailableFor)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.HouseAddress)</dt>
+            <dd>@Html.DisplayFor(model => model.House.HouseAddress.AddressID)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.HouseOwnership)</dt>
+            <dd>@Html.DisplayFor(model => model.House.HouseOwnership)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.ConsentofSaleOrRentDocUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.ConsentofSaleOrRentDocUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.LatestHouseTaxVoucherUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.LatestHouseTaxVoucherUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.Status)</dt>
+            <dd>@Html.DisplayFor(model => model.House.Status)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.HouseOwner)</dt>
+            <dd>@Html.DisplayFor(model => model.House.HouseOwner.Id)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.HouseHolder)</dt>
+            <dd>@Html.DisplayFor(model => model.House.HouseHolder.Id)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.MainPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.MainPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.OutOfCompoundViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.OutOfCompoundViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.FrontCompoundViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.FrontCompoundViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.HouseInternalViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.HouseInternalViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.MainSalonViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.MainSalonViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.MasterBedRoomViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.MasterBedRoomViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.KitchenViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.KitchenViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.RestRoomViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.RestRoomViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.AuxiSalonViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.AuxiSalonViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.SecBedRoomViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.SecBedRoomViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.AdditionalViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.AdditionalViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.BackyardViewPhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.BackyardViewPhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.Additional2PhotoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.House.Additional2PhotoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.CreatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.House.CreatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.CreatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.House.CreatedOn)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.UpdatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.House.UpdatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.House.UpdatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.House.UpdatedOn)</dd>
+        </dl>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>House</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.Title)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.Title)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.Description)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.Description)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.Price)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.Price)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.TotalBedRooms)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.TotalBedRooms)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.TotalRooms)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.TotalRooms)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.TotalArea)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.TotalArea)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.HasOwnershipDocument)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.HasOwnershipDocument)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.OwnershipDocumentUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.OwnershipDocumentUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.HouseCategory)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.HouseCategory.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.AvailableFor)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.AvailableFor)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.HouseAddress)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.HouseAddress.AddressID)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.HouseOwnership)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.HouseOwnership)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.ConsentofSaleOrRentDocUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.ConsentofSaleOrRentDocUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.LatestHouseTaxVoucherUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.LatestHouseTaxVoucherUrl)
-        </dd>
-        
-        
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.Status)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.HouseOwner)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.HouseOwner.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.HouseHolder)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.HouseHolder.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.MainPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.MainPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.OutOfCompoundViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.OutOfCompoundViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.FrontCompoundViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.FrontCompoundViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.HouseInternalViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.HouseInternalViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.MainSalonViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.MainSalonViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.MasterBedRoomViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.MasterBedRoomViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.KitchenViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.KitchenViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.RestRoomViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.RestRoomViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.AuxiSalonViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.AuxiSalonViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.SecBedRoomViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.SecBedRoomViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.AdditionalViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.AdditionalViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.BackyardViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.BackyardViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.Additional2PhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.Additional2PhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.CreatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.CreatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.CreatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.CreatedOn)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.UpdatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.UpdatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.House.UpdatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.House.UpdatedOn)
-        </dd>
-    </dl>
-    
-    <form method="post">
-        <input type="hidden" asp-for="House.Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-page="./Index">Back to List</a>
-    </form>
+        <form method="post" class="mh-form-actions">
+            <input type="hidden" asp-for="House.Id" />
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash" aria-hidden="true"></i> Delete house</button>
+        </form>
+    </div>
 </div>

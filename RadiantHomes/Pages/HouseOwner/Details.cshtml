@@ -2,100 +2,73 @@
 @model RadiantHomes.Pages.HouseOwner.DetailsModel
 
 @{
-    ViewData["Title"] = "House Owner Details";
+    ViewData["Title"] = "House owner details";
+    ViewData["PageWidth"] = "narrow";
 }
 
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow rounded-4">
-                <div class="card-header bg-info text-white py-3">
-                    <h4 class="mb-0"><i class="bi bi-person-vcard-fill me-2"></i> House Owner Details</h4>
-                </div>
-                <div class="card-body p-4">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <h6 class="mb-2 text-muted"><i class="bi bi-person-fill me-2"></i> Personal Information</h6>
-                            <div class="mb-2">
-                                <label class="form-label fw-bold">Full Name:</label>
-                                <div>@Model.Customer.FirstName @Model.Customer.LastName</div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label fw-bold">Phone Number:</label>
-                                <div>@Model.Customer.PhoneNumber</div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label fw-bold">Email:</label>
-                                <div>@Model.Customer.Email</div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label fw-bold">Category:</label>
-                                <div>@Model.Customer.CustomerCategory</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 text-center">
-                            <img src="@Model.Customer.CustomerPhotoUrl" class="img-fluid rounded shadow" style="max-height: 200px;" alt="Owner Photo" />
-                        </div>
-                    </div>
-
-                    <hr class="my-4" />
-
-                    <h6 class="mb-3 text-muted"><i class="bi bi-info-circle-fill me-2"></i> Other Details</h6>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Document Used:</label>
-                            <div>@Model.Customer.DocumentUsed</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Profile Status:</label>
-                            <div>@Model.Customer.ProfileStatus</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Application Date:</label>
-                            <div>@Model.Customer.ApplicationDate.ToShortDateString()</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Ranking:</label>
-@{
-
-if(String.IsNullOrEmpty(@Model.Customer.Ranking?.RankingId.ToString())){
-                                <div>  "N/A"</div>
+@section PageActions {
+    <a asp-page="./Index" class="btn btn-secondary"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to List</a>
 }
-else{
-   <div> @(Model.Customer.Ranking?.RankingId)</div>
-}
-}                    <div class="col-md-12">
-                            <label class="form-label fw-bold">Address:</label>
-                            <div>
-                                @if (Model.Customer.Address != null)
-                                {
-                                    @($"{Model.Customer.Address.City}, {Model.Customer.Address.City}, {Model.Customer.Address.Region}")
-                                }
-                                else
-                                {
-                                    <span>N/A</span>
-                                }
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold">ID Document:</label>
-                            <div>
-                                <a href="@Model.Customer.IdCardFileUrl" target="_blank" class="btn btn-outline-primary rounded-pill btn-sm"><i class="bi bi-file-earmark-pdf-fill me-2"></i> View ID Document</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer bg-light py-3">
-                    <div class="d-flex justify-content-end gap-2">
-                        <a asp-page="./Edit" asp-route-id="@Model.Customer.Id" class="btn btn-warning rounded-pill">
-                            <i class="bi bi-pencil-fill me-2"></i> Edit
-                        </a>
-                        <a asp-page="./Index" class="btn btn-outline-secondary rounded-pill">
-                            <i class="bi bi-arrow-left-circle-fill me-2"></i> Back to List
-                        </a>
-                    </div>
-                </div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-person-fill" aria-hidden="true"></i> Personal Information</h2>
+    </div>
+    <div class="card-body">
+        <div class="row g-4 align-items-start">
+            <div class="col-md-8 order-2 order-md-1">
+                <dl class="mh-dl">
+                    <dt>Full Name</dt>
+                    <dd>@Model.Customer.FirstName @Model.Customer.LastName</dd>
+                    <dt>Phone Number</dt>
+                    <dd>@Model.Customer.PhoneNumber</dd>
+                    <dt>Email</dt>
+                    <dd>@Model.Customer.Email</dd>
+                    <dt>Category</dt>
+                    <dd>@Model.Customer.CustomerCategory</dd>
+                </dl>
+            </div>
+            <div class="col-md-4 order-1 order-md-2 text-center">
+                <img src="@Model.Customer.CustomerPhotoUrl" class="img-fluid rounded-3 shadow-sm" style="max-height: 200px;" alt="Owner Photo"
+                     onerror="this.onerror=null;this.src='/images/default-profile.png'" />
             </div>
         </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-info-circle-fill" aria-hidden="true"></i> Other Details</h2>
+    </div>
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>Document Used</dt>
+            <dd>@Model.Customer.DocumentUsed</dd>
+            <dt>Profile Status</dt>
+            <dd>@Model.Customer.ProfileStatus</dd>
+            <dt>Application Date</dt>
+            <dd>@Model.Customer.ApplicationDate.ToShortDateString()</dd>
+            <dt>Ranking</dt>
+            <dd>@(string.IsNullOrWhiteSpace(Model.Customer.Ranking?.RankName) ? "N/A" : Model.Customer.Ranking.RankName)</dd>
+            <dt>Address</dt>
+            <dd>
+                @{
+                    // Street, Woreda, Sub City, City, … — only the parts that are filled in.
+                    var address = Model.Customer.Address?.FormattedAddressCompact;
+                }
+                @(string.IsNullOrWhiteSpace(address) ? "N/A" : address)
+            </dd>
+            <dt>ID Document</dt>
+            <dd>
+                @if (string.IsNullOrEmpty(Model.Customer.IdCardFileUrl))
+                {
+                    <span class="text-muted">Not uploaded</span>
+                }
+                else
+                {
+                    <a asp-page="/HouseOwner/IdDocument" asp-route-customerId="@Model.Customer.Id" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf-fill" aria-hidden="true"></i> View ID Document</a>
+                }
+            </dd>
+        </dl>
     </div>
 </div>

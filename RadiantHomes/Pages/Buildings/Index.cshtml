@@ -3,62 +3,86 @@
 
 @{
     ViewData["Title"] = "Buildings";
-    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var hasRows = Model.Building is not null && Model.Building.Any();
+    // Visitors can browse; creating, editing and deleting are for administrators only.
+    var canManage = User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.MichuAdmin) || User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.RealEstateAdmin);
+    // Visitors (e.g. from a public project page) get the public layout rather than the admin sidebar.
+    Layout = canManage ? "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml" : "~/Pages/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid px-3 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary fw-bold">🏢 Buildings List</h2>
-        <a class="btn btn-success shadow-sm" asp-page="Create">
-            <i class="bi bi-plus-circle me-1"></i> Create New Building
+@if (canManage)
+{
+    @section PageActions {
+        <a class="btn btn-primary" asp-page="Create">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> New building
         </a>
-    </div>
+    }
+}
 
-    <div class="table-responsive shadow-sm rounded">
-        <table class="table table-bordered table-hover align-middle text-nowrap">
-            <thead class="table-light">
-                <tr>
-                    <th>@Html.DisplayNameFor(model => model.Building[0].BuildingName)</th>
-                    <th>@Html.DisplayNameFor(model => model.Building[0].NumberOfFloors)</th>
-                    <th>@Html.DisplayNameFor(model => model.Building[0].BuildingType)</th>
-                    <th>@Html.DisplayNameFor(model => model.Building[0].ConstructionStatus)</th>
-                    <th>@Html.DisplayNameFor(model => model.Building[0].Project)</th>
-                    <th>@Html.DisplayNameFor(model => model.Building[0].CreatedBy)</th>
-                    <th>@Html.DisplayNameFor(model => model.Building[0].CreatedOn)</th>
-                    <th>@Html.DisplayNameFor(model => model.Building[0].UpdatedBy)</th>
-                    <th>@Html.DisplayNameFor(model => model.Building[0].UpdatedOn)</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.Building)
-                {
+@* Results of the previous action are shown as toasts by _FlashMessages. *@
+
+<div class="card">
+    @if (Model.NoCompany)
+    {
+        <partial name="~/Areas/HousingCompanyAdmin/Pages/_NoCompanyNotice.cshtml" />
+    }
+    else if (!hasRows)
+    {
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+            <h2>No buildings yet</h2>
+            <p>Buildings appear here once they are added to a project.</p>
+            @if (canManage)
+            {
+                <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New building</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-nowrap">
+                <thead>
                     <tr>
-                        <td>@Html.DisplayFor(modelItem => item.BuildingName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.NumberOfFloors)</td>
-                        <td>@Html.DisplayFor(modelItem => item.BuildingType)</td>
-                        <td>@Html.DisplayFor(modelItem => item.ConstructionStatus)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Project.ProjectName)</td>
-                        <td>@Html.DisplayFor(modelItem => item.CreatedBy)</td>
-                        <td>@item.CreatedOn.ToString("yyyy-MM-dd")</td>
-                        <td>@Html.DisplayFor(modelItem => item.UpdatedBy)</td>
-                        <td>@item.UpdatedOn?.ToString("yyyy-MM-dd")</td>
-                        <td>
-                            <div class="btn-group btn-group-sm" role="group">
-                                <a class="btn btn-outline-primary" asp-page="./Edit" asp-route-id="@item.Id">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a class="btn btn-outline-info" asp-page="./Details" asp-route-id="@item.Id">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a class="btn btn-outline-danger" asp-page="./Delete" asp-route-id="@item.Id">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
-                        </td>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Building[0].BuildingName)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Building[0].NumberOfFloors)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Building[0].BuildingType)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Building[0].ConstructionStatus)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Building[0].Project)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Building[0].CreatedBy)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Building[0].CreatedOn)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Building[0].UpdatedBy)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.Building[0].UpdatedOn)</th>
+                        <th scope="col" class="text-end position-relative"><span class="visually-hidden">Actions</span></th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Building!)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@Html.DisplayFor(modelItem => item.BuildingName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.NumberOfFloors)</td>
+                            <td>@BuildingOptions.TypeName(item.BuildingType)</td>
+                            <td>@BuildingOptions.StatusName(item.ConstructionStatus)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Project.ProjectName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CreatedBy)</td>
+                            <td>@item.CreatedOn.ToString("yyyy-MM-dd")</td>
+                            <td>@Html.DisplayFor(modelItem => item.UpdatedBy)</td>
+                            <td>@item.UpdatedOn?.ToString("yyyy-MM-dd")</td>
+                            <td class="text-end">
+                                <div class="mh-row-actions">
+                                    <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@item.Id" title="View details" aria-label="View details"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                                    @if (canManage)
+                                    {
+                                        <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                        <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>

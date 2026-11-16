@@ -1,115 +1,171 @@
 ﻿@page
 @model RadiantHomes.Pages.RealEstates.DetailsModel
 @{
-    ViewData["Title"] = "Real Estate Details";
+    ViewData["Title"] = string.IsNullOrWhiteSpace(Model.HousingCompany?.Name) ? "Real estate details" : Model.HousingCompany.Name;
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<div class="container my-5">
-    <!-- Hero Section -->
-    <div class="bg-light rounded shadow p-4 mb-5 text-center">
-        <img src="@Model.HousingCompany.LogoUrl" alt="Company Logo" class="img-fluid mb-3" style="max-height: 120px;" />
-        <h1 class="display-5 fw-bold">@Model.HousingCompany.Name</h1>
-        <input type="hidden" asp-for="HousingCompany.CompanyId" />
-    </div>
+@section PageActions {
+    <a asp-page="./Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> All real estates
+    </a>
+}
 
-    <!-- Contact & Address -->
-    <div class="row mb-5">
-        <div class="col-md-6">
-            <div class="card shadow-sm p-4">
-                <h4 class="mb-3">📍 Address</h4>
-                <p>@Model.HousingCompany.Address?.FormattedAddressFull</p>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm p-4">
-                <h4 class="mb-3">📞 Contact Person</h4>
-                @if(Model.HousingCompany.ContactPerson.Any())
+<input type="hidden" asp-for="HousingCompany.CompanyId" />
+
+<div class="row g-4 mb-4">
+    <!-- Company & address -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.HousingCompany.LogoUrl))
                 {
-                    foreach(var contactperson in Model.HousingCompany.ContactPerson)
-                    {
-                        <p><strong>@contactperson?.FirstName</strong></p>
-                        <p>Email: <a href="mailto:@contactperson?.Email">@contactperson?.Email</a></p>
-                        <p>Phone: @contactperson?.PhoneNumber</p>
-                    }
+                    <div class="mh-company-logo-frame mb-4">
+                        <img src="@Model.HousingCompany.LogoUrl" alt="@Model.HousingCompany.Name logo" class="img-fluid" />
+                    </div>
                 }
-                
+                <h2 class="mh-section-title mb-2"><i class="bi bi-geo-alt" aria-hidden="true"></i> Address</h2>
+                <p class="mb-0">@Model.HousingCompany.Address?.FormattedAddressFull</p>
             </div>
         </div>
     </div>
 
-    <!-- Financial Details -->
-    @if (Model.HousingCompany.FinancialDetails.Any())
-    {
-        <div class="card shadow-sm p-4 mb-5">
-            <h4 class="mb-4">💰 Financial Overview</h4>
-            <ul class="list-group">
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>Total Capital:</span>
-                    <span class="fw-bold">@Model.HousingCompany.FinancialDetails ETB</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>Annual Revenue:</span>
-                    <span class="fw-bold">@Model.HousingCompany.FinancialDetails[0].AnnualRevenue ETB</span>
-                </li>
-                
-                else
-                {
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span>Employees:</span>
-                        <span class="fw-bold text-muted">No Employees Registered</span>
-                    </li>
-                }
-            </ul>
+    <!-- Contact persons -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-telephone" aria-hidden="true"></i> Contact Person</h2>
+            </div>
+            @if (Model.HousingCompany.ContactPerson.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Phone</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var contactperson in Model.HousingCompany.ContactPerson)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@contactperson?.FirstName @contactperson?.LastName</td>
+                                    <td><a href="mailto:@contactperson?.Email">@contactperson?.Email</a></td>
+                                    <td class="text-nowrap">@contactperson?.PhoneNumber</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="card-body">
+                    <p class="text-muted mb-0">No contact person listed yet.</p>
+                </div>
+            }
         </div>
-    }
+    </div>
+</div>
 
-    <!-- Projects Gallery -->
-    @if (Model.HousingCompany.Projects is not null)
-    {
-        <div class="mb-5">
-            <h3 class="mb-4">🏗️ Projects</h3>
-            <div class="row row-cols-1 row-cols-md-3 g-4">
+<!-- Financial Details -->
+@if (Model.HousingCompany.FinancialDetails.Any())
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="mh-section-title"><i class="bi bi-cash-stack" aria-hidden="true"></i> Financial Overview</h2>
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between gap-3">
+                <span>Annual revenue@(Model.LatestBudgetYear is int year ? $" (FY {year})" : ""):</span>
+                <span class="fw-bold">@((Model.LatestAnnualRevenue ?? 0).ToString("N0")) ETB</span>
+            </li>
+            @if (Model.RecordedBudgetYears > 1)
+            {
+                <li class="list-group-item d-flex justify-content-between gap-3">
+                    <span>Total revenue (FY @Model.FirstBudgetYear–@Model.LatestBudgetYear):</span>
+                    <span class="fw-bold">@Model.TotalRecordedRevenue.ToString("N0") ETB</span>
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+<!-- Projects -->
+@if (Model.HousingCompany.Projects is not null)
+{
+    <section class="mb-4" aria-labelledby="companyProjectsTitle">
+        <h2 class="mh-section-title mb-3" id="companyProjectsTitle"><i class="bi bi-kanban" aria-hidden="true"></i> Projects</h2>
+        @if (Model.HousingCompany.Projects.Any())
+        {
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
                 @foreach (var project in Model.HousingCompany.Projects)
                 {
-                    <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId" class="text-decoration-none text-info-emphasis">
-                        <div class="col">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">@project.ProjectName</h5>
-                                <p class="card-text">@project.Description</p>
-                            </div>
+                    <div class="col">
+                        <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId" class="card mh-media-card h-100 text-decoration-none">
                             @if (project.Photos != null && project.Photos.Any())
                             {
-                                foreach (var projPhoto in project.Photos)
-                                {
-                                    <img src="@projPhoto.PhotoPath" class="card-img-bottom" alt="@project.ProjectName Image" style="max-height: 200px; object-fit: cover;" />
-                                }
+                                <img src="@project.Photos.First().PhotoPath" class="card-img-top" alt="@project.ProjectName Image" loading="lazy" />
                             }
-                        </div>
+                            else
+                            {
+                                <div class="card-img-top mh-media-placeholder" aria-hidden="true"><i class="bi bi-image"></i></div>
+                            }
+                            <div class="card-body">
+                                <h3 class="h5 card-title mb-1">@project.ProjectName</h3>
+                                <p class="card-text text-muted mb-0 mh-clamp-3">@project.Description</p>
+                            </div>
+                        </a>
                     </div>
-                    </a>
                 }
             </div>
-        </div>
-    }
+        }
+        else
+        {
+            <div class="card">
+                <div class="mh-empty">
+                    <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-kanban"></i></span>
+                    <h3>No projects yet</h3>
+                    <p>This company hasn't published any housing projects yet.</p>
+                </div>
+            </div>
+        }
+    </section>
+}
 
-    <!-- Customer Testimonials -->
-    @if (Model.HousingCompany.CustomerTestimonials?.Any() == true)
-    {
-        <div class="card shadow-sm p-4 mb-5">
-            <h4 class="mb-4">💬 What Our Clients Say</h4>
-            <div class="row">
+<!-- Customer Testimonials -->
+@if (Model.HousingCompany.CustomerTestimonials?.Any() == true)
+{
+    <section class="card" aria-labelledby="companyTestimonialsTitle">
+        <div class="card-header">
+            <h2 class="mh-section-title" id="companyTestimonialsTitle"><i class="bi bi-chat-quote" aria-hidden="true"></i> What Our Clients Say</h2>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
                 @foreach (var testimonial in Model.HousingCompany.CustomerTestimonials)
                 {
-                    <div class="col-md-6 mb-3">
-                        <blockquote class="blockquote border-start ps-3">
-                            <p class="mb-1">"@testimonial.TestimonialText"</p>
-                            <footer class="blockquote-footer">@testimonial.CustomerName</footer>
-                        </blockquote>
+                    <div class="col-md-6">
+                        <figure class="mh-quote mb-0">
+                            <blockquote class="mb-2">
+                                <p class="mb-0">"@testimonial.TestimonialText"</p>
+                            </blockquote>
+                            <figcaption class="text-muted small">— @testimonial.CustomerName</figcaption>
+                        </figure>
                     </div>
                 }
             </div>
         </div>
-    }
-</div>
+    </section>
+}
+
+@section Styles {
+    <style>
+        .mh-company-logo-frame { display: flex; align-items: center; justify-content: center; padding: 1rem; border-radius: var(--mh-radius); background: var(--mh-surface-2); }
+        .mh-company-logo-frame img { max-height: 120px; object-fit: contain; }
+        .mh-media-placeholder { display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; background: var(--mh-surface-3); color: var(--mh-ink-3); font-size: 2rem; }
+        .mh-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .mh-quote { height: 100%; padding: 1rem 1.25rem; border-left: 4px solid var(--mh-orange); border-radius: var(--mh-radius-sm); background: var(--mh-surface-2); }
+    </style>
+}

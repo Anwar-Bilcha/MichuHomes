@@ -9,14 +9,15 @@ namespace RadiantHomes.Models.HousingCompanies
         [Key]
         public int Id { get; set; }
         [Required(ErrorMessage ="Building is required")]
+        [Display(Name = "Building")]
         public Guid BuildingId { get; set; }
         [ForeignKey(nameof(BuildingId))]
         public Building? Building { get; set; }
         [Required(ErrorMessage = "Floor Number is required")]
-        [Display(Name ="Floor Number")]
+        [Display(Name = "Floor number")]
         public int FloorNumber { get; set; }
         [Required(ErrorMessage = "Houses Number for a floor is required")]
-        [Display(Name = "Total Houses")]
+        [Display(Name = "Total houses")]
         public int NumberOfHouses { get; set; }
     }
 }

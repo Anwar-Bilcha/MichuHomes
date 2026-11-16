@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
 using System.Threading.Tasks;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages
 {
@@ -32,6 +33,11 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages
             if (HousingCompany == null)
             {
                 return NotFound();
+            }
+            // Real Estate Admins may only open their own company
+            if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(HousingCompany.CompanyId))
+            {
+                return Forbid();
             }
             return Page();
         }

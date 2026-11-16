@@ -3,106 +3,52 @@
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.DeleteModel
 
 @{
-    ViewData["Title"] = "Delete";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Delete housing company";
+    ViewData["PageWidth"] = "narrow";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<h1>Delete</h1>
+<div class="card mh-confirm">
+    <div class="card-header">
+        <h2 class="mh-section-title text-reset"><i class="bi bi-exclamation-triangle text-reset" aria-hidden="true"></i> Are you sure you want to delete this housing company?</h2>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">This permanently removes the record below. It can't be undone.</p>
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.Name)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.Name)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.LicenseNumber)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.LicenseNumber)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.EstablishedDate)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.EstablishedDate)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.Address)</dt>
+            <dd>@(Model.HousingCompany.Address?.FormattedAddressCompact ?? "—")</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.Email)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.Email)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.PhoneNumber)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.PhoneNumber)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.Website)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.Website)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.LogoUrl)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.LogoUrl)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.Status)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.Status)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.CompanyCategory)</dt>
+            <dd>@Model.HousingCompany.CompanyCategory.GetDisplayName()</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.CreatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.CreatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.CreatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.CreatedOn)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.UpdatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.UpdatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.HousingCompany.UpdatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.HousingCompany.UpdatedOn)</dd>
+        </dl>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>HousingCompany</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.Name)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.Name)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.LicenseNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.LicenseNumber)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.EstablishedDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.EstablishedDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.Address)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.Address.AddressID)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.Email)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.Email)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.PhoneNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.PhoneNumber)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.Website)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.Website)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.LogoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.LogoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.Status)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.CompanyCategory)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.CompanyCategory)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.CreatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.CreatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.CreatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.CreatedOn)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.UpdatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.UpdatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.HousingCompany.UpdatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HousingCompany.UpdatedOn)
-        </dd>
-    </dl>
-    
-    <form method="post">
-        <input type="hidden" asp-for="HousingCompany.CompanyId" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-page="./Index">Back to List</a>
-    </form>
+        <form method="post" class="mh-form-actions">
+            <input type="hidden" asp-for="HousingCompany.CompanyId" />
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash" aria-hidden="true"></i> Delete housing company</button>
+        </form>
+    </div>
 </div>

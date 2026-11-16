@@ -6,6 +6,8 @@ namespace RadiantHomes.Services.AdminServices
     public interface IAdminDashboard
     {
         List<HousingCompany> GetHousingCompanies();
+        /// <summary>Number of apartment houses per housing company (house → building → project → company). Companies without houses are absent.</summary>
+        Dictionary<Guid, int> GetApartmentHouseCountsByCompany();
         List<Customer> GetAllCustomers();
         Task<IList<AppUser>> GetAllUsers();
         List<ApartmentHouse> GetAllApartmentHouses();

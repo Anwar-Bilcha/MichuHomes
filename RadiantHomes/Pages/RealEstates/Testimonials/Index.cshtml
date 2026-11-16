@@ -2,96 +2,95 @@
 @model RadiantHomes.Pages.RealEstates.Testimonials.IndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Testimonials";
+    ViewData["Subtitle"] = "What customers say about housing companies.";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    var hasRows = Model.CustomerTestimonial is not null && Model.CustomerTestimonial.Any();
+    // Visitors can browse; creating, editing and deleting are for administrators only.
+    var canManage = User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.MichuAdmin) || User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.RealEstateAdmin);
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].Category)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].CustomerName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].TestimonialText)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].SubmissionDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].Company)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].Customer)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].Rating)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].CreatedBy)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].CreatedOn)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].UpdatedBy)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CustomerTestimonial[0].UpdatedOn)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.CustomerTestimonial) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CustomerName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TestimonialText)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SubmissionDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Company.CompanyId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Customer.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Rating)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedBy)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedOn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UpdatedBy)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UpdatedOn)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@if (canManage)
+{
+    @section PageActions {
+        <a class="btn btn-primary" asp-page="Create">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> New testimonial
+        </a>
+    }
 }
-    </tbody>
-</table>
+
+<div class="card">
+    @if (Model.NoCompany)
+    {
+        <partial name="~/Areas/HousingCompanyAdmin/Pages/_NoCompanyNotice.cshtml" />
+    }
+    else if (!hasRows)
+    {
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-chat-quote"></i></span>
+            <h2>No testimonials yet</h2>
+            <p>Customer testimonials appear here once they are added.</p>
+            @if (canManage)
+            {
+                <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New testimonial</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].Category)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].CustomerName)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].TestimonialText)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].SubmissionDate)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].Company)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].Customer)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].Rating)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].CreatedBy)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].CreatedOn)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].UpdatedBy)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.CustomerTestimonial[0].UpdatedOn)</th>
+                        <th scope="col" class="text-end position-relative"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.CustomerTestimonial!)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.Category)</td>
+                            <td class="fw-semibold text-nowrap">@Html.DisplayFor(modelItem => item.CustomerName)</td>
+                            <td class="mh-testimonial-text">@Html.DisplayFor(modelItem => item.TestimonialText)</td>
+                            <td class="text-nowrap">@(item.SubmissionDate == default ? "—" : item.SubmissionDate.ToString("MMM d, yyyy"))</td>
+                            <td>@(item.Company?.Name ?? "—")</td>
+                            <td class="text-nowrap">@(item.Customer is { } customer ? $"{customer.FirstName} {customer.LastName}" : "—")</td>
+                            <td>@Html.DisplayFor(modelItem => item.Rating)</td>
+                            <td>@Html.DisplayFor(modelItem => item.CreatedBy)</td>
+                            <td class="text-nowrap">@Html.DisplayFor(modelItem => item.CreatedOn)</td>
+                            <td>@Html.DisplayFor(modelItem => item.UpdatedBy)</td>
+                            <td class="text-nowrap">@Html.DisplayFor(modelItem => item.UpdatedOn)</td>
+                            <td class="text-end">
+                                <div class="mh-row-actions">
+                                    <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@item.Id" title="View details" aria-label="View details"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                                    @if (canManage)
+                                    {
+                                        <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                        <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .mh-testimonial-text { min-width: 16rem; max-width: 28rem; }
+    </style>
+}

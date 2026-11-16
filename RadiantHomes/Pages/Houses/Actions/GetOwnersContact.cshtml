@@ -1,40 +1,66 @@
-﻿@page 
+﻿@page
 @model RadiantHomes.Pages.Houses.Actions.GetOwnersContactModel
 
 @{
-    ViewData["Title"] = "Get Owner's Contact Information";
+    ViewData["Title"] = "Get owner's contact";
+    ViewData["PageWidth"] = "narrow";
 }
-
-<h5>You requested for getting Owner's Contact for the following House:</h5>
-
-<div>
-   <strong>House Title: </strong> <p>@Model.House.Title</p>
-    <strong>House Address: </strong> <br />
-    <p> <ul>
-            <li>@Model.House.HouseAddress.City</li>
-            <li>@Model.House.HouseAddress.SubCity</li>
-            <li>@Model.House.HouseAddress.Region</li>
-            <li>@Model.House.HouseAddress.Woreda</li>
-            <li>@Model.House.HouseAddress.Street</li>
-            <li>@Model.House.HouseAddress.PostalCode</li>
-            <li>@Model.House.HouseAddress.Country</li>
-            
-</ul> </p>
-
-    <p><strong>House Owner:</strong> @Model.Owner.FirstName + @Model.Owner.LastName</p>
-    <p><strong>Owner Contact:</strong> @Model.Owner.Email @Model.Owner.PhoneNumber</p>
-</div>
-
-<div>
-    <form method="post">
-        <input type="hidden" asp-for="@Model.House.Id" />
-        <button type="submit" class="btn btn-primary">Request Owner's Contact</button>
-    </form>
-</div>
 
 @if (Model.ContactRequestMessage != null)
 {
-    <div class="alert alert-info mt-3">
+    <div class="alert @(Model.ContactRequestSucceeded ? "alert-success" : "alert-warning")" role="status">
         @Model.ContactRequestMessage
+        @if (!Model.ContactRequestSucceeded && Model.RecipientPhone is null && !Model.IsOwnHouse)
+        {
+            <a asp-area="Identity" asp-page="/Account/Manage/Index" class="alert-link">Add a phone number</a>
+        }
     </div>
 }
+
+<div class="card">
+    <div class="card-body">
+        <p class="text-muted">You requested for getting Owner's Contact for the following House:</p>
+
+        <dl class="mh-dl">
+            <dt>House Title</dt>
+            <dd>@Model.House.Title</dd>
+
+            <dt>House Address</dt>
+            <dd>
+                <ul class="list-unstyled mb-0">
+                    <li>@Model.House.HouseAddress?.City</li>
+                    <li>@Model.House.HouseAddress?.SubCity</li>
+                    <li>@Model.House.HouseAddress?.Region</li>
+                    <li>@Model.House.HouseAddress?.Woreda</li>
+                    <li>@Model.House.HouseAddress?.Street</li>
+                    <li>@Model.House.HouseAddress?.PostalCode</li>
+                    <li>@Model.House.HouseAddress?.Country</li>
+                </ul>
+            </dd>
+
+            <dt>House Owner</dt>
+            <dd>@Model.Owner.FirstName @Model.Owner.LastName</dd>
+
+            <dt>Owner Contact</dt>
+            <dd>@Model.Owner.Email @Model.Owner.PhoneNumber</dd>
+        </dl>
+
+        @if (Model.RecipientPhone is not null && !Model.IsOwnHouse)
+        {
+            <p class="small text-muted">The owner's contact will be sent by text message to your phone number <strong>@Model.RecipientPhone</strong>.</p>
+        }
+        else if (Model.ContactRequestMessage is null)
+        {
+            <div class="alert alert-warning" role="status">
+                There is no phone number on your profile, so we can't text you the owner's contact.
+                <a asp-area="Identity" asp-page="/Account/Manage/Index" class="alert-link">Add a phone number</a>
+            </div>
+        }
+
+        <form method="post" class="mh-form-actions">
+            <input type="hidden" asp-for="@Model.House.Id" />
+            <a asp-page="/Houses/Details" asp-route-id="@Model.House.Id" class="btn btn-secondary">Back to house</a>
+            <button type="submit" class="btn btn-primary" disabled="@(Model.RecipientPhone is null || Model.IsOwnHouse)"><i class="bi bi-person-lines-fill" aria-hidden="true"></i> Request Owner's Contact</button>
+        </form>
+    </div>
+</div>

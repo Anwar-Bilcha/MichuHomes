@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
 {
@@ -35,8 +36,14 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
             {
                 return NotFound();
             }
+            // Real Estate Admins may only edit their own company's projects
+            _scope = await CompanyScope.ForAsync(User, _context);
+            if (!_scope.CanAccess(houseproject.HousingCompanyId))
+            {
+                return Forbid();
+            }
             HouseProject = houseproject;
-           ViewData["HousingCompanyId"] = new SelectList(_context.HousingCompanies, "CompanyId", "CompanyId");
+            LoadSelectLists();
             return Page();
         }
 
@@ -44,8 +51,28 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
         // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            _scope = await CompanyScope.ForAsync(User, _context);
+            var storedCompanyId = await _context.Projects.AsNoTracking()
+                .Where(p => p.ProjectId == HouseProject.ProjectId)
+                .Select(p => (Guid?)p.HousingCompanyId)
+                .FirstOrDefaultAsync();
+            if (storedCompanyId == null)
+            {
+                return NotFound();
+            }
+            if (!_scope.CanAccess(storedCompanyId))
+            {
+                return Forbid();
+            }
+            // ...and the project can't be moved to another company
+            if (!_scope.CanAccess(HouseProject.HousingCompanyId))
+            {
+                ModelState.AddModelError("HouseProject.HousingCompanyId", "Please choose your own company.");
+            }
+
             if (!ModelState.IsValid)
             {
+                LoadSelectLists();
                 return Page();
             }
 
@@ -68,6 +95,16 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
             }
 
             return RedirectToPage("./Index");
+        }
+
+        // Set by each handler: the user's company scope
+        private CompanyScope _scope = default!;
+
+        // Dropdowns show names, not ids (a Real Estate Admin is only offered their own company)
+        private void LoadSelectLists()
+        {
+            ViewData["HousingCompanyId"] = new SelectList(_scope.Companies(_context.HousingCompanies).OrderBy(c => c.Name), "CompanyId", "Name");
+            ViewData["AddressId"] = new SelectList(_context.Addresses.AsEnumerable().OrderBy(a => a.FormattedAddressCompact), "AddressID", "FormattedAddressCompact");
         }
 
         private bool HouseProjectExists(Guid id)

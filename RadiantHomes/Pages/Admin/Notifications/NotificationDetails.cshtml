@@ -2,209 +2,132 @@
 @model RadiantHomes.Pages.Admin.Notifications.NotificationDetailsModel
 
 @{
-    ViewData["Title"] = "Notification Details";
+    ViewData["Title"] = "Notification details";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 
-@* Custom styles for this page (or move to site.css if truly global) *@
-<style>
-    /* Spacing for sections */
-    .section-spacing {
-        margin-bottom: 3rem;
-    }
+@section PageActions {
+    <a asp-page="./NotificationsAll" class="btn btn-secondary">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Notifications
+    </a>
+}
 
-    /* Style for the notification card */
-    .notification-card {
-        border-left: 5px solid var(--bs-primary);
-        background-color: var(--bs-light);
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    .notification-card .badge {
-        font-size: 0.85em;
-        padding: 0.4em 0.7em;
-    }
+@* Results (TempData SuccessMessage/ErrorMessage) are shown as toasts by _FlashMessages. *@
 
-    /* Style for house cards */
-    .house-card {
-        border: none;
-        border-radius: 0.5rem;
-        box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease-in-out;
-    }
-    .house-card:hover {
-        transform: translateY(-5px);
-    }
+@if (Model.Notification == null)
+{
+    <div class="card">
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-bell-slash"></i></span>
+            <h2>Notification not found</h2>
+            <p>It doesn't exist, or the link has an invalid id.</p>
+            <a asp-page="./NotificationsAll" class="btn btn-primary">Back to notifications</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3">@Model.Notification.Message</h2>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <span class="text-muted"><i class="bi bi-clock me-1" aria-hidden="true"></i> @Model.Notification.CreatedAt.ToString("g")</span>
 
-    .house-img {
-        width: 100%;
-        height: 200px; /* Fixed height for consistency */
-        object-fit: cover; /* Cover ensures the image fills the space */
-        border-top-left-radius: 0.5rem;
-        border-top-right-radius: 0.5rem;
-    }
-
-    .house-card .card-text-detail {
-        font-size: 0.9rem;
-        margin-bottom: 0.25rem;
-        color: var(--bs-body-color); /* Use Bootstrap's default body color */
-    }
-    .house-card .card-text-detail strong {
-        color: var(--bs-dark);
-        min-width: 60px; /* Adjust as needed for labels */
-        display: inline-block;
-    }
-
-    /* Action buttons in house card footer */
-    .house-card .card-footer .btn {
-        padding: 0.35rem 0.75rem;
-        font-size: 0.85rem;
-    }
-
-    /* Adjustments for small screens */
-    @@media (max-width: 575.98px) { /* XS breakpoint */
-        .page-header {
-            flex-direction: column;
-            align-items: flex-start;
+                <span class="badge bg-info"><i class="bi bi-info-circle me-1" aria-hidden="true"></i> Type: @Model.Notification.Datatype</span>
+                @if (Model.Notification.IsRead)
+                {
+                    <span class="badge bg-secondary"><i class="bi bi-check-circle me-1" aria-hidden="true"></i> Status: Read</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning"><i class="bi bi-envelope-open me-1" aria-hidden="true"></i> Status: Unread</span>
+                }
+                @if (Model.Approval.IsApplicable)
+                {
+                    <span class="@Model.Approval.BadgeClass"><i class="bi bi-patch-check me-1" aria-hidden="true"></i> Approval: @Model.Approval.Label</span>
+                }
+                <span class="text-muted text-break"><i class="bi bi-key me-1" aria-hidden="true"></i> Data Key: @Model.Notification.DataKey</span>
+            </div>
+        </div>
+        @if (Model.CanApproveHouses)
+        {
+            <div class="card-footer">
+                <form method="post" asp-page-handler="ApproveNotification" class="d-flex justify-content-end"
+                      data-confirm-title="Approve these houses?"
+                      data-confirm="Houses still awaiting approval become “Approved” and appear in the public listing. Houses that are already approved, reserved, sold, rented or hidden are left unchanged."
+                      data-confirm-ok="Approve"
+                      data-confirm-variant="primary">
+                    <input type="hidden" name="notificationId" value="@Model.Notification.Id" />
+                    <button type="submit" class="btn btn-primary" id="approveButton">
+                        <i class="bi bi-check-lg" aria-hidden="true"></i> Approve
+                    </button>
+                </form>
+            </div>
         }
-        .page-header .btn {
-            width: 100%;
-            margin-top: 1rem;
-        }
-        .notification-card {
-            padding: 1rem;
-        }
-    }
-</style>
-
-<div class="container"> @* Added py-5 for vertical spacing, mt-5 to clear fixed navbar *@
-
-    <div class="d-flex justify-content-between align-items-center mb-4 page-header">
-        <h5 class="fw-bold text-dark mb-0"><i class="fas fa-bell me-3"></i>Notification Details</h5>
-        <a asp-page="./Index" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i> Back to Notifications
-        </a>
     </div>
 
-    @if (Model.Notification == null)
+    <h2 class="mh-section-title mb-3"><i class="bi bi-houses" aria-hidden="true"></i> Associated Items</h2>
+
+    @if (Model.HousesCreated != null && Model.HousesCreated.Any())
     {
-        <div class="alert alert-warning text-center" role="alert">
-            <h4 class="alert-heading">Notification Not Found!</h4>
-            <p>The notification you are looking for does not exist or an invalid ID was provided.</p>
-            <hr>
-            <p class="mb-0">Please check the URL or go back to the notifications list.</p>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var house in Model.HousesCreated)
+            {
+                <div class="col">
+                    <div class="card mh-media-card h-100">
+                        @if (house.Photos.Any())
+                        {
+                            <img src="@house.Photos.First().PhotoPath" class="card-img-top" alt="Image of @house.Title">
+                        }
+                        else
+                        {
+                            <div class="card-img-top d-flex align-items-center justify-content-center text-muted fs-1" aria-hidden="true">
+                                <i class="bi bi-image"></i>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <h3 class="card-title h6">@house.Title</h3>
+                            <ul class="list-unstyled small mb-0">
+                                <li class="mb-1"><span class="text-muted me-2">Price:</span> @RadiantHomes.Pages.Admin.Notifications.NotificationDetailsModel.FormatPrice(house)</li>
+                                <li class="mb-1"><span class="text-muted me-2">Bedrooms:</span> @house.Bedrooms</li>
+                                <li class="mb-1"><span class="text-muted me-2">Bathrooms:</span> @house.Bathrooms</li>
+                                <li>
+                                    <span class="text-muted me-2">Status:</span>
+                                    <span class="@RadiantHomes.Pages.Admin.Notifications.NotificationDetailsModel.HouseStatusBadgeClass(house.Status)">
+                                        @house.Status
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-footer d-flex flex-wrap gap-2">
+                            <a asp-page="/ApartmentHouses/Details" asp-route-id="@house.Id" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye" aria-hidden="true"></i> View
+                            </a>
+                            <a asp-page="/ApartmentHouses/Edit" asp-route-id="@house.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil" aria-hidden="true"></i> Edit
+                            </a>
+                            <a asp-page="/ApartmentHouses/Delete" asp-route-id="@house.Id" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash" aria-hidden="true"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     }
     else
     {
-        <div class="notification-card mb-5">
-            <h4 class="mb-3 text-dark">@Model.Notification.Message</h4>
-            <div class="d-flex flex-wrap gap-3 mb-3">
-                <span class="text-muted"><i class="far fa-clock me-1"></i> @Model.Notification.CreatedAt.ToString("g")</span>
-
-                <span class="badge bg-info text-dark"><i class="fas fa-info-circle me-1"></i> Type: @Model.Notification.Datatype</span>
-                @if (Model.Notification.IsRead)
-                {
-                    <span class="badge bg-secondary"><i class="fas fa-check-circle me-1"></i> Status: Read</span>
-                }
-                else
-                {
-                    <span class="badge bg-warning text-dark"><i class="fas fa-envelope-open-text me-1"></i> Status: Unread</span>
-                }
-                <span class="text-muted"><i class="fas fa-key me-1"></i> Data Key: @Model.Notification.DataKey</span>
-            </div>
-
-            <div class="text-end">
-                <form method="post" asp-page-handler="ApproveNotification">
-                    <input type="hidden" name="notificationId" value="@Model.Notification.Id" />
-                    <button type="submit" class="btn btn-success btn-lg" id="approveButton">
-                        <i class="fas fa-check-circle me-2"></i> Approve
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <h5 class="fw-bold text-dark mb-4 section-spacing"><i class="fas fa-house-chimney me-3"></i>Associated Items</h5>
-
-        @if (Model.HousesCreated != null && Model.HousesCreated.Any())
-        {
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @foreach (var house in Model.HousesCreated)
-                {
-                    <div class="col">
-                        <div class="card h-100 house-card">
-                            @if (house.Photos.Any())
-                            {
-                                <img src="@house.Photos.First().PhotoPath" class="card-img-top house-img" alt="Image of @house.Title">
-                            }
-                            else
-                            {
-                                <div class="house-img d-flex align-items-center justify-content-center bg-light text-secondary">
-                                    <i class="fas fa-image fa-3x"></i>
-                                </div>
-                            }
-                            <div class="card-body">
-                                <h5 class="card-title fw-bold text-dark">@house.Title</h5>
-                                <p class="card-text-detail"><strong class="me-2">Price:</strong> ETB @house.SalePrice.ToString("N0")</p>
-                                <p class="card-text-detail"><strong class="me-2">Bedrooms:</strong> @house.Bedrooms</p>
-                                <p class="card-text-detail"><strong class="me-2">Bathrooms:</strong> @house.Bathrooms</p>
-                                <p class="card-text-detail">
-                                    <strong class="me-2">Status:</strong>
-                                    <span class="badge @(house.Status == "Approved" ? "bg-success" : (house.Status == "Pending" ? "bg-warning text-dark" : "bg-danger"))">
-                                        @house.Status
-                                    </span>
-                                </p>
-                            </div>
-                            <div class="card-footer bg-light d-flex justify-content-around"> @* justify-content-around for even spacing *@
-                                <a asp-page="/ApartmentHouses/Details" asp-route-id="@house.Id" class="btn btn-outline-info">View</a>
-                                @* Assuming you have Edit/Delete pages for houses as well if applicable for admin *@
-                                <a asp-page="/ApartmentHouses/Edit" asp-route-id="@house.Id" class="btn btn-outline-primary">Edit</a>
-                                <a asp-page="/ApartmentHouses/Delete" asp-route-id="@house.Id" class="btn btn-outline-danger">Delete</a>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-secondary text-center" role="alert">
+        <div class="card">
+            <div class="mh-empty">
+                <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-houses"></i></span>
                 <p class="mb-0">No associated houses found for this notification.</p>
             </div>
-        }
+        </div>
     }
-</div>
+}
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const approveButton = document.getElementById('approveButton');
-            if (approveButton) {
-                approveButton.addEventListener('click', function (event) {
-                    event.preventDefault(); // Prevent default form submission
-
-                    Swal.fire({
-                        title: 'Are you sure?',
-                        text: "Do you want to approve all houses associated with this notification?",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#28a745', /* Bootstrap success green */
-                        cancelButtonColor: '#dc3545', /* Bootstrap danger red */
-                        confirmButtonText: 'Approve',
-                        cancelButtonText: 'cancel'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // If confirmed, submit the form
-                            event.target.closest('form').submit();
-                        }
-                    });
-                });
-            }
-        });
-    </script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    @* The Approve form uses the standard data-confirm dialog (wwwroot/js/michu-dialogs.js). *@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }

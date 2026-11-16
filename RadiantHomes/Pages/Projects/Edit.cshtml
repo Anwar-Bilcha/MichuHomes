@@ -2,76 +2,67 @@
 @model RadiantHomes.Pages.Projects.EditModel
 
 @{
-    ViewData["Title"] = "Edit Project";
+    ViewData["Title"] = "Edit project";
+    ViewData["Subtitle"] = string.IsNullOrWhiteSpace(Model.Company?.Name) ? null : $"A project of {Model.Company.Name}.";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<div class="container mt-4">
-    <div class="card shadow-lg rounded-3">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">Edit House Project</h3>
-        </div>
-        <div class="card-body">
-            <div class="text-end">
-                <a asp-page="/Buildings/Create" asp-route-id="@Model.HouseProject.ProjectId" class="btn btn-info btn-sm text-white px-4 py-2 rounded-pill">
-                    <i class="fas fa-info-circle"></i> Register Buildings
-                </a>
+@section PageActions {
+    <a asp-page="/Buildings/Create" asp-route-id="@Model.HouseProject.ProjectId" class="btn btn-outline-primary">
+        <i class="bi bi-buildings" aria-hidden="true"></i> Register buildings
+    </a>
+}
+
+<form method="post" class="card">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="HouseProject.ProjectId" />
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="HouseProject.ProjectName" class="form-label">* Project Name</label>
+                <input asp-for="HouseProject.ProjectName" class="form-control" />
+                <span asp-validation-for="HouseProject.ProjectName" class="text-danger"></span>
             </div>
-            <form method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                <input type="hidden" asp-for="HouseProject.ProjectId" />
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label asp-for="HouseProject.HousingCompanyId" class="form-label"></label>
-                        <input type="hidden" asp-for="Company.CompanyId" class="form-select" />
-                    </div>
+            <div class="col-md-6">
+                <label asp-for="HouseProject.Location" class="form-label">* Location</label>
+                <input asp-for="HouseProject.Location" class="form-control" />
+                <span asp-validation-for="HouseProject.Location" class="text-danger"></span>
+            </div>
 
-                    <div class="col-md-6">
-                        <label asp-for="HouseProject.ProjectName" class="form-label">* Project Name</label>
-                        <input asp-for="HouseProject.ProjectName" class="form-control" />
-                        <span asp-validation-for="HouseProject.ProjectName" class="text-danger"></span>
-                    </div>
+            <div class="col-md-4">
+                <label asp-for="HouseProject.TotalArea" class="form-label">* Total Area (m²)</label>
+                <input asp-for="HouseProject.TotalArea" class="form-control" />
+                <span asp-validation-for="HouseProject.TotalArea" class="text-danger"></span>
+            </div>
 
-                    <div class="col-md-6">
-                        <label asp-for="HouseProject.Location" class="form-label">* Location</label>
-                        <input asp-for="HouseProject.Location" class="form-control" />
-                        <span asp-validation-for="HouseProject.Location" class="text-danger"></span>
-                    </div>
+            <div class="col-md-4">
+                <label asp-for="HouseProject.StartDate" class="form-label">Start Date</label>
+                <input asp-for="HouseProject.StartDate" class="form-control" type="date" />
+                <span asp-validation-for="HouseProject.StartDate" class="text-danger"></span>
+            </div>
 
-                    <div class="col-md-6">
-                        <label asp-for="HouseProject.TotalArea" class="form-label">* Total Area (m²)</label>
-                        <input asp-for="HouseProject.TotalArea" class="form-control" />
-                        <span asp-validation-for="HouseProject.TotalArea" class="text-danger"></span>
-                    </div>
+            <div class="col-md-4">
+                <label asp-for="HouseProject.EndDate" class="form-label">End Date</label>
+                <input asp-for="HouseProject.EndDate" class="form-control" type="date" />
+                <span asp-validation-for="HouseProject.EndDate" class="text-danger"></span>
+            </div>
 
-                    <div class="col-md-6">
-                        <label asp-for="HouseProject.StartDate" class="form-label">Start Date</label>
-                        <input asp-for="HouseProject.StartDate" class="form-control" type="date" />
-                        <span asp-validation-for="HouseProject.StartDate" class="text-danger"></span>
-                    </div>
+            <div class="col-12">
+                <label asp-for="HouseProject.Description" class="form-label">* Description</label>
+                <textarea asp-for="HouseProject.Description" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="HouseProject.Description" class="text-danger"></span>
+            </div>
+        </div>
 
-                    <div class="col-md-6">
-                        <label asp-for="HouseProject.EndDate" class="form-label">End Date</label>
-                        <input asp-for="HouseProject.EndDate" class="form-control" type="date" />
-                        <span asp-validation-for="HouseProject.EndDate" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-12">
-                        <label asp-for="HouseProject.Description" class="form-label">* Description</label>
-                        <textarea asp-for="HouseProject.Description" class="form-control" rows="4"></textarea>
-                        <span asp-validation-for="HouseProject.Description" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="mt-4 d-flex justify-content-between">
-                    <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
-                    <input type="submit" value="Save Changes" class="btn btn-success px-4" />
-                </div>
-            </form>
+        <div class="mh-form-actions">
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save changes</button>
         </div>
     </div>
-</div>
+</form>
 
 @section Scripts {
     @{

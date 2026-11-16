@@ -10,7 +10,13 @@ namespace RadiantHomes.DAL
     {
         public DbSet<HousePerFloor> HousePerFloors { get; set; }
         public DbSet<Subscriber> Subscriptions { get; set; }
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        private readonly IHttpContextAccessor? _httpContextAccessor;
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
+            : base(options)
+        {
+            _httpContextAccessor = httpContextAccessor;
+        }
         public DbSet<UILocalization> Translations { get; set; }
         public DbSet<Customer> UserProfiles { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -37,6 +43,71 @@ namespace RadiantHomes.DAL
         public DbSet<CustomerTestimonial> CustomerTestimonials { get; set; }
         public DbSet<HouseSpecs> HouseSpecifications { get; set; }
         public DbSet<ApartmentPhoto> ApartmentPhotos { get; set; }
+
+        // The model below declares HasDefaultValueSql("NEWID()") for the Guid keys, but the database
+        // columns have no default (the live DB has a later migration that removed them). EF therefore
+        // leaves an unset key out of the INSERT and SQL Server rejects the NULL. Assigning the Guid here,
+        // for every newly added row whose Guid key isn't set yet, works with either schema.
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            AssignMissingGuidKeys();
+            StampAuditFields();
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            AssignMissingGuidKeys();
+            StampAuditFields();
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        // Created/Updated by/on are maintained here for every BaseEntity, so pages don't have to
+        // (and edit forms can't overwrite them): new rows get CreatedOn/CreatedBy, edited rows get
+        // UpdatedOn/UpdatedBy, and CreatedOn/CreatedBy are never changed by an update.
+        private void StampAuditFields()
+        {
+            var now = DateTime.Now;
+            var userName = _httpContextAccessor?.HttpContext?.User?.Identity?.IsAuthenticated == true
+                ? _httpContextAccessor.HttpContext.User.Identity!.Name
+                : null;
+
+            foreach (var entry in ChangeTracker.Entries<Models.Shared.BaseEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    if (entry.Entity.CreatedOn == default) entry.Entity.CreatedOn = now;
+                    if (string.IsNullOrWhiteSpace(entry.Entity.CreatedBy)) entry.Entity.CreatedBy = userName;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Property(e => e.CreatedOn).IsModified = false;
+                    entry.Property(e => e.CreatedBy).IsModified = false;
+                    entry.Entity.UpdatedOn = now;
+                    entry.Entity.UpdatedBy = userName ?? entry.Entity.UpdatedBy;
+                }
+            }
+        }
+
+        private void AssignMissingGuidKeys()
+        {
+            ChangeTracker.DetectChanges();
+            foreach (var entry in ChangeTracker.Entries().Where(e => e.State == EntityState.Added))
+            {
+                var key = entry.Metadata.FindPrimaryKey();
+                if (key is null) continue;
+
+                foreach (var keyProperty in key.Properties.Where(p => p.ClrType == typeof(Guid)))
+                {
+                    var property = entry.Property(keyProperty.Name);
+                    if (property.IsTemporary || property.CurrentValue is null || (Guid)property.CurrentValue == Guid.Empty)
+                    {
+                        property.CurrentValue = Guid.NewGuid();
+                        property.IsTemporary = false;
+                    }
+                }
+            }
+        }
 
 
         protected override void OnModelCreating(ModelBuilder builder)

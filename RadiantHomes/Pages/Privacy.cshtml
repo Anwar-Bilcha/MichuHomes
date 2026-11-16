@@ -1,231 +1,120 @@
 ﻿@page
-@model IndexModel
+@model PrivacyModel
 @{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Privacy";
+    ViewData["Subtitle"] = "What information Michu Homes collects, how it is used and who it is shared with.";
+    ViewData["PageWidth"] = "narrow";
 }
+@*
+    Describes only what the application actually does (see the account, HouseOwner, SMS, payment,
+    session/cookie and layout code). Keep it in sync when data handling changes.
+*@
 
-<style>
-    .glass-card {
-        background: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(12px);
-        border-radius: 1rem;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
-        color: #444;
-    }
-
-        .glass-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
-        }
-
-    .hero {
-        background: linear-gradient(to right, rgba(12, 22, 55, 0.7), rgba(12, 22, 25, 0.7)), url('/images/banner1.jpg') center/cover no-repeat;
-        backdrop-filter: blur(6px);
-        border-radius: 1rem;
-    }
-
-    #propertySearch {
-        border-radius: 12px;
-        padding: 0.75rem 1rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .modal-content {
-        border-radius: 1rem;
-    }
-
-    .glassy-bg {
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    #heroCarousel {
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(100, 100, 100, 0.7);
-    }
-
-    .carousel-caption {
-        background: rgba(0, 0, 0, 0.5);
-        padding: 1rem;
-        border-radius: 1rem;
-    }
-
-    .btn-glass {
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        color: #000;
-        transition: 0.3s;
-    }
-
-        .btn-glass:hover {
-            background: rgba(255, 255, 255, 0.6);
-            color: #000;
-            transform: translateY(-2px);
-        }
-
-    .section-title {
-        font-weight: bold;
-        text-transform: uppercase;
-        margin-bottom: 2rem;
-    }
-
-</style>
-
-<!-- Hero Carousel -->
-<div class="container d-flex justify-content-center my-5">
-    <div id="heroCarousel" class="carousel slide w-100" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img src="~/images/banner1.jpg" class="d-block w-100" alt="Dream Home" style="height:500px; object-fit:cover;">
-                <div class="carousel-caption">
-                    <h1 class="fw-bold text-uppercase" data-translate="HomePage.FirstCoursel.Title">Find Your Dream Home</h1>
-                    <p class="text-white" data-translate="HomePage.FirstCoursel.Text">Explore the best houses across Ethiopia tailored to your needs.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="~/images/banner2.jpg" class="d-block w-100" alt="Buy Sell Rent" style="height:500px; object-fit:cover;">
-                <div class="carousel-caption">
-                    <h1 class="fw-bold text-uppercase" data-translate="HomePage.SecondCoursel.Title">Buy, Sell or Rent</h1>
-                    <p class="text-white" data-translate="HomePage.SecondCoursel.Text">All in one platform for housing solutions.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="~/images/banner3.jpg" class="d-block w-100" alt="Trusted Partner" style="height:500px; object-fit:cover;">
-                <div class="carousel-caption">
-                    <h1 class="fw-bold text-uppercase" data-translate="HomePage.ThirdCoursel.Title">Your Trusted Housing Partner</h1>
-                    <p class="text-white" data-translate="HomePage.ThirdCoursel.Text">Secure deals, expert guidance, smooth transactions.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="~/images/Villa1.jpg" class="d-block w-100" alt="Grow Business" style="height:500px; object-fit:cover;">
-                <div class="carousel-caption">
-                    <h1 class="fw-bold text-uppercase" data-translate="HomePage.FourthCoursel.Title">Grow Your Business</h1>
-                    <p class="text-white" data-translate="HomePage.FourthCoursel.Text">Special discount packages for registered brokers.</p>
-                </div>
-            </div>
-        </div>
-
-        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon bg-dark rounded-circle" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon bg-dark rounded-circle" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
+<div class="card mb-4">
+    <div class="card-body">
+        <p class="mb-0">
+            This notice explains what information the Michu Homes website collects when you use it and what it is used for.
+            If you have a question about your information, email us at <a href="mailto:info@michuhomes.et">info@michuhomes.et</a>.
+        </p>
     </div>
 </div>
 
-<!-- Hero Section -->
-<section class="hero py-5 text-center mb-5">
-    <div class="container">
-        <h1 class="display-4 fw-bold" data-translate="HomePage.FirstCoursel.Title">Find Your Dream Home</h1>
-        <p class="lead" data-translate="HomePage.ExploreHouses.Text">Explore the best properties tailored to your needs.</p>
-        <div class="d-flex justify-content-center gap-3 mt-4">
-            <a href="/Houses" class="btn btn-light btn-lg" data-translate="HomePage.ExploreHouses.Btn">Browse Houses</a>
-            <a asp-page="/HouseOwner/Create" class="btn btn-light btn-lg" data-translate="HomePage.BecomeMember.Btn">Become A Member</a>
-        </div>
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-person-lock" aria-hidden="true"></i> Your account</h2>
     </div>
-</section>
-
-<!-- Search -->
-<div class="container mb-5">
-    <input type="text" id="propertySearch" class="form-control" placeholder="Search properties..." aria-label="Search properties">
+    <div class="card-body">
+        <ul class="mb-0">
+            <li>When you register, we store your email address, which is also your user name, and your password. The password is stored as a hash, not as readable text.</li>
+            <li>You can add a phone number to your account in your account settings.</li>
+            <li>If you sign in with Google or Facebook, we receive your email address and an identifier for that account from the provider, and use them to create your account and sign you in.</li>
+        </ul>
+    </div>
 </div>
 
-<!-- Properties Section Sale -->
-<section id="properties-sale" class="py-5">
-    <div class="container">
-        <h2 class="text-center section-title" data-translate="HomePage.FeatureHomes.Section.SaleTitle">Featured Sale Homes</h2>
-        <div class="row g-4">
-            @foreach (var house in Model.FeaturedSalesHomes)
-            {
-                <div class="col-md-4">
-                    <div class="card glass-card h-100" data-name="@house.Title.ToLower()">
-                        <img src="@house.MainPhotoUrl ?? @Model.MissingHousePhoto" class="card-img-top" alt="@house.Title" style="height:220px; object-fit:cover;">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">@house.Title</h5>
-                            <p class="card-text small mb-2">
-                                <i class="fa-solid fa-bed"></i> @house.TotalBedRooms Beds |
-                                <i class="fa-solid fa-door-open"></i> @house.TotalRooms Rooms |
-                                <i class="fa-solid fa-ruler-combined"></i> @house.TotalArea m²
-                            </p>
-                            <p class="fw-bold"><i class="fa-solid fa-coins"></i> @house.Price</p>
-                            <a href="/Houses/Details?id=@house.Id" class="btn btn-outline-primary w-100 mt-auto">View Details</a>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-person-vcard" aria-hidden="true"></i> Your profile and documents</h2>
     </div>
-</section>
+    <div class="card-body">
+        <ul class="mb-0">
+            <li>To create a house owner or buyer profile we ask for your first and last name, category (individual, agency or real estate), role, phone number, email address and address.</li>
+            <li>You can upload a copy of an identity document (for example a national ID, passport or kebele ID) and a profile photo. These files are stored on our web server and are used by Michu Homes staff to review and approve your profile.</li>
+            <li>Houses and apartments that are listed on the site, including their description, address, price and photos, are shown publicly.</li>
+            <li>Reservations, sale and rent requests, reviews, complaints and testimonials you submit are stored with your profile so that Michu Homes staff can handle them.</li>
+        </ul>
+    </div>
+</div>
 
-<!-- Properties Section Rent -->
-<section id="properties-rent" class="py-5">
-    <div class="container">
-        <h2 class="text-center section-title" data-translate="HomePage.FeatureHomes.Section.RentTitle">Featured Rent Homes</h2>
-        <div class="row g-4">
-            @foreach (var house in Model.FeaturedRentHomes)
-            {
-                <div class="col-md-4">
-                    <div class="card glass-card h-100" data-name="@house.Title.ToLower()">
-                        <img src="@house.MainPhotoUrl ?? @Model.MissingHousePhoto" class="card-img-top" alt="@house.Title" style="height:220px; object-fit:cover;">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">@house.Title</h5>
-                            <p class="card-text small mb-2">
-                                <i class="fa-solid fa-bed"></i> @house.TotalBedRooms Beds |
-                                <i class="fa-solid fa-door-open"></i> @house.TotalRooms Rooms |
-                                <i class="fa-solid fa-ruler-combined"></i> @house.TotalArea m²
-                            </p>
-                            <p class="fw-bold"><i class="fa-solid fa-coins"></i> @house.Price</p>
-                            <a href="/Houses/Details?id=@house.Id" class="btn btn-outline-primary w-100 mt-auto">View Details</a>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-phone" aria-hidden="true"></i> Phone numbers and SMS</h2>
     </div>
-</section>
+    <div class="card-body">
+        <ul class="mb-0">
+            <li>Phone numbers on profiles can be seen by Michu Homes staff.</li>
+            <li>When a user requests a house owner's contact details for a listing, the owner's name, phone number and email address are sent by SMS.</li>
+            <li>SMS messages are delivered through Twilio, a third-party SMS provider.</li>
+        </ul>
+    </div>
+</div>
 
-<!-- User Action Cards -->
-<section class="py-5 text-center text-white hero">
-    <div class="container">
-        <h2 class="section-title" data-translate="HomePage.WhatToDo.Title">What are you looking to do?</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card glass-card h-100 text-center">
-                    <div class="card-body">
-                        <i class="bi bi-house-door-fill fs-1 text-primary mb-3"></i>
-                        <h5 class="card-title" data-translate="HomePage.WhatTodo.Choice1.Title">Buy a House</h5>
-                        <p data-translate="HomePage.WhatTodo.Choice1.Text">Browse our listings to find the home of your dreams.</p>
-                        <a href="#properties-sale" class="btn btn-outline-primary" data-translate="HomePage.WhatTodo.Choice1.Btn">Buy a House</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card glass-card h-100 text-center">
-                    <div class="card-body">
-                        <i class="bi bi-cash-coin fs-1 text-success mb-3"></i>
-                        <h5 class="card-title" data-translate="HomePage.WhatTodo.Choice2.Title">Sell a House</h5>
-                        <p data-translate="HomePage.WhatTodo.Choice2.Text">List your property with us for maximum exposure.</p>
-                        <a href="/HouseOwner/Create" class="btn btn-outline-success" data-translate="HomePage.WhatTodo.Choice2.Btn">Sell Now</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card glass-card h-100 text-center">
-                    <div class="card-body">
-                        <i class="bi bi-door-open-fill fs-1 text-warning mb-3"></i>
-                        <h5 class="card-title" data-translate="HomePage.WhatTodo.Choice3.Title">Rent a House</h5>
-                        <p data-translate="HomePage.WhatTodo.Choice3.Text">Find affordable rental options across the city.</p>
-                        <a href="#properties-rent" class="btn btn-outline-warning" data-translate="HomePage.WhatTodo.Choice3.Btn">Rent a House</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-credit-card" aria-hidden="true"></i> Payments</h2>
     </div>
-</section>
+    <div class="card-body">
+        <p class="mb-0">
+            Online payments are processed by Chapa. We send Chapa the amount to pay and the email address of your account,
+            and you complete the payment on Chapa's checkout page.
+        </p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-cookie" aria-hidden="true"></i> Cookies and browser storage</h2>
+    </div>
+    <div class="card-body">
+        <ul class="mb-0">
+            <li><strong>Sign-in cookie</strong> &ndash; keeps you signed in to your account.</li>
+            <li><strong>Session cookie</strong> &ndash; remembers your visit while you browse; it ends after 30 minutes without activity.</li>
+            <li><strong>Form cookies</strong> &ndash; protect the forms on the site against cross-site request forgery and carry short status messages between pages.</li>
+            <li>When you sign in with Google or Facebook, temporary cookies are used while the sign-in completes.</li>
+            <li>The language you choose is saved in your browser's local storage.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-chat-dots" aria-hidden="true"></i> Live chat and video calls</h2>
+    </div>
+    <div class="card-body">
+        <ul class="mb-0">
+            <li>The live chat on our pages is provided by Tawk.to. The chat widget is loaded from Tawk.to, which may set its own cookies, and messages you send in the chat are handled by Tawk.to.</li>
+            <li>Video calls with our agents use Jitsi Meet (meet.jit.si), which handles the audio and video of the call.</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-journal-text" aria-hidden="true"></i> Server logs</h2>
+    </div>
+    <div class="card-body">
+        <p class="mb-0">Our server keeps technical logs of requests to the site. When you are signed in, these logs include your user name.</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-envelope" aria-hidden="true"></i> Contact</h2>
+    </div>
+    <div class="card-body">
+        <p class="mb-0">
+            For questions about this notice or about the information we hold about you, email
+            <a href="mailto:info@michuhomes.et">info@michuhomes.et</a>.
+        </p>
+    </div>
+</div>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace RadiantHomes.Pages.Houses.Actions.Sales
     public class DetailsModel : PageModel
     {
         private readonly RadiantHomes.DAL.ApplicationDbContext _context;
+        private readonly UserManager<AppUser> _userManager;
 
-        public DetailsModel(RadiantHomes.DAL.ApplicationDbContext context)
+        public DetailsModel(RadiantHomes.DAL.ApplicationDbContext context, UserManager<AppUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public HouseSaleTransaction HouseSaleTransaction { get; set; } = default!;
@@ -28,16 +31,28 @@ namespace RadiantHomes.Pages.Houses.Actions.Sales
                 return NotFound();
             }
 
-            var housesaletransaction = await _context.HouseSaleTransactions.FirstOrDefaultAsync(m => m.Id == id);
+            var housesaletransaction = await _context.HouseSaleTransactions
+                .AsNoTracking()
+                .Include(t => t.House)
+                .Include(t => t.Receiver)
+                .Include(t => t.HomeOwner)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (housesaletransaction is not null)
+            if (housesaletransaction is null)
             {
-                HouseSaleTransaction = housesaletransaction;
-
-                return Page();
+                return NotFound();
+            }
+            if (!await CanAccessAsync(housesaletransaction))
+            {
+                return Forbid();
             }
 
-            return NotFound();
+            HouseSaleTransaction = housesaletransaction;
+            return Page();
         }
+
+        /// <summary>A Michu admin or a party to the house sale (seller / buyer).</summary>
+        private Task<bool> CanAccessAsync(HouseSaleTransaction record) =>
+            TransactionAccess.CanAccessAsync(_userManager, User, record.OwnerId, record.CustomerId);
     }
 }

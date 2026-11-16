@@ -1,4 +1,14 @@
 ﻿@page
 @model RadiantHomes.Areas.Identity.Pages.Account.ExternalLoginModel
 @{
+    ViewData["Title"] = "External login";
+    ViewData["PageWidth"] = "narrow";
 }
+
+<div class="card">
+    <div class="mh-empty">
+        <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-box-arrow-in-right"></i></span>
+        <p>Sign in with Google or Facebook from the log in page.</p>
+        <a asp-page="./Login" class="btn btn-primary">Go to log in</a>
+    </div>
+</div>

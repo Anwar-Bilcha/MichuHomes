@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Pages.RealEstates.Testimonials
 {
@@ -21,9 +22,15 @@ namespace RadiantHomes.Pages.RealEstates.Testimonials
 
         public IList<CustomerTestimonial> CustomerTestimonial { get;set; } = default!;
 
+        // A Real Estate Admin without a company: show why the list is empty
+        public bool NoCompany { get; set; }
+
         public async Task OnGetAsync()
         {
-            CustomerTestimonial = await _context.CustomerTestimonials
+            // Visitors see every testimonial (public list); a Real Estate Admin only their own company's.
+            var scope = await CompanyScope.ForAsync(User, _context);
+            NoCompany = scope.HasNoCompany;
+            CustomerTestimonial = await scope.Testimonials(_context.CustomerTestimonials)
                 .Include(c => c.Company)
                 .Include(c => c.Customer).ToListAsync();
         }

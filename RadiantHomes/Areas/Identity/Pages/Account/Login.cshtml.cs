@@ -112,11 +112,24 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
-                var CustomerId = _signInManager.UserManager.Users.FirstOrDefault(a=>a.UserName==Input.Email).CustomerId;
-                HttpContext.Session.SetString("CustomerId", CustomerId.ToString());
                 Console.WriteLine($"Is User Authenticated: {User.Identity.IsAuthenticated}");
                 if (result.Succeeded)
                 {
+                    // Remember the signed-in user's customer profile id, only when the account has one (it used to
+                    // store "" for accounts without a profile, and the profile of any e-mail even on a failed login).
+                    // Pages read the profile from the account (AppUser.CustomerId); this is only a convenience copy.
+                    var customerId = _signInManager.UserManager.Users
+                        .Where(a => a.UserName == Input.Email)
+                        .Select(a => a.CustomerId)
+                        .FirstOrDefault();
+                    if (customerId is Guid id && id != Guid.Empty)
+                    {
+                        HttpContext.Session.SetString("CustomerId", id.ToString());
+                    }
+                    else
+                    {
+                        HttpContext.Session.Remove("CustomerId"); // don't keep a previous user's value
+                    }
                     _logger.LogInformation("User logged in.");
                     Console.WriteLine($"Redirecting to {returnUrl}");
                     return LocalRedirect(returnUrl);

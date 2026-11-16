@@ -1,45 +1,56 @@
+#nullable disable
+
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
+using RadiantHomes.Models;
 
 namespace RadiantHomes.Areas.Identity.Pages.Account
 {
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.RazorPages;
-    using Microsoft.AspNetCore.Identity;
-    using System.Threading.Tasks;
+    public class ConfirmEmailModel : PageModel
+    {
+        // The app registers Identity with AppUser (Program.cs); UserManager<IdentityUser> is not resolvable.
+        private readonly UserManager<AppUser> _userManager;
 
-    
-        public class ConfirmEmailModel : PageModel
+        public ConfirmEmailModel(UserManager<AppUser> userManager)
         {
-            private readonly UserManager<IdentityUser> _userManager;
+            _userManager = userManager;
+        }
 
-            public ConfirmEmailModel(UserManager<IdentityUser> userManager)
+        public string StatusMessage { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(string userId, string code)
+        {
+            if (userId == null || code == null)
             {
-                _userManager = userManager;
+                return RedirectToPage("/Index", new { area = "" });
             }
 
-            [BindProperty]
-            public string StatusMessage { get; set; }
-
-            public async Task<IActionResult> OnGetAsync(string userId, string code)
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
             {
-                if (userId == null || code == null)
-                {
-                    return RedirectToPage("/Index");
-                }
+                return NotFound($"Unable to load user with ID '{userId}'.");
+            }
 
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user == null)
-                {
-                    return NotFound($"Unable to load user with ID '{userId}'.");
-                }
-
-                var result = await _userManager.ConfirmEmailAsync(user, code);
-                StatusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
-
+            // Register.cshtml.cs Base64Url-encodes the token for the link; decode it before confirming.
+            string token;
+            try
+            {
+                token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+            }
+            catch (FormatException)
+            {
+                StatusMessage = "Error confirming your email.";
                 return Page();
             }
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            StatusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+
+            return Page();
         }
     }
-
-
+}

@@ -1,10 +1,22 @@
 ﻿namespace RadiantHomes.Models.Shared
 {
+    /// <summary>
+    /// Twilio SMS settings, bound from the "Twilio" configuration section.
+    /// Values are NOT stored in source control: locally they come from .NET user-secrets
+    /// (dotnet user-secrets set "Twilio:AuthToken" "…"), on servers from environment variables
+    /// (Twilio__AccountSid, Twilio__AuthToken, Twilio__FromPhoneNumber).
+    /// </summary>
     public class TwilioSettings
     {
-        public static string AccountSID { get; set; } = "AC6d8bfb63240ea7b7b6132a38a8c38b43";
-        public static string AuthToken { get; set; } = "621ef4a141a900cdf361fa60990bbe25";
-        public static string FromPhoneNumber { get; set; } = "+17753707633";
+        public const string SectionName = "Twilio";
 
+        public string AccountSid { get; set; } = string.Empty;
+        public string AuthToken { get; set; } = string.Empty;
+        public string FromPhoneNumber { get; set; } = string.Empty;
+
+        public bool IsConfigured =>
+            !string.IsNullOrWhiteSpace(AccountSid) &&
+            !string.IsNullOrWhiteSpace(AuthToken) &&
+            !string.IsNullOrWhiteSpace(FromPhoneNumber);
     }
 }

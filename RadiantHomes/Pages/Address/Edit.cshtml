@@ -2,114 +2,99 @@
 @model RadiantHomes.Pages.Address.EditModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit address";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Edit</h1>
+<form method="post" class="card">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="PartyAddress.AddressID" />
 
-<h4>PartyAddress</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="PartyAddress.AddressID" />
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.City" class="control-label"></label>
-                <input asp-for="PartyAddress.City" class="form-control" />
-                <span asp-validation-for="PartyAddress.City" class="text-danger"></span>
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Address</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.City" class="form-label"></label>
+                    <input asp-for="PartyAddress.City" class="form-control" />
+                    <span asp-validation-for="PartyAddress.City" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.Woreda" class="form-label"></label>
+                    <input asp-for="PartyAddress.Woreda" class="form-control" />
+                    <span asp-validation-for="PartyAddress.Woreda" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.SubCity" class="form-label"></label>
+                    <input asp-for="PartyAddress.SubCity" class="form-control" />
+                    <span asp-validation-for="PartyAddress.SubCity" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.Region" class="form-label"></label>
+                    <input asp-for="PartyAddress.Region" class="form-control" />
+                    <span asp-validation-for="PartyAddress.Region" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.PostalCode" class="form-label"></label>
+                    <input asp-for="PartyAddress.PostalCode" class="form-control" />
+                    <span asp-validation-for="PartyAddress.PostalCode" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.Country" class="form-label"></label>
+                    <input asp-for="PartyAddress.Country" class="form-control" />
+                    <span asp-validation-for="PartyAddress.Country" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.LocationMain" class="form-label"></label>
+                    <input asp-for="PartyAddress.LocationMain" class="form-control" />
+                    <span asp-validation-for="PartyAddress.LocationMain" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.LocationSub" class="form-label"></label>
+                    <input asp-for="PartyAddress.LocationSub" class="form-control" />
+                    <span asp-validation-for="PartyAddress.LocationSub" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="PartyAddress.Street" class="form-label"></label>
+                    <input asp-for="PartyAddress.Street" class="form-control" />
+                    <span asp-validation-for="PartyAddress.Street" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.Woreda" class="control-label"></label>
-                <input asp-for="PartyAddress.Woreda" class="form-control" />
-                <span asp-validation-for="PartyAddress.Woreda" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.SubCity" class="control-label"></label>
-                <input asp-for="PartyAddress.SubCity" class="form-control" />
-                <span asp-validation-for="PartyAddress.SubCity" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.Region" class="control-label"></label>
-                <input asp-for="PartyAddress.Region" class="form-control" />
-                <span asp-validation-for="PartyAddress.Region" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.PostalCode" class="control-label"></label>
-                <input asp-for="PartyAddress.PostalCode" class="form-control" />
-                <span asp-validation-for="PartyAddress.PostalCode" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.Country" class="control-label"></label>
-                <input asp-for="PartyAddress.Country" class="form-control" />
-                <span asp-validation-for="PartyAddress.Country" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.LocationMain" class="control-label"></label>
-                <input asp-for="PartyAddress.LocationMain" class="form-control" />
-                <span asp-validation-for="PartyAddress.LocationMain" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.LocationSub" class="control-label"></label>
-                <input asp-for="PartyAddress.LocationSub" class="form-control" />
-                <span asp-validation-for="PartyAddress.LocationSub" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.Country" class="control-label"></label>
-                <input asp-for="PartyAddress.Country" class="form-control" />
-                <span asp-validation-for="PartyAddress.Country" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.Street" class="control-label"></label>
-                <input asp-for="PartyAddress.Street" class="form-control" />
-                <span asp-validation-for="PartyAddress.Street" class="text-danger"></span>
-            </div>
+        </div>
 
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.CreatedBy" class="control-label"></label>
-                <input asp-for="PartyAddress.CreatedBy" class="form-control" />
-                <span asp-validation-for="PartyAddress.CreatedBy" class="text-danger"></span>
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Record</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.CreatedBy" class="form-label"></label>
+                    <input asp-for="PartyAddress.CreatedBy" class="form-control" />
+                    <span asp-validation-for="PartyAddress.CreatedBy" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.CreatedOn" class="form-label"></label>
+                    <input asp-for="PartyAddress.CreatedOn" class="form-control" />
+                    <span asp-validation-for="PartyAddress.CreatedOn" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.UpdatedBy" class="form-label"></label>
+                    <input asp-for="PartyAddress.UpdatedBy" class="form-control" />
+                    <span asp-validation-for="PartyAddress.UpdatedBy" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PartyAddress.UpdatedOn" class="form-label"></label>
+                    <input asp-for="PartyAddress.UpdatedOn" class="form-control" />
+                    <span asp-validation-for="PartyAddress.UpdatedOn" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.CreatedOn" class="control-label"></label>
-                <input asp-for="PartyAddress.CreatedOn" class="form-control" />
-                <span asp-validation-for="PartyAddress.CreatedOn" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.UpdatedBy" class="control-label"></label>
-                <input asp-for="PartyAddress.UpdatedBy" class="form-control" />
-                <span asp-validation-for="PartyAddress.UpdatedBy" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="PartyAddress.UpdatedOn" class="control-label"></label>
-                <input asp-for="PartyAddress.UpdatedOn" class="form-control" />
-                <span asp-validation-for="PartyAddress.UpdatedOn" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
+
+        <div class="mh-form-actions">
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save changes</button>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-page="./Index">Back to List</a>
-</div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

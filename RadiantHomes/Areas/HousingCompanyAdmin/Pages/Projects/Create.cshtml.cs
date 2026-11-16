@@ -7,6 +7,7 @@ using RadiantHomes.Models.HousingCompanies;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using RadiantHomes.Services.AdminServices;
 using Microsoft.AspNetCore.Identity; // Required for UserManager
 using RadiantHomes.Models; // AppUser and Customer models are here
 
@@ -23,8 +24,6 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
             _userManager = userManager;
         }
 
-        [TempData]
-        public string? SuccessMessage { get; set; }
 
         public SelectList Addresses { get; set; } = default!;
 
@@ -43,14 +42,13 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
         public async Task<IActionResult> OnGetAsync(Guid? companyId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            Console.WriteLine(currentUser?.HousingCompanyId);
             if (currentUser == null)
             {
                 // User is not logged in, redirect to login page
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
 
-            bool isSuperAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.RealEstateAdmin);
+            bool isSuperAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.MichuAdmin);
             bool isRealEstateAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.RealEstateAdmin);
 
             if (isSuperAdmin)
@@ -71,10 +69,17 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
             }
             else if (isRealEstateAdmin)
             {
+                // Always their own company (AppUser.HousingCompanyId, else their profile's company); ?companyId= is ignored
                 ShowCompanyDropdown = false;
-                if (currentUser.HousingCompanyId.HasValue && currentUser.HousingCompanyId.Value != Guid.Empty)
+                var scope = await CompanyScope.ForAsync(User, _context);
+                if (scope.HasNoCompany)
                 {
-                    CompanyId = currentUser.HousingCompanyId.Value;
+                    return RedirectToPage("./Index"); // the project list explains why there is nothing to do
+                }
+                if (scope.CompanyId is Guid ownCompanyId)
+                {
+                    CompanyId = ownCompanyId;
+                    ModelState.Remove(nameof(CompanyId)); // so the hidden field shows their company, not the ?companyId= value
                     Company = await _context.HousingCompanies.FindAsync(CompanyId);
                     if (Company == null)
                     {
@@ -99,16 +104,13 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
                 return Page(); // Crucial: Render the page with the error and no project data
             }
 
-            // If a valid companyId is determined, initialize HouseProject with it
-            if (CompanyId != Guid.Empty || isSuperAdmin)
+            // Initialize HouseProject with the company determined above (Guid.Empty when none).
+            // The start date defaults to today (an unset DateTime would show as 01/01/0001).
+            HouseProject = new HouseProject
             {
-                HouseProject = new HouseProject { HousingCompanyId = CompanyId };
-            }
-            else
-            {
-                // Fallback if no valid companyId could be determined for any role.
-                HouseProject = new HouseProject();
-            }
+                HousingCompanyId = CompanyId,
+                StartDate = DateTime.Today,
+            };
 
             await LoadAddressDropdownAsync(HouseProject.AddressId);
 
@@ -118,7 +120,6 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
                 ModelState.AddModelError(string.Empty, "No addresses are available. Please add an address before creating a project.");
             }
 
-            SuccessMessage = TempData["SuccessMessage"] as string;
             return Page();
         }
 
@@ -142,6 +143,12 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
                 return Page();
             }
 
+            if (!isSuperAdmin && isRealEstateAdmin)
+            {
+                var ownScope = await CompanyScope.ForAsync(User, _context);
+                if (ownScope.CompanyId is Guid ownId) HouseProject.HousingCompanyId = ownId;
+            }
+
             // For Dinar Admin, explicitly validate if a company was selected from the dropdown
             if (isSuperAdmin && HouseProject.HousingCompanyId == Guid.Empty)
             {
@@ -155,17 +162,16 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
                 return Page();
             }
 
-            // Securely set HousingCompanyId based on role
-            if (isRealEstateAdmin)
+            // Securely set HousingCompanyId based on role: a Real Estate Admin's posted company id is ignored
+            var scope = await CompanyScope.ForAsync(User, _context);
+            if (scope.IsRestricted)
             {
-                if (!currentUser.HousingCompanyId.HasValue || currentUser.HousingCompanyId.Value == Guid.Empty)
+                if (scope.CompanyId is not Guid ownCompanyId)
                 {
-                    ModelState.AddModelError(string.Empty, "Your account is not linked to a specific housing company. Cannot create project.");
-                    await ReloadPageDependenciesAsync(isSuperAdmin, HouseProject.HousingCompanyId, HouseProject.AddressId);
-                    return Page();
+                    return RedirectToPage("./Index"); // the project list explains why there is nothing to do
                 }
-                HouseProject.HousingCompanyId = currentUser.HousingCompanyId.Value;
-                CompanyId = currentUser.HousingCompanyId.Value; // Keep CompanyId consistent for redirect
+                HouseProject.HousingCompanyId = ownCompanyId;
+                CompanyId = ownCompanyId; // Keep CompanyId consistent for redirect
             }
             else if (isSuperAdmin)
             {
@@ -189,12 +195,8 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
                 return Page();
             }
 
-            // Set auditing fields
+            // CreatedOn/CreatedBy are stamped by ApplicationDbContext.SaveChanges
             HouseProject.ProjectId = Guid.NewGuid();
-            HouseProject.CreatedOn = DateTime.Now;
-            HouseProject.CreatedBy = currentUser.Email ?? currentUser.UserName ?? "Unknown";
-            HouseProject.UpdatedOn = DateTime.Now;
-            HouseProject.UpdatedBy = currentUser.Email ?? currentUser.UserName ?? "Unknown";
 
             _context.Projects.Add(HouseProject);
 
@@ -246,7 +248,7 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
 
             if (isSuperAdmin)
             {
-                AvailableHousingCompanies = new SelectList(await _context.HousingCompanies.OrderBy(hc => hc.Name).ToListAsync(), "CompanyID", "CompanyName", selectedCompanyId);
+                AvailableHousingCompanies = new SelectList(await _context.HousingCompanies.OrderBy(hc => hc.Name).ToListAsync(), "CompanyId", "Name", selectedCompanyId);
             }
         }
 

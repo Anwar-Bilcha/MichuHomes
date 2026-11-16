@@ -2,73 +2,74 @@
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial.DeleteModel
 
 @{
-    ViewData["Title"] = "Delete Company Financial Detail";
+    ViewData["Title"] = "Delete financial detail";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<h1 class="text-danger">Delete Confirmation</h1>
+<div class="card mh-confirm">
+    <div class="card-header">
+        <h2 class="mh-section-title text-reset"><i class="bi bi-exclamation-triangle text-reset" aria-hidden="true"></i> Are you sure you want to delete this financial record?</h2>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">This permanently removes the record below. It can't be undone.</p>
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.BankName)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.BankName)</dd>
 
-<h4 class="text-muted">Are you sure you want to delete this financial record?</h4>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.AccountNumber)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.AccountNumber)</dd>
 
-<div class="mt-4">
-    <h5 class="font-weight-bold">Financial Detail</h5>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.BankName)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.BankName)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.TaxId)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.TaxId)</dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.AccountNumber)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.AccountNumber)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.AnnualRevenue)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.AnnualRevenue)</dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.TaxId)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.TaxId)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.IsPrimary)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.IsPrimary)</dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.AnnualRevenue)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.AnnualRevenue)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.TinNumber)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.TinNumber)</dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.IsPrimary)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.IsPrimary)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.VatRegistrationNumber)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.VatRegistrationNumber)</dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.TinNumber)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.TinNumber)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.hasAuditedFinancialStatement)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.hasAuditedFinancialStatement)</dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.VatRegistrationNumber)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.VatRegistrationNumber)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.AuditedFinancialStatementUrl)</dt>
+            <dd>
+                @if (!string.IsNullOrEmpty(Model.CompanyFinancialDetail.AuditedFinancialStatementUrl))
+                {
+                    <a href="@Model.CompanyFinancialDetail.AuditedFinancialStatementUrl" target="_blank" rel="noopener">View Statement <i class="bi bi-box-arrow-up-right ms-1" aria-hidden="true"></i></a>
+                }
+                else
+                {
+                    <span class="text-muted">N/A</span>
+                }
+            </dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.hasAuditedFinancialStatement)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.hasAuditedFinancialStatement)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.Company)</dt>
+            <dd>@(Model.CompanyFinancialDetail.Company?.Name ?? "N/A")</dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.AuditedFinancialStatementUrl)</dt>
-        <dd class="col-sm-9">
-            @if (!string.IsNullOrEmpty(Model.CompanyFinancialDetail.AuditedFinancialStatementUrl))
-            {
-                <a href="@Model.CompanyFinancialDetail.AuditedFinancialStatementUrl" target="_blank">View Statement</a>
-            }
-            else
-            {
-                <span class="text-muted">N/A</span>
-            }
-        </dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.CreatedBy)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.CreatedBy)</dd>
 
-        <dt class="col-sm-3">Company ID</dt>
-        <dd class="col-sm-9">@Model.CompanyFinancialDetail.Company?.CompanyId</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.CreatedOn)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.CreatedOn)</dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.CreatedBy)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.CreatedBy)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.UpdatedBy)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.UpdatedBy)</dd>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.CreatedOn)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.CreatedOn)</dd>
+            <dt>@Html.DisplayNameFor(m => m.CompanyFinancialDetail.UpdatedOn)</dt>
+            <dd>@Html.DisplayFor(m => m.CompanyFinancialDetail.UpdatedOn)</dd>
+        </dl>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.UpdatedBy)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.UpdatedBy)</dd>
-
-        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.CompanyFinancialDetail.UpdatedOn)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.CompanyFinancialDetail.UpdatedOn)</dd>
-    </dl>
-
-    <form method="post">
-        <input type="hidden" asp-for="CompanyFinancialDetail.Id" />
-        <button type="submit" class="btn btn-danger">Delete</button>
-        <a asp-page="./Index" class="btn btn-secondary ml-2">Cancel</a>
-    </form>
+        <form method="post" class="mh-form-actions">
+            <input type="hidden" asp-for="CompanyFinancialDetail.Id" />
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash" aria-hidden="true"></i> Delete financial detail</button>
+        </form>
+    </div>
 </div>

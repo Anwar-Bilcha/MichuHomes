@@ -2,43 +2,37 @@
 @model RadiantHomes.Pages.Houses.Actions.Complaints.EditModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit complaint";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-4">
-    <h1 class="mb-3">Edit Complaint</h1>
+<form method="post" enctype="multipart/form-data" class="card">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="IssueOrCompliant.IssueId" />
 
-    <div class="card">
-        <div class="card-header">
-            Complaint Details
-        </div>
-        <div class="card-body">
-            <form method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                <input type="hidden" asp-for="IssueOrCompliant.IssueId" />
-
-                <div class="mb-3">
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Complaint details</h2>
+            <div class="row g-3">
+                <div class="col-12">
                     <label asp-for="IssueOrCompliant.IssueName" class="form-label"></label>
                     <input asp-for="IssueOrCompliant.IssueName" class="form-control" />
-                    <span asp-validation-for="IssueOrCompliant.IssueName" class="text-danger"></span>
+                    <span asp-validation-for="IssueOrCompliant.IssueName" class="text-danger small"></span>
                 </div>
-
-                <div class="mb-3">
+                <div class="col-md-6">
                     <label asp-for="IssueOrCompliant.HouseId" class="form-label"></label>
                     <select asp-for="IssueOrCompliant.HouseId" class="form-select" asp-items="ViewBag.HouseId"></select>
-                    <span asp-validation-for="IssueOrCompliant.HouseId" class="text-danger"></span>
+                    <span asp-validation-for="IssueOrCompliant.HouseId" class="text-danger small"></span>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="IssueOrCompliant.HouseOwnerId" class="form-label"></label>
-                    <select asp-for="IssueOrCompliant.HouseOwnerId" class="form-select" asp-items="ViewBag.HouseOwnerId"></select>
-                    <span asp-validation-for="IssueOrCompliant.HouseOwnerId" class="text-danger"></span>
+                <div class="col-md-6">
+                    <label for="complaint-house-owner" class="form-label">House owner</label>
+                    @* The owner always comes from the house (set by the server). *@
+                    <input id="complaint-house-owner" class="form-control" value="@Model.OwnerName" readonly />
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="IssueOrCompliant.IssueCategory" class="control-label"></label>
-                    <select asp-for="IssueOrCompliant.IssueCategory" class="form-control" asp-items="ViewBag.IssueCategories">
+                <div class="col-md-6">
+                    <label asp-for="IssueOrCompliant.IssueCategory" class="form-label"></label>
+                    <select asp-for="IssueOrCompliant.IssueCategory" class="form-select">
                         <option value="">-- Select Issue Category --</option>
                         <option>Incorrect Bed Rooms</option>
                         <option>Inaccurate Price</option>
@@ -48,77 +42,89 @@
                         <option>House has Legal Issues</option>
                         <option>Other</option>
                     </select>
-                    <span asp-validation-for="IssueOrCompliant.IssueCategory" class="text-danger"></span>
+                    <span asp-validation-for="IssueOrCompliant.IssueCategory" class="text-danger small"></span>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="IssueOrCompliant.SeverityLevel" class="control-label"></label>
-                    <select asp-for="IssueOrCompliant.SeverityLevel" class="form-control" asp-items="ViewBag.SeverityLevels"></select>
-                    <span asp-validation-for="IssueOrCompliant.SeverityLevel" class="text-danger"></span>
+                <div class="col-md-6">
+                    <label asp-for="IssueOrCompliant.SeverityLevel" class="form-label"></label>
+                    <select asp-for="IssueOrCompliant.SeverityLevel" class="form-select">
+                        <option value="">-- Select Severity Level --</option>
+                        <option>Low</option>
+                        <option>Medium</option>
+                        <option>High</option>
+                        <option>Critical</option>
+                    </select>
+                    <span asp-validation-for="IssueOrCompliant.SeverityLevel" class="text-danger small"></span>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="IssueOrCompliant.HowDoWeReachYou" class="control-label"></label>
-                    <select asp-for="IssueOrCompliant.HowDoWeReachYou" class="form-control" asp-items="ViewBag.ContactMethods"></select>
-                    <span asp-validation-for="IssueOrCompliant.HowDoWeReachYou" class="text-danger"></span>
-                </div>
-
-
-                <div class="mb-3">
+                <div class="col-12">
                     <label asp-for="IssueOrCompliant.DetailedDescription" class="form-label"></label>
-                    <input asp-for="IssueOrCompliant.DetailedDescription" class="form-control" />
-                    <span asp-validation-for="IssueOrCompliant.DetailedDescription" class="text-danger"></span>
+                    <textarea asp-for="IssueOrCompliant.DetailedDescription" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="IssueOrCompliant.DetailedDescription" class="text-danger small"></span>
                 </div>
+            </div>
+        </div>
 
-                
-
-                <div class="mb-3">
-                    <label asp-for="IssueOrCompliant.SupportingEvidenceUrl" class="form-label"></label>
-                    <input asp-for="IssueOrCompliant.SupportingEvidenceUrl" type="file" class="form-control" />
-                    <span asp-validation-for="IssueOrCompliant.SupportingEvidenceUrl" class="text-danger"></span>
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Supporting evidence</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="SupportingEvidence" class="form-label"></label>
+                    @if (!string.IsNullOrEmpty(Model.IssueOrCompliant.SupportingEvidenceUrl))
+                    {
+                        <a href="@Model.IssueOrCompliant.SupportingEvidenceUrl" target="_blank" rel="noopener" class="d-inline-block small mb-2"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> View current file</a>
+                    }
+                    <input asp-for="SupportingEvidence" type="file" class="form-control" accept="image/*,.pdf" />
+                    <span asp-validation-for="SupportingEvidence" class="text-danger small"></span>
                 </div>
-
-                <div class="mb-3">
-                    <label asp-for="IssueOrCompliant.SupportingEvidence2Url" class="form-label"></label>
-                    <input asp-for="IssueOrCompliant.SupportingEvidence2Url" type="file" class="form-control" />
-                    <span asp-validation-for="IssueOrCompliant.SupportingEvidence2Url" class="text-danger"></span>
+                <div class="col-md-6">
+                    <label asp-for="SupportingEvidence2" class="form-label"></label>
+                    @if (!string.IsNullOrEmpty(Model.IssueOrCompliant.SupportingEvidence2Url))
+                    {
+                        <a href="@Model.IssueOrCompliant.SupportingEvidence2Url" target="_blank" rel="noopener" class="d-inline-block small mb-2"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> View current file</a>
+                    }
+                    <input asp-for="SupportingEvidence2" type="file" class="form-control" accept="image/*,.pdf" />
+                    <span asp-validation-for="SupportingEvidence2" class="text-danger small"></span>
                 </div>
+            </div>
+        </div>
 
-                <div class="mb-3">
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Complainant</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
                     <label asp-for="IssueOrCompliant.ComplainantFullName" class="form-label"></label>
                     <input asp-for="IssueOrCompliant.ComplainantFullName" class="form-control" />
-                    <span asp-validation-for="IssueOrCompliant.ComplainantFullName" class="text-danger"></span>
+                    <span asp-validation-for="IssueOrCompliant.ComplainantFullName" class="text-danger small"></span>
                 </div>
-
-                <div class="mb-3">
+                <div class="col-md-6">
                     <label asp-for="IssueOrCompliant.HowDoWeReachYou" class="form-label"></label>
-                    <input asp-for="IssueOrCompliant.HowDoWeReachYou" class="form-control" />
-                    <span asp-validation-for="IssueOrCompliant.HowDoWeReachYou" class="text-danger"></span>
+                    <select asp-for="IssueOrCompliant.HowDoWeReachYou" class="form-select">
+                        <option value="">-- Select Preferred Contact Method --</option>
+                        <option>Phone Call</option>
+                        <option>Email</option>
+                        <option>SMS</option>
+                        <option>InPerson</option>
+                    </select>
+                    <span asp-validation-for="IssueOrCompliant.HowDoWeReachYou" class="text-danger small"></span>
                 </div>
-
-                <div class="mb-3">
+                <div class="col-md-6">
                     <label asp-for="IssueOrCompliant.PhoneOrEmail" class="form-label"></label>
                     <input asp-for="IssueOrCompliant.PhoneOrEmail" class="form-control" />
-                    <span asp-validation-for="IssueOrCompliant.PhoneOrEmail" class="text-danger"></span>
+                    <span asp-validation-for="IssueOrCompliant.PhoneOrEmail" class="text-danger small"></span>
                 </div>
-
-                <div class="mb-3">
+                <div class="col-md-6">
                     <label asp-for="IssueOrCompliant.ComplainantAddress" class="form-label"></label>
                     <input asp-for="IssueOrCompliant.ComplainantAddress" class="form-control" />
-                    <span asp-validation-for="IssueOrCompliant.ComplainantAddress" class="text-danger"></span>
+                    <span asp-validation-for="IssueOrCompliant.ComplainantAddress" class="text-danger small"></span>
                 </div>
+            </div>
+        </div>
 
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
+        <div class="mh-form-actions">
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save changes</button>
         </div>
     </div>
-
-    <div class="mt-3">
-        <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
-    </div>
-</div>
+</form>
 
 @section Scripts {
     @{

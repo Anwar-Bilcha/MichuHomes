@@ -2,262 +2,291 @@
 @model RadiantHomes.Pages.ApartmentHouses.DetailsModel
 
 @{
-    ViewData["Title"] = "Apartment House Details";
+    ViewData["Title"] = string.IsNullOrWhiteSpace(Model.ApartmentHouse?.Title) ? "Apartment house details" : Model.ApartmentHouse.Title;
+    ViewData["Subtitle"] = string.IsNullOrWhiteSpace(Model.CompanyName) ? null : $"From {Model.CompanyName} Real Estate.";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<!-- Include Swiper for slider -->
+<input type="hidden" asp-for="CompanyName" />
 
+@* The result of a review / reservation (TempData Success/Error) is shown as a toast by _FlashMessages. *@
 
-<div class="container border-0 py-3">
-    <div class="row border-0">
-        <!-- Left: Main House Details (75%) -->
-        <div class="col-md-9 border-0">
-            <div class="card rounded-0 border-0">
-                <div class="card-header rounded border-0 bg-white text-dark">
-                    <p class="card-header lead mb-0">🏡 Apartment House Details for   
-                    <span class="fs-5 text-dark mb-0 fw-semibold"> @Model.ApartmentHouse.Title </span>
-                    </p>
-                </div>
-                <div class="card-body">
-                 
-
-<div class="w-100 py-1">
-    <div class="card rounded-4 border-0" style="max-width: 1400px;">
-        <div class="card-body">
-                                
-            <div class="mb-4 flex-column" style="padding-top:0px">
-                <p class="lead">
-                    <span class="fs-5 text-dark mb-1 fw-300"> @Model.ApartmentHouse.Title </span>
-                    <i class="bi bi-geo-alt-fill"></i>
-                    From <strong>@Model.CompanyName</strong> Real Estate
-                <span class="fs-4 fw-semibold text-success">ETB @Model.ApartmentHouse.SalePrice.ToString("N0")</span>
-                <span class="text-body">@Model.ApartmentHouse.Description</span>
-                </p>
-            </div>
-
-            
-            <div class="d-flex flex-wrap justify-content-between text-center gap-1">
-
-                <div class="flex-column">
-                    <i class="fa-solid fa-bed text-warning" style="font-size: 2.5rem;"></i>
-                    <div>Bedrooms: <br><strong>@Model.ApartmentHouse.Bedrooms</strong></div>
-                </div>
-                <div class="flex-column">
-                    <i class="fa-solid fa-shower text-success" style="font-size: 2.5rem;"></i>
-                    <div>Total Rooms: <br><strong>@Model.ApartmentHouse.TotalRooms</strong></div>
-                </div>
-
-
-                <div class="flex-column">
-                    <i class="fa fa-building text-danger" style="font-size: 2rem;"></i>
-                    <div>Floor Number: <br><strong>@Model.ApartmentHouse.FloorNumber</strong></div>
-                </div>
-                <div class="flex-column">
-                    <i class="fa fa-buy text-secondary" style="font-size: 2rem;"></i>
-                    <div>Available For: <br><strong>@Model.ApartmentHouse.AvailableFor</strong></div>
-                </div>
-            </div>
-            <input type="hidden" asp-for="CompanyName" />
-
-            <!-- Full-width Auto-sliding Swiper -->
-
-
-            <h5 class="mb-3 card-header">Photos</h5>
-            <div class="swiper mySwiper rounded-4" style="max-height: 400px;">
+<div class="row g-4">
+    <!-- Main house details -->
+    <div class="col-lg-8">
+        <!-- Photos: full-width auto-sliding Swiper -->
+        <div class="card mb-4 overflow-hidden">
+            <div class="swiper mySwiper">
                 <div class="swiper-wrapper">
-                    
                     @foreach (var photoPath in Model.Photos)
                     {
                         <div class="swiper-slide">
-                            <img src="@Url.Content(photoPath)" class="img-fluid w-100" style="height: 500px; object-fit: cover;" />
+                            <img src="@Url.Content(photoPath)" class="mh-slide-img" alt="@ApartmentHouseForm.PhotoAlt(photoPath, Model.ApartmentHouse.Title)" />
                         </div>
                     }
                 </div>
                 <div class="swiper-button-next"></div>
                 <div class="swiper-button-prev"></div>
                 <div class="swiper-pagination"></div>
-               </div>
-
-            <script>
-                var swiper = new Swiper(".mySwiper", {
-                    loop: true,
-                    autoplay: {
-                        delay: 30000,
-                        disableOnInteraction: false,
-                    },
-                    pagination: {
-                        el: ".swiper-pagination",
-                        clickable: true,
-                    },
-                    navigation: {
-                        nextEl: ".swiper-button-next",
-                        prevEl: ".swiper-button-prev",
-                    },
-                });
-            </script>
-                                <h4 class="mt-5 mb-3">Customer Reviews</h4>
-
-                                @if (Model.ApartmentHouse.Reviews != null && Model.Reviews.Any())
-                                {
-                                    <div class="row row-cols-1 row-cols-md-2 g-4">
-                                        <div class="mt-4">
-                                            @foreach (var review in Model.Reviews.OrderByDescending(r => r.ReviewDate))
-                                            {
-                                                <div class="d-flex mb-4">
-                                                    <div class="me-3">
-                                                        <img src="~/images/default-profile.png" class="rounded-circle" width="48" height="48" alt="User Avatar" />
-                                                    </div>
-                                                    <div class="bg-light rounded p-3 shadow-sm w-100">
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <strong>@review.ReviewerCustomer?.FirstName @review.ReviewerCustomer?.LastName</strong>
-                                                            <small class="text-muted">@review.ReviewDate.ToLocalTime().ToString("MMM dd, yyyy h:mm tt")</small>
-                                                        </div>
-                                                        <div class="text-warning mb-1">
-                                                            @for (int i = 1; i <= 5; i++)
-                                                            {
-                                                                <i class="bi @(i <= review.Rating ? "bi-star-fill" : "bi-star")"></i>
-                                                            }
-                                                        </div>
-                                                        <div class="text-dark">@review.Comment</div>
-                                                    </div>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="alert alert-light border rounded-4">
-                                        <p class="text-muted mb-0">No reviews yet for this house. Be the first to leave a review!</p>
-                                    </div>
-                                }
-                                <hr class="my-4" />
-                                <h5 class="mb-3">Leave a Review</h5>
-                                <form method="post" asp-page-handler="SubmitReview" asp-route-itemid="@Model.ApartmentHouse.Id" id="review-form">
-                                    <input type="hidden" asp-for="HouseReviews.HouseId" />
-                                    <div class="d-flex mb-4">
-                                        <div class="me-3">
-                                            <img src="~/images/default-profile.png" class="rounded-circle" width="48" height="48" alt="User Avatar" />
-                                        </div>
-                                        <div class="w-100">
-                                            <div class="mb-2">
-                                                <textarea name="HouseReviews.Comment" class="form-control" placeholder="Write a comment..." rows="3" required></textarea>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <label class="me-2 fw-semibold">Rating:</label>
-                                                    <select name="HouseReviews.Rating" class="form-select d-inline w-auto" required>
-                                                        <option value="">--</option>
-                                                        @for (int i = 1; i <= 5; i++)
-                                                        {
-                                                            <option value="@i">@i ★</option>
-                                                        }
-                                                    </select>
-                                                </div>
-                                                <button type="submit" class="btn btn-primary rounded-pill px-4">Post</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-
-            <hr class="my-4">
-            
-            <!-- Actions -->
-            <div class="d-flex flex-wrap gap-3 mt-5 justify-content-center">
-                                    <button class="btn btn-warning rounded-pill px-4 py-2" data-bs-toggle="modal" data-bs-target="#reserveModal">
-                                        <i class="bi bi-calendar-check me-2"></i> Reserve House
-                                    </button>
-
-               
-                                <a asp-page="/Houses/Actions/Complaints/Create" asp-route-id="@Model.ApartmentHouse.Id" class="btn btn-outline-danger rounded-pill px-4 py-2">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i> Report
-                </a>
             </div>
         </div>
-    </div>
-</div>
 
-                    ...
+        @if (Model.Model3D is not null)
+        {
+            <partial name="_ApartmentModelViewer" model="Model.Model3D" />
+        }
+
+        <!-- Price and actions -->
+        <div class="card mb-4">
+            <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div>
+                    <span class="mh-eyebrow">Price</span>
+                    <p class="mh-price mb-1">@ApartmentHouseForm.Price(Model.ApartmentHouse.SalePrice, Model.ApartmentHouse.Currency)</p>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-geo-alt-fill text-accent" aria-hidden="true"></i>
+                        From <strong>@Model.CompanyName</strong> Real Estate
+                    </p>
+                </div>
+                <div class="mh-listing-actions">
+                    <button type="button" class="btn btn-accent btn-lg" data-bs-toggle="modal" data-bs-target="#reserveModal">
+                        <i class="bi bi-calendar-check" aria-hidden="true"></i> Reserve House
+                    </button>
+                    <a asp-page="/Houses/Actions/Complaints/Create" asp-route-id="@Model.ApartmentHouse.Id" class="btn btn-outline-danger btn-lg">
+                        <i class="bi bi-exclamation-octagon" aria-hidden="true"></i> Report
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Right: Similar Houses (25%) -->
-        <div class="col-md-3 mt-4 mt-md-4">
-            <div class="card rounded-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Similar Houses</h5>
-                </div>
-                <div class="card-body p-3">
-                    @if (Model.SimilarHouses != null && Model.SimilarHouses.Any())
-                    {
-                        <ul class="list-unstyled">
-                            @foreach (var house in Model.SimilarHouses)
-                            {
-                                <li class="mb-3">
-                                    <a asp-page="/ApartmentHouses/Details" asp-route-id="@house.Id" class="text-decoration-none">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <img src="~/images/Villa2.jpg" class="rounded" alt="House" style="width: 60px; height: 60px; object-fit: cover;" />
-                                            <div>
-                                                <h6 class="mb-0">@house.Title</h6>
-                                                <p class="mb-1">@house.Building.Project.Company.Name</p>
-                                                <small class="text-muted">ETB @house.SalePrice.ToString("N0")</small>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <p class="text-muted">No similar houses found.</p>
-                    }
-                </div>
+        <!-- About this house -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-house-door" aria-hidden="true"></i> Apartment House Details</h2>
             </div>
-        </div>
-    </div>
-    <!-- House Review Modal -->
-    <!-- Reserve House Modal -->
-    <!-- Reserve House Modal -->
-    <div class="modal fade" id="reserveModal" tabindex="-1" aria-labelledby="reserveModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="reserveModalLabel">Reserve This Apartment House</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+            <div class="card-body">
+                @if (!string.IsNullOrWhiteSpace(Model.ApartmentHouse.Description))
+                {
+                    <p class="mb-4">@Model.ApartmentHouse.Description</p>
+                }
 
-                <form method="post" asp-page-handler="ReserveHouse" asp-route-itemid="@Model.ApartmentHouse.Id">
-                    @Html.AntiForgeryToken()
-                    <div class="modal-body">
-
-                        <!-- Hidden Fields from Transaction -->
-                        <input type="hidden" asp-for="Transaction.ApartmentHouseId" />
-                        <input type="hidden" asp-for="Transaction.CustomerId" />
-                        <input type="hidden" asp-for="Transaction.OwnerId" />
-
-                        <!-- Customer Name (Optional if logged in) -->
-                        <div class="mb-3">
-                            <label asp-for="CustomerName" class="form-label">Your Name</label>
-                            <input asp-for="CustomerName" class="form-control" required />
+                <div class="row row-cols-2 row-cols-md-4 g-3 text-center">
+                    <div class="col">
+                        <div class="mh-fact">
+                            <i class="fa-solid fa-bed" aria-hidden="true"></i>
+                            <span class="mh-fact-label">Bedrooms</span>
+                            <strong class="mh-fact-value">@Model.ApartmentHouse.Bedrooms</strong>
                         </div>
-
-                        <!-- Optional Notes -->
-                        <div class="mb-3">
-                            <label asp-for="Transaction.Notes" class="form-label">Reservation Notes</label>
-                            <textarea asp-for="Transaction.Notes" class="form-control" rows="3" placeholder="Any specific requests or info?"></textarea>
-                        </div>
-
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success rounded-pill px-4">Reserve</button>
+                    <div class="col">
+                        <div class="mh-fact">
+                            <i class="fa-solid fa-door-open" aria-hidden="true"></i>
+                            <span class="mh-fact-label">Total Rooms</span>
+                            <strong class="mh-fact-value">@Model.ApartmentHouse.TotalRooms</strong>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="mh-fact">
+                            <i class="fa-solid fa-building" aria-hidden="true"></i>
+                            <span class="mh-fact-label">Floor Number</span>
+                            <strong class="mh-fact-value">@Model.ApartmentHouse.FloorNumber</strong>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="mh-fact">
+                            <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                            <span class="mh-fact-label">Available For</span>
+                            <strong class="mh-fact-value">@Model.ApartmentHouse.AvailableFor</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-chat-square-text" aria-hidden="true"></i> Customer Reviews</h2>
+            </div>
+            <div class="card-body">
+                @if (Model.ApartmentHouse.Reviews != null && Model.Reviews.Any())
+                {
+                    <ul class="list-unstyled mb-0">
+                        @foreach (var review in Model.Reviews.OrderByDescending(r => r.ReviewDate))
+                        {
+                            <li class="d-flex gap-3 mb-3">
+                                <img src="~/images/default-profile.png" class="rounded-circle flex-shrink-0" width="48" height="48" alt="" />
+                                <div class="mh-review flex-grow-1">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                        <strong>@review.ReviewerCustomer?.FirstName @review.ReviewerCustomer?.LastName</strong>
+                                        <small class="text-muted">@review.ReviewDate.ToLocalTime().ToString("MMM dd, yyyy h:mm tt")</small>
+                                    </div>
+                                    <div class="mh-stars mb-1" role="img" aria-label="Rated @review.Rating out of 5">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="bi @(i <= review.Rating ? "bi-star-fill" : "bi-star")" aria-hidden="true"></i>
+                                        }
+                                    </div>
+                                    <div>@review.Comment</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No reviews yet for this house. Be the first to leave a review!</p>
+                }
+
+                <hr class="my-4" />
+                <h3 class="h6 mb-3">Leave a Review</h3>
+                <form method="post" asp-page-handler="SubmitReview" asp-route-itemid="@Model.ApartmentHouse.Id" id="review-form">
+                    <input type="hidden" asp-for="HouseReviews.HouseId" />
+                    <div class="d-flex gap-3">
+                        <img src="~/images/default-profile.png" class="rounded-circle flex-shrink-0" width="48" height="48" alt="" />
+                        <div class="flex-grow-1">
+                            <label for="reviewComment" class="visually-hidden">Your review</label>
+                            <textarea id="reviewComment" name="HouseReviews.Comment" class="form-control mb-2" placeholder="Write a comment..." rows="3" required></textarea>
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="reviewRating" class="mb-0">Rating:</label>
+                                    <select id="reviewRating" name="HouseReviews.Rating" class="form-select w-auto" required>
+                                        <option value="">--</option>
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <option value="@i">@i ★</option>
+                                        }
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-send" aria-hidden="true"></i> Post</button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
+    <!-- Sidebar: similar houses -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-houses" aria-hidden="true"></i> Similar Houses</h2>
+            </div>
+            <div class="card-body">
+                @if (Model.SimilarHouses != null && Model.SimilarHouses.Any())
+                {
+                    <ul class="list-unstyled mb-0 mh-similar">
+                        @foreach (var house in Model.SimilarHouses)
+                        {
+                            <li>
+                                <a asp-page="/ApartmentHouses/Details" asp-route-id="@house.Id" class="d-flex align-items-center gap-3 text-decoration-none">
+                                    @if (Model.SimilarPhotoUrls.TryGetValue(house.Id, out var similarPhoto))
+                                    {
+                                        <img src="@similarPhoto" class="mh-similar-thumb" alt="" loading="lazy"
+                                             onerror="this.onerror=null;this.src='/images/brand/michu-homes-mark.svg';this.classList.add('mh-similar-thumb--logo')" />
+                                    }
+                                    else
+                                    {
+                                        <img src="/images/brand/michu-homes-mark.svg" class="mh-similar-thumb mh-similar-thumb--logo" alt="" />
+                                    }
+                                    <div class="min-w-0">
+                                        <span class="d-block fw-semibold text-navy">@house.Title</span>
+                                        <span class="d-block small text-muted">@house.Building.Project.Company.Name</span>
+                                        <span class="d-block small fw-semibold text-accent">@ApartmentHouseForm.Price(house.SalePrice, house.Currency)</span>
+                                    </div>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No similar houses found.</p>
+                }
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Reserve House Modal -->
+<div class="modal fade" id="reserveModal" tabindex="-1" aria-labelledby="reserveModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="reserveModalLabel"><i class="bi bi-calendar-check" aria-hidden="true"></i> Reserve this apartment</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="post" asp-page-handler="ReserveHouse" asp-route-itemid="@Model.ApartmentHouse.Id">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <p class="mh-modal-lead">The apartment is marked as reserved and the real estate company is notified.</p>
+
+                    <!-- Hidden Fields from Transaction -->
+                    <input type="hidden" asp-for="Transaction.ApartmentHouseId" />
+                    <input type="hidden" asp-for="Transaction.CustomerId" />
+                    <input type="hidden" asp-for="Transaction.OwnerId" />
+
+                    <!-- Customer Name (Optional if logged in) -->
+                    <div class="mb-3">
+                        <label asp-for="CustomerName" class="form-label">Your Name</label>
+                        <input asp-for="CustomerName" class="form-control" required />
+                        <span asp-validation-for="CustomerName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Optional Notes -->
+                    <div>
+                        <label asp-for="Transaction.Notes" class="form-label">Reservation Notes <span class="text-muted fw-normal">(optional)</span></label>
+                        @* Optional: the non-nullable model property would otherwise make client validation silently block the submit. *@
+                        <textarea asp-for="Transaction.Notes" class="form-control" rows="3" placeholder="Any specific requests or info?" data-val="false"></textarea>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-calendar-check" aria-hidden="true"></i> Reserve</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* width: Swiper sets auto side margins, which stop the card (a flex column) from stretching it */
+        .mySwiper { width: 100%; --swiper-theme-color: var(--mh-orange); --swiper-navigation-color: var(--mh-orange); }
+        .mySwiper .mh-slide-img { display: block; width: 100%; aspect-ratio: 16 / 10; max-height: 460px; object-fit: cover; background: var(--mh-surface-3); }
+
+        .mh-fact { display: flex; flex-direction: column; align-items: center; gap: .2rem; height: 100%; padding: 1rem .5rem; border-radius: var(--mh-radius); background: var(--mh-navy-50); }
+        .mh-fact > i { font-size: 1.5rem; color: var(--mh-orange-700); margin-bottom: .25rem; }
+        .mh-fact-label { font-size: .8125rem; color: var(--mh-ink-3); }
+        .mh-fact-value { font-family: var(--mh-font-display); font-size: 1.15rem; color: var(--mh-navy); }
+
+        .mh-review { background: var(--mh-surface-2); border-radius: var(--mh-radius); padding: .85rem 1rem; }
+        .mh-stars { color: var(--mh-orange); }
+
+        .mh-price { font-family: var(--mh-font-display); font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); font-weight: 800; color: var(--mh-navy); line-height: 1.2; }
+
+        .mh-listing-actions { display: grid; gap: .5rem; width: 100%; }
+        @@media (min-width: 576px) {
+            .mh-listing-actions { display: flex; width: auto; }
+        }
+
+        .mh-similar > li + li { margin-top: .9rem; padding-top: .9rem; border-top: 1px solid var(--mh-border); }
+        .mh-similar-thumb { width: 64px; height: 64px; flex: 0 0 64px; object-fit: cover; border-radius: var(--mh-radius-sm); }
+        .mh-similar-thumb--logo { object-fit: contain; padding: .4rem; background: var(--mh-surface-2); }
+        .mh-similar a:hover .text-navy { text-decoration: underline; }
+        .min-w-0 { min-width: 0; }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Shared photo-slider behaviour (wwwroot/js/site.js): 5 s auto-advance, pause on hover, keyboard/swipe.
+        initPhotoSlider('.mySwiper');
+    </script>
+    @if (Model.Model3D is not null)
+    {
+        <script src="~/js/model-view.js" asp-append-version="true"></script>
+    }
+}

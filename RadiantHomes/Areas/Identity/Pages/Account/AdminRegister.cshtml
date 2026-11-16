@@ -1,56 +1,83 @@
 ﻿@page
-@model RegisterModel
+@model AdminRegisterModel
 @{
     Layout = null;
+    // Stand-alone page (no layout): _HeadAssets reads the resolved title from MhTitle.
+    ViewData["Title"] = "Register real estate admin";
+    ViewData["MhTitle"] = ViewData["Title"];
 }
-<div class="modal fade" id="adminRegisterModal" tabindex="-1" aria-labelledby="adminRegisterLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" asp-page="/Account/Register">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="adminRegisterLabel">Register Real Estate Admin</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!DOCTYPE html>
+<html lang="@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName">
+<head>
+    <partial name="_HeadAssets" />
+</head>
+<body class="bg-navy-subtle">
+    <main id="main-content" class="container py-5">
+        <div class="mh-auth">
+            <div class="text-center mb-4">
+                <a asp-area="" asp-page="/Index" class="d-inline-block" style="width: 180px" aria-label="Michu Homes — home">
+                    <partial name="_BrandLogo" model="@("color")" />
+                </a>
+            </div>
+
+            <div class="card" id="adminRegisterModal" aria-labelledby="adminRegisterLabel">
+                <div class="card-body">
+                    <h1 class="h3 text-center mb-4" id="adminRegisterLabel">Register Real Estate Admin</h1>
+
+                    @* Posts back to this page (handlers inherited from RegisterModel) so errors and the
+                       success message render here and the admin stays signed in. *@
+                    <form method="post">
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+                        @if (!string.IsNullOrEmpty(Model.Success))
+                        {
+                            <div class="alert alert-success d-flex align-items-start gap-2" role="status">
+                                <i class="bi bi-check-circle-fill mt-1" aria-hidden="true"></i>
+                                <div>@Model.Success</div>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Email" class="form-label"></label>
+                            <input asp-for="Input.Email" class="form-control" />
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Password" class="form-label"></label>
+                            <input asp-for="Input.Password" class="form-control" />
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.ConfirmPassword" class="form-label"></label>
+                            <input asp-for="Input.ConfirmPassword" class="form-control" />
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="CompanyId" class="form-label">Select Company</label>
+                            <select asp-for="CompanyId" class="form-select" asp-items="ViewBag.Companies">
+                                <option value="">-- Select Company --</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="CustomerId" class="form-label">Select Customer</label>
+                            <select asp-for="CustomerId" class="form-select" asp-items="ViewBag.Customers">
+                                <option value="">-- Select Customer --</option>
+                            </select>
+                        </div>
+
+                        <div class="mh-form-actions">
+                            <a asp-area="HousingCompanyAdmin" asp-page="/Index" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="modal-body">
-                    <div asp-validation-summary="All" class="text-danger"></div>
-
-                    <div class="mb-3">
-                        <label asp-for="Input.Email" class="form-label"></label>
-                        <input asp-for="Input.Email" class="form-control" />
-                        <span asp-validation-for="Input.Email" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Input.Password" class="form-label"></label>
-                        <input asp-for="Input.Password" class="form-control" />
-                        <span asp-validation-for="Input.Password" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Input.ConfirmPassword" class="form-label"></label>
-                        <input asp-for="Input.ConfirmPassword" class="form-control" />
-                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="CompanyId" class="form-label">Select Company</label>
-                        <select asp-for="CompanyId" class="form-select" asp-items="ViewBag.Companies">
-                            <option value="">-- Select Company --</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="CustomerId" class="form-label">Select Customer</label>
-                        <select asp-for="CustomerId" class="form-select" asp-items="ViewBag.Customers">
-                            <option value="">-- Select Customer --</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Register</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
+    </main>
+
+    <partial name="_CoreScripts" />
+</body>
+</html>

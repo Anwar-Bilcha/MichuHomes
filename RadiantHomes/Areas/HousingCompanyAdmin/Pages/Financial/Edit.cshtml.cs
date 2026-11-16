@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
 {
@@ -35,8 +36,14 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
             {
                 return NotFound();
             }
+            // Real Estate Admins may only edit their own company's financial details
+            _scope = await CompanyScope.ForAsync(User, _context);
+            if (!_scope.CanAccess(companyfinancialdetail.CompanyId))
+            {
+                return Forbid();
+            }
             CompanyFinancialDetail = companyfinancialdetail;
-           ViewData["CompanyId"] = new SelectList(_context.HousingCompanies, "CompanyId", "CompanyId");
+            LoadSelectLists();
             return Page();
         }
 
@@ -44,8 +51,35 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
         // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            _scope = await CompanyScope.ForAsync(User, _context);
+            var storedCompanyId = await _context.HousingCompanyFinancialDetails.AsNoTracking()
+                .Where(f => f.Id == CompanyFinancialDetail.Id)
+                .Select(f => (Guid?)f.CompanyId)
+                .FirstOrDefaultAsync();
+            if (storedCompanyId == null)
+            {
+                return NotFound();
+            }
+            if (!_scope.CanAccess(storedCompanyId))
+            {
+                return Forbid();
+            }
+            // ...and the record can't be moved to another company
+            if (!_scope.CanAccess(CompanyFinancialDetail.CompanyId))
+            {
+                ModelState.AddModelError("CompanyFinancialDetail.CompanyId", "Please choose your own company.");
+            }
+
+            // The statement URL only matters when an audited statement exists
+            if (!CompanyFinancialDetail.hasAuditedFinancialStatement && string.IsNullOrWhiteSpace(CompanyFinancialDetail.AuditedFinancialStatementUrl))
+            {
+                CompanyFinancialDetail.AuditedFinancialStatementUrl = string.Empty;
+                ModelState.Remove("CompanyFinancialDetail.AuditedFinancialStatementUrl");
+            }
+
             if (!ModelState.IsValid)
             {
+                LoadSelectLists();
                 return Page();
             }
 
@@ -68,6 +102,14 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
             }
 
             return RedirectToPage("./Index");
+        }
+
+        // Set by each handler: the user's company scope
+        private CompanyScope _scope = default!;
+
+        private void LoadSelectLists()
+        {
+            ViewData["CompanyId"] = new SelectList(_scope.Companies(_context.HousingCompanies).OrderBy(c => c.Name), "CompanyId", "Name");
         }
 
         private bool CompanyFinancialDetailExists(Guid id)

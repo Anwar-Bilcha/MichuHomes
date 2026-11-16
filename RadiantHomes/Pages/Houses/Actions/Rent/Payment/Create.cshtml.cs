@@ -2,10 +2,10 @@
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using RadiantHomes.DAL;
-using RadiantHomes.ExternalApiKeys;
 using RadiantHomes.Models;
 using RadiantHomes.Models.DTOs;
 
@@ -14,6 +14,8 @@ namespace RadiantHomes.Pages.Houses.Actions.Rent.Payment
     public class CreateModel : PageModel
     {
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly UserManager<AppUser> _userManager;
 
         public CommisionRate RentCommision { get; set; }
         public HouseRentTransaction RentTransaction { get; set; }
@@ -28,12 +30,14 @@ namespace RadiantHomes.Pages.Houses.Actions.Rent.Payment
         [BindProperty(SupportsGet = true)]
         public Guid TransactionId { get; set; }
 
-        public CreateModel(ApplicationDbContext context)
+        public CreateModel(ApplicationDbContext context, IConfiguration configuration, UserManager<AppUser> userManager)
         {
             _context = context;
+            _configuration = configuration;
+            _userManager = userManager;
         }
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
             if (TransactionId == Guid.Empty)
             {
@@ -46,6 +50,11 @@ namespace RadiantHomes.Pages.Houses.Actions.Rent.Payment
             {
                 ModelState.AddModelError("", "Transaction not found.");
                 return Page();
+            }
+            // Only a Michu admin or a party to the rent transaction (owner / tenant).
+            if (!await TransactionAccess.CanAccessAsync(_userManager, User, RentTransaction.OwnerId, RentTransaction.CustomerId))
+            {
+                return Forbid();
             }
 
             House = _context.Houses.Find(RentTransaction.HouseId) ?? new();
@@ -81,6 +90,11 @@ namespace RadiantHomes.Pages.Houses.Actions.Rent.Payment
             {
                 ModelState.AddModelError("", "Transaction not found.");
                 return Page();
+            }
+            // Checked before anything is sent to the payment provider.
+            if (!await TransactionAccess.CanAccessAsync(_userManager, User, RentTransaction.OwnerId, RentTransaction.CustomerId))
+            {
+                return Forbid();
             }
 
             House = _context.Houses.Find(RentTransaction.HouseId) ?? new();
@@ -120,7 +134,8 @@ namespace RadiantHomes.Pages.Houses.Actions.Rent.Payment
             };
 
             using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {ChapaKey.ChapaPrivateKey}");
+            // Chapa secret key comes from configuration (user-secrets locally, Chapa__SecretKey env var on servers)
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_configuration["Chapa:SecretKey"]}");
             httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
             var response = await httpClient.PostAsJsonAsync("https://api.chapa.co/v1/transaction/initialize", ChapaRequest);
@@ -131,6 +146,7 @@ namespace RadiantHomes.Pages.Houses.Actions.Rent.Payment
 
             if (response.IsSuccessStatusCode)
             {
+                AuditFields.ResetForInsert(HouseRentPayment); // stamped by ApplicationDbContext on save
                 _context.HouseRentPayments.Add(HouseRentPayment);
                 await _context.SaveChangesAsync();
                 return RedirectToPage("./Index");

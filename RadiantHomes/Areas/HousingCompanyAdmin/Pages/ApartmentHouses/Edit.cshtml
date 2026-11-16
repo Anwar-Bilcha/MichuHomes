@@ -2,116 +2,95 @@
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses.EditModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit apartment";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<h1>Edit</h1>
+<form method="post" enctype="multipart/form-data" class="card">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="ApartmentHouse.Id" />
 
-<h4>ApartmentHouse</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="ApartmentHouse.Id" />
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.Title" class="control-label"></label>
-                <input asp-for="ApartmentHouse.Title" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.Title" class="text-danger"></span>
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Apartment</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.Title" class="form-label"></label>
+                    <input asp-for="ApartmentHouse.Title" class="form-control" />
+                    <span asp-validation-for="ApartmentHouse.Title" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.HouseNumber" class="form-label"></label>
+                    <input asp-for="ApartmentHouse.HouseNumber" class="form-control" />
+                    <span asp-validation-for="ApartmentHouse.HouseNumber" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="ApartmentHouse.Description" class="form-label"></label>
+                    <input asp-for="ApartmentHouse.Description" class="form-control" />
+                    <span asp-validation-for="ApartmentHouse.Description" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.HouseCategoryId" class="form-label"></label>
+                    <select asp-for="ApartmentHouse.HouseCategoryId" class="form-select" asp-items="ViewBag.HouseCategoryId"></select>
+                    <span asp-validation-for="ApartmentHouse.HouseCategoryId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.AvailableFor" class="form-label"></label>
+                    <input asp-for="ApartmentHouse.AvailableFor" class="form-control" />
+                    <span asp-validation-for="ApartmentHouse.AvailableFor" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.Status" class="form-label"></label>
+                    @if (Model.CanEditStatus)
+                    {
+                        <input asp-for="ApartmentHouse.Status" class="form-control" />
+                        <span asp-validation-for="ApartmentHouse.Status" class="text-danger"></span>
+                    }
+                    else
+                    {
+                        @* Not posted: only a Michu Admin may change the status (it decides whether the house is listed) *@
+                        <input id="ApartmentHouse_Status" class="form-control" value="@Model.ApartmentHouse.Status" readonly aria-describedby="statusHelp" />
+                        <div id="statusHelp" class="form-text">Only a Michu Admin can change the status (approval).</div>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.HouseType" class="form-label"></label>
+                    <input asp-for="ApartmentHouse.HouseType" class="form-control" />
+                    <span asp-validation-for="ApartmentHouse.HouseType" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.HouseNumber" class="control-label"></label>
-                <input asp-for="ApartmentHouse.HouseNumber" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.HouseNumber" class="text-danger"></span>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Location</h2>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label asp-for="ApartmentHouse.AddressId" class="form-label"></label>
+                    <select asp-for="ApartmentHouse.AddressId" class="form-select" asp-items="ViewBag.AddressId"></select>
+                    <span asp-validation-for="ApartmentHouse.AddressId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.BuildingId" class="form-label"></label>
+                    <select asp-for="ApartmentHouse.BuildingId" class="form-select" asp-items="ViewBag.BuildingId"></select>
+                    <span asp-validation-for="ApartmentHouse.BuildingId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ApartmentHouse.FloorNumber" class="form-label"></label>
+                    <input asp-for="ApartmentHouse.FloorNumber" class="form-control" />
+                    <span asp-validation-for="ApartmentHouse.FloorNumber" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.Description" class="control-label"></label>
-                <input asp-for="ApartmentHouse.Description" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.Description" class="text-danger"></span>
-            </div>
-           
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.HouseCategoryId" class="control-label"></label>
-                <select asp-for="ApartmentHouse.HouseCategoryId" class="form-control" asp-items="ViewBag.HouseCategoryId"></select>
-                <span asp-validation-for="ApartmentHouse.HouseCategoryId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.AvailableFor" class="control-label"></label>
-                <input asp-for="ApartmentHouse.AvailableFor" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.AvailableFor" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.AddressId" class="control-label"></label>
-                <select asp-for="ApartmentHouse.AddressId" class="form-control" asp-items="ViewBag.AddressId"></select>
-                <span asp-validation-for="ApartmentHouse.AddressId" class="text-danger"></span>
-            </div>
-            
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.Status" class="control-label"></label>
-                <input asp-for="ApartmentHouse.Status" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.Status" class="text-danger"></span>
-            </div>
-                        
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.BuildingId" class="control-label"></label>
-                <select asp-for="ApartmentHouse.BuildingId" class="form-control" asp-items="ViewBag.BuildingId"></select>
-                <span asp-validation-for="ApartmentHouse.BuildingId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.HouseType" class="control-label"></label>
-                <input asp-for="ApartmentHouse.HouseType" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.HouseType" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.FloorNumber" class="control-label"></label>
-                <input asp-for="ApartmentHouse.FloorNumber" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.FloorNumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.CreatedBy" class="control-label"></label>
-                <input asp-for="ApartmentHouse.CreatedBy" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.CreatedBy" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.CreatedOn" class="control-label"></label>
-                <input asp-for="ApartmentHouse.CreatedOn" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.CreatedOn" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.UpdatedBy" class="control-label"></label>
-                <input asp-for="ApartmentHouse.UpdatedBy" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.UpdatedBy" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                
-                <label asp-for="ApartmentHouse.UpdatedOn" class="control-label"></label>
-                <input asp-for="ApartmentHouse.UpdatedOn" class="form-control" />
-                <span asp-validation-for="ApartmentHouse.UpdatedOn" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
+
+        <partial name="~/Pages/ApartmentHouses/_ApartmentModelField.cshtml" model="Model.Model3D" />
+
+        <div class="mh-form-actions">
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save changes</button>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-page="./Index">Back to List</a>
-</div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

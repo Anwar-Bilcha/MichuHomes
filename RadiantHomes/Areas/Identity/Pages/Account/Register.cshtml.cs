@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RadiantHomes.DAL;
 using RadiantHomes.Models;
@@ -122,61 +123,57 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
         public Guid? CompanyId { get; set; }
         public string Success { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(string companyId, string customerId, string returnUrl = null)
+        // customerId / companyId are optional query parameters (bound into CustomerId / CompanyId above):
+        //   - /Identity/Account/Register                         plain sign-up (Login page link)
+        //   - ?customerId=<profile id>                            link the new account to a just-created
+        //                                                         house owner profile (HouseOwner/Create)
+        //   - ?companyId=<company id>                             register a Real Estate Admin of that company
+        //                                                         (AdminRegister, admin pre-creation flow)
+        // A value that is missing, malformed or not usable is ignored so the visitor can still register.
+        public async Task<IActionResult> OnGetAsync(string returnUrl = null)
         {
-            //if (string.IsNullOrEmpty(customerId))
-            //{
-            //    TempData["ErrorMessage"] = "Customer ID is missing. Please create a profile first.";
-            //    return RedirectToPage("/HouseOwner/Create"); // or wherever you want to send them
-            //}
-           
-            if (!Guid.TryParse(customerId, out var parsedCustomerId))
+            // Invalid GUIDs leave binding errors (and their raw values) in ModelState; drop them so the
+            // hidden fields render from the cleaned-up properties below.
+            ModelState.Clear();
+
+            if (CustomerId.HasValue && await GetCustomerLinkErrorAsync(CustomerId.Value) != null)
             {
-                return NotFound();
+                CustomerId = null;
             }
-            if (!string.IsNullOrEmpty(customerId) && Guid.TryParse(customerId, out parsedCustomerId))
+            if (CompanyId.HasValue && !await CanAssignCompanyAsync(CompanyId.Value))
             {
-                CustomerId = parsedCustomerId;
+                CompanyId = null;
             }
 
-            if (!Guid.TryParse(customerId, out var parsedCompanyId))
-            {
-                return NotFound();
-            }
-            if (!string.IsNullOrEmpty(companyId) && Guid.TryParse(companyId, out parsedCompanyId))
-            {
-                CompanyId = parsedCompanyId;
-            }
-
-            //CustomerId = parsedCustomerId;
-            ////var customerId = TempData.Peek("CustomerId") as string;
-            //bool getGuid = Guid.TryParse(customerId, out Guid result);
-            //if (getGuid)
-            //{
-            //    CustomerId = result;
-            //}
-            //TempData.Keep("CustomerId");
-
-            // CustomerId = Guid.Parse(customerId);
-            returnUrl ??= Url.Content("~/");
+            ReturnUrl = returnUrl ?? Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-            ViewData["Companies"] = new SelectList(_context.HousingCompanies, "CompanyId", "Name");
-            ViewData["Customers"] = new SelectList(_context.UserProfiles.Where(c => c.ProfileStatus.ToLower() == "approved"), "Id", "FirstName");
+            await LoadSelectListsAsync();
 
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-            //var customerId = TempData.Peek("CustomerId") as string;
-            //CustomerId = Guid.Parse(customerId);
-            //TempData.Keep("CustomerId");
-            //CustomerId = customerId.Value;
             returnUrl ??= Url.Content("~/");
+            ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+            if (CustomerId.HasValue)
+            {
+                var linkError = await GetCustomerLinkErrorAsync(CustomerId.Value);
+                if (linkError != null)
+                {
+                    ModelState.AddModelError(string.Empty, linkError);
+                }
+            }
+            if (CompanyId.HasValue && !await CanAssignCompanyAsync(CompanyId.Value))
+            {
+                ModelState.AddModelError(string.Empty, "You are not allowed to register an admin for the selected company.");
+            }
+
             if (ModelState.IsValid)
             {
-                
+
                var user = CreateUser();
                 //var user = new AppUser { CustomerId=CustomerId };
                 // user.CustomerId = CustomerId;
@@ -221,6 +218,19 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
+                    // Someone who is already signed in (e.g. an admin on AdminRegister) is registering an
+                    // account for another person: keep them signed in as themselves.
+                    if (User.Identity?.IsAuthenticated == true)
+                    {
+                        Success = $"The account {Input.Email} has been created.";
+                        ModelState.Clear();
+                        Input = new InputModel();
+                        CustomerId = null;
+                        CompanyId = null;
+                        await LoadSelectListsAsync();
+                        return Page();
+                    }
+
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
@@ -238,7 +248,70 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
             }
 
             // If we got this far, something failed, redisplay form
+            await LoadSelectListsAsync();
             return Page();
+        }
+
+        // Returns why the profile can't be linked to a new account, or null when it can.
+        private async Task<string> GetCustomerLinkErrorAsync(Guid customerId)
+        {
+            if (!await _context.UserProfiles.AnyAsync(c => c.Id == customerId))
+            {
+                return "The customer profile to link to this account was not found.";
+            }
+            // AspNetUsers.CustomerId is unique: one account per profile.
+            if (await _userManager.Users.AnyAsync(u => u.CustomerId == customerId))
+            {
+                return "This customer profile is already linked to an account.";
+            }
+            return null;
+        }
+
+        // Registering with a company grants the Real Estate Admin role for that company, so only a
+        // Michu Admin (any company) or that company's own Real Estate Admin may do it.
+        private async Task<bool> CanAssignCompanyAsync(Guid companyId)
+        {
+            if (User.Identity?.IsAuthenticated != true ||
+                !await _context.HousingCompanies.AnyAsync(c => c.CompanyId == companyId))
+            {
+                return false;
+            }
+            if (User.IsInRole(MichuHomesRoles.MichuAdmin))
+            {
+                return true;
+            }
+            if (User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                return currentUser?.HousingCompanyId == companyId;
+            }
+            return false;
+        }
+
+        // Options for the AdminRegister company / customer pickers.
+        private async Task LoadSelectListsAsync()
+        {
+            var companies = _context.HousingCompanies.AsQueryable();
+            if (!User.IsInRole(MichuHomesRoles.MichuAdmin))
+            {
+                Guid? ownCompanyId = null;
+                if (User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+                {
+                    ownCompanyId = (await _userManager.GetUserAsync(User))?.HousingCompanyId;
+                }
+                companies = companies.Where(c => ownCompanyId != null && c.CompanyId == ownCompanyId);
+            }
+            ViewData["Companies"] = new SelectList(await companies.OrderBy(c => c.Name).ToListAsync(), "CompanyId", "Name");
+
+            // Approved profiles that don't have an account yet.
+            var accounts = _context.Set<AppUser>();
+            var customers = await _context.UserProfiles
+                .Where(c => c.ProfileStatus.ToLower() == "approved" && !accounts.Any(u => u.CustomerId == c.Id))
+                .OrderBy(c => c.FirstName).ThenBy(c => c.LastName)
+                .Select(c => new { c.Id, c.FirstName, c.LastName })
+                .ToListAsync();
+            ViewData["Customers"] = new SelectList(
+                customers.Select(c => new { c.Id, Name = $"{c.FirstName} {c.LastName}".Trim() }), "Id", "Name");
         }
 
         private AppUser CreateUser()

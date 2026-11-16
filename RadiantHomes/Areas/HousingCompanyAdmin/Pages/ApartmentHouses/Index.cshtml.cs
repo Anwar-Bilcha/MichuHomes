@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses
 {
@@ -21,9 +22,15 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses
 
         public IList<ApartmentHouse> ApartmentHouse { get;set; } = default!;
 
+        // A Real Estate Admin without a company: show why the list is empty
+        public bool NoCompany { get; set; }
+
         public async Task OnGetAsync()
         {
-            ApartmentHouse = await _context.ApartmentHouses
+            // A Real Estate Admin only sees their own company's apartments
+            var scope = await CompanyScope.ForAsync(User, _context);
+            NoCompany = scope.HasNoCompany;
+            ApartmentHouse = await scope.Houses(_context.ApartmentHouses)
                 .Include(a => a.Building)
                 .Include(a => a.HouseAddress)
                 .Include(a => a.HouseCategory).ToListAsync();

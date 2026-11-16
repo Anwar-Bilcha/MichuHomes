@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Pages.RealEstates
 {
@@ -30,26 +31,58 @@ namespace RadiantHomes.Pages.RealEstates
                 return NotFound();
             }
 
-            var housingcompany =  await _context.HousingCompanies.FirstOrDefaultAsync(m => m.CompanyId == id);
+            var housingcompany = await _context.HousingCompanies.AsNoTracking().FirstOrDefaultAsync(m => m.CompanyId == id);
             if (housingcompany == null)
             {
                 return NotFound();
             }
+            // Real Estate Admins may only edit their own company
+            if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(housingcompany.CompanyId))
+            {
+                return Forbid();
+            }
             HousingCompany = housingcompany;
-           ViewData["AddressId"] = new SelectList(_context.Addresses, "AddressID", "AddressID");
+            await PopulateAddressesAsync();
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            if (HousingCompany == null)
+            {
+                return BadRequest();
+            }
+
+            var existing = await _context.HousingCompanies.FirstOrDefaultAsync(c => c.CompanyId == HousingCompany.CompanyId);
+            if (existing == null)
+            {
+                return NotFound();
+            }
+            if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(existing.CompanyId))
+            {
+                return Forbid();
+            }
+
+            // The saved status stays acceptable even if it isn't one of the standard ones (older records).
+            await CompanyForm.ValidateAsync(_context, ModelState, HousingCompany, savedStatus: existing.Status);
             if (!ModelState.IsValid)
             {
+                await PopulateAddressesAsync();
                 return Page();
             }
 
-            _context.Attach(HousingCompany).State = EntityState.Modified;
+            // Only the fields on the form change; CreatedOn/CreatedBy are kept and UpdatedOn/UpdatedBy are stamped
+            // by ApplicationDbContext.
+            existing.Name = HousingCompany.Name;
+            existing.LicenseNumber = HousingCompany.LicenseNumber;
+            existing.EstablishedDate = HousingCompany.EstablishedDate;
+            existing.CompanyCategory = HousingCompany.CompanyCategory;
+            existing.Status = HousingCompany.Status;
+            existing.AddressId = HousingCompany.AddressId;
+            existing.Email = HousingCompany.Email;
+            existing.PhoneNumber = HousingCompany.PhoneNumber;
+            existing.Website = HousingCompany.Website;
+            existing.LogoUrl = HousingCompany.LogoUrl;
 
             try
             {
@@ -69,6 +102,9 @@ namespace RadiantHomes.Pages.RealEstates
 
             return RedirectToPage("./Index");
         }
+
+        private async Task PopulateAddressesAsync() =>
+            ViewData["AddressId"] = await CompanyForm.AddressSelectListAsync(_context, HousingCompany?.AddressId);
 
         private bool HousingCompanyExists(Guid id)
         {

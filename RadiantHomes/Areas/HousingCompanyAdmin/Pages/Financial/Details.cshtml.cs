@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
 {
@@ -21,17 +22,27 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Financial
 
         public CompanyFinancialDetail CompanyFinancialDetail { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(Guid? companyId)
+        // id = the financial-detail record's Id (same route value as Edit and Delete).
+        // companyId is the old name of the same value, still accepted so existing links keep working.
+        public async Task<IActionResult> OnGetAsync(Guid? id, Guid? companyId)
         {
-            if (companyId == null)
+            id ??= companyId;
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var companyfinancialdetail = await _context.HousingCompanyFinancialDetails.FirstOrDefaultAsync(m => m.Id == companyId);
+            var companyfinancialdetail = await _context.HousingCompanyFinancialDetails
+                .Include(c => c.Company)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (companyfinancialdetail is not null)
             {
+                // Real Estate Admins may only open their own company's records
+                if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(companyfinancialdetail.CompanyId))
+                {
+                    return Forbid();
+                }
                 CompanyFinancialDetail = companyfinancialdetail;
 
                 return Page();

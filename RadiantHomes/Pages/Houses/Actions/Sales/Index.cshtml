@@ -2,55 +2,61 @@
 @model RadiantHomes.Pages.Houses.Actions.Sales.IndexModel
 
 @{
-    ViewData["Title"] = "House Sales";
+    ViewData["Title"] = "House sales";
+    ViewData["Subtitle"] = "House sale transactions between owners and buyers.";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    var hasRows = Model.HouseSaleTransaction != null && Model.HouseSaleTransaction.Any();
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary">House Sales</h2>
-        <a class="btn btn-success" asp-page="Create"><i class="bi bi-plus-circle"></i> Create New</a>
-    </div>
+@section PageActions {
+    <a class="btn btn-outline-primary" asp-page="HouseSalesExport" asp-route-format="excel" data-no-loader>
+        <i class="bi bi-file-earmark-excel" aria-hidden="true"></i> Download Excel
+    </a>
+    <a class="btn btn-outline-primary" asp-page="HouseSalesExport" asp-route-format="pdf" data-no-loader>
+        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Download PDF
+    </a>
+    <a class="btn btn-primary" asp-page="Create">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New sale
+    </a>
+}
 
-    @if (Model.HouseSaleTransaction != null && Model.HouseSaleTransaction.Any())
+
+<div class="card">
+    @if (hasRows)
     {
         <div class="table-responsive">
-            <table class="table table-striped table-bordered table-hover align-middle">
-                <thead class="table-light">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <th>House</th>
-                        <th>Buyer</th>
-                        <th>Seller</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Notes</th>
-                        <th class="text-center">Actions</th>
+                        <th scope="col">House</th>
+                        <th scope="col">Buyer</th>
+                        <th scope="col">Seller</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Notes</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model.HouseSaleTransaction)
                     {
                         <tr>
-                            <td>@item.House?.Title"</td>
-                            <td>@item.Receiver?.FirstName </td>
+                            <td>@item.House?.Title</td>
+                            <td>@item.Receiver?.FirstName</td>
                             <td>@item.HomeOwner?.FirstName</td>
                             <td>@item.TransactionDate.ToShortDateString()</td>
                             <td>
-                                <span class="badge @(item.Status == "Completed" ? "bg-success" : "bg-warning text-dark")">
+                                <span class="badge @(item.Status == "Completed" ? "bg-success" : "bg-warning")">
                                     @item.Status
                                 </span>
                             </td>
                             <td>@item.Notes</td>
-                            <td class="text-center">
-                                <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-sm btn-info me-1" title="Details">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning me-1" title="Edit">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-                                <a asp-page="./Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Delete">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+                            <td class="text-end">
+                                <div class="mh-row-actions">
+                                    <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@item.Id" title="View details" aria-label="View details"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                                    <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                    <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -60,20 +66,11 @@
     }
     else
     {
-        <div class="alert alert-info text-center">
-            No house sales found.
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-cash-stack"></i></span>
+            <h2>No house sales found.</h2>
+            <p>Sale transactions appear here once a house is sold.</p>
+            <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New sale</a>
         </div>
     }
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary">House Sales</h2>
-        <div>
-            <a class="btn btn-success me-2" asp-page="Create"><i class="bi bi-plus-circle"></i> Create New</a>
-            <a class="btn btn-outline-primary me-2" asp-page="HouseSalesExport" asp-route-format="excel">
-                <i class="bi bi-file-earmark-excel"></i> Download Excel
-            </a>
-            <a class="btn btn-outline-danger" asp-page="HouseSalesExport" asp-route-format="pdf">
-                <i class="bi bi-file-earmark-pdf"></i> Download PDF
-            </a>
-        </div>
-    </div>
 </div>

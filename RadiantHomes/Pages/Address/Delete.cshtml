@@ -2,114 +2,50 @@
 @model RadiantHomes.Pages.Address.DeleteModel
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete address";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Delete</h1>
+<div class="card mh-confirm">
+    <div class="card-header">
+        <h2 class="mh-section-title text-reset"><i class="bi bi-exclamation-triangle text-reset" aria-hidden="true"></i> Are you sure you want to delete this address?</h2>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">This permanently removes the record below. It can't be undone.</p>
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.City)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.City)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.Woreda)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.Woreda)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.SubCity)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.SubCity)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.Region)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.Region)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.PostalCode)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.PostalCode)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.Country)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.Country)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.LocationMain)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.LocationMain)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.LocationSub)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.LocationSub)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.Street)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.Street)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.CreatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.CreatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.CreatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.CreatedOn)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.UpdatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.UpdatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.PartyAddress.UpdatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.PartyAddress.UpdatedOn)</dd>
+        </dl>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>PartyAddress</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.City)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.City)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.Woreda)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.Woreda)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.SubCity)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.SubCity)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.Region)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.Region)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.PostalCode)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.PostalCode)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.Country)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.Country)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.LocationMain)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.LocationSub)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.Country)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.Country)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.LocationMain)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.LocationMain)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.Street)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.Street)
-        </dd>
-        
-       
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.Country)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.Country)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.CreatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.CreatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.CreatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.CreatedOn)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.UpdatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.UpdatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.PartyAddress.UpdatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.PartyAddress.UpdatedOn)
-        </dd>
-    </dl>
-    
-    <form method="post">
-        <input type="hidden" asp-for="PartyAddress.AddressID" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-page="./Index">Back to List</a>
-    </form>
+        <form method="post" class="mh-form-actions">
+            <input type="hidden" asp-for="PartyAddress.AddressID" />
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash" aria-hidden="true"></i> Delete address</button>
+        </form>
+    </div>
 </div>

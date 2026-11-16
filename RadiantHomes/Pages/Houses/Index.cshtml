@@ -2,150 +2,138 @@
 @model RadiantHomes.Pages.Houses.IndexModel
 
 @{
-    ViewData["Title"] = "Houses";
+    ViewData["Title"] = "Available houses";
+    ViewData["Subtitle"] = "Houses listed for rent or sale.";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    var hasRows = Model.House is not null && Model.House.Any();
 }
 
-<div class="container py-4">
-    <h1 class="mb-4 text-center" data-translate="HousesAvailable">Available Houses</h1>
+@section PageActions {
+    <a asp-page="/Houses/Create" class="btn btn-primary">
+        <i class="bi bi-house-add" aria-hidden="true"></i>
+        <span>Add New House</span>
+    </a>
+}
 
-    <p>
-        <a asp-page="/Houses/Create" class="btn btn-success d-inline-flex align-items-center gap-2">
-            <i class="bi bi-house-add-fill"></i>
-            <span data-translate="registerhousebtn">Add New House</span>
-        </a>
-        <a asp-page="Create" class="btn btn-success" data-translate="registerhousebtn">
-            <i class="bi bi-house-add me-1"></i> Add New House
-        </a>
-    </p>
 
-    <div class="row">
-        <!-- Filters Column -->
-        <div class="col-lg-3 mb-4">
-            <div class="card shadow-sm rounded-4 h-100">
-                <div class="card-body p-3">
-                    <h5 class="card-title mb-3">Filter Houses</h5>
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="priceMin" class="form-label">Min Price (ETB)</label>
-                            <input type="number" class="form-control form-control-sm" id="priceMin" placeholder="Min">
-                        </div>
-                        <div class="col-12">
-                            <label for="priceMax" class="form-label">Max Price (ETB)</label>
-                            <input type="number" class="form-control form-control-sm" id="priceMax" placeholder="Max">
-                        </div>
-                        <div class="col-12">
-                            <label for="availability" class="form-label">Availability</label>
-                            <select class="form-select form-select-sm" id="availability">
-                                <option value="">All</option>
-                                <option value="Rent">Rent</option>
-                                <option value="Sell">Sale</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label for="category" class="form-label">Category</label>
-                            <select class="form-select form-select-sm" id="category">
-                                <option value="">All</option>
-                                @if (Model.House.Any())
+<div class="row g-4">
+    <!-- Filters Column -->
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-funnel" aria-hidden="true"></i> Filter Houses</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-lg-12">
+                        <label for="priceMin" class="form-label">Min Price (ETB)</label>
+                        <input type="number" class="form-control form-control-sm" id="priceMin" placeholder="Min">
+                    </div>
+                    <div class="col-6 col-lg-12">
+                        <label for="priceMax" class="form-label">Max Price (ETB)</label>
+                        <input type="number" class="form-control form-control-sm" id="priceMax" placeholder="Max">
+                    </div>
+                    <div class="col-md-4 col-lg-12">
+                        <label for="availability" class="form-label">Availability</label>
+                        <select class="form-select form-select-sm" id="availability">
+                            <option value="">All</option>
+                            <option value="@HouseAvailability.Rent">Rent</option>
+                            <option value="@HouseAvailability.Sale">Sale</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-lg-12">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select form-select-sm" id="category">
+                            <option value="">All</option>
+                            @if (hasRows)
+                            {
+                                @foreach (var category in Model.House.Select(h => new { h.HouseCategory?.Name, h.HouseCategory?.Id }).Distinct().OrderBy(c => c.Name))
                                 {
-                                    @foreach (var category in Model.House.Select(h => new { h.HouseCategory?.Name, h.HouseCategory?.Id }).Distinct().OrderBy(c => c.Name))
+                                    @if (!string.IsNullOrEmpty(category.Id.ToString()))
                                     {
-                                        @if (!string.IsNullOrEmpty(category.Id.ToString()))
-                                        {
-                                            <option value="@category.Id">@category.Name</option>
-                                        }
+                                        <option value="@category.Id">@category.Name</option>
                                     }
                                 }
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label for="city" class="form-label">City</label>
-                            <select class="form-select form-select-sm" id="city">
-                                <option value="">All</option>
-                                @if (Model.House.Any() && Model.House.Any(h => h.HouseAddress?.City != null))
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-lg-12">
+                        <label for="city" class="form-label">City</label>
+                        <select class="form-select form-select-sm" id="city">
+                            <option value="">All</option>
+                            @if (hasRows && Model.House.Any(h => h.HouseAddress?.City != null))
+                            {
+                                @foreach (var city in Model.House.Where(h => h.HouseAddress?.City != null).Select(h => h.HouseAddress.City).Distinct().OrderBy(c => c))
                                 {
-                                    @foreach (var city in Model.House.Where(h => h.HouseAddress?.City != null).Select(h => h.HouseAddress.City).Distinct().OrderBy(c => c))
-                                    {
-                                        <option value="@city">@city</option>
-                                    }
+                                    <option value="@city">@city</option>
                                 }
-                            </select>
-                        </div>
-                        <div class="col-12 d-flex justify-content-between">
-                            <button type="button" class="btn btn-outline-secondary btn-sm w-50 me-2" onclick="filterHouses()">Filter</button>
-                            <button type="button" class="btn btn-outline-warning btn-sm w-50" onclick="resetFilters()">Reset</button>
-                        </div>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 d-flex gap-2">
+                        <button type="button" class="btn btn-primary btn-sm flex-fill" onclick="filterHouses()">Filter</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="resetFilters()">Reset</button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Houses Column -->
-        <div class="col-lg-9">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4" id="housesContainer">
+    <!-- Houses Column -->
+    <div class="col-lg-9">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4 @(hasRows ? "" : "d-none")" id="housesContainer">
+            @if (hasRows)
+            {
                 @foreach (var item in Model.House)
                 {
-                    if(item.AvailableFor.ToLower()=="rent")
-                    {
-                        string rentPrice = $"{@item.Price} / {@item.HouseRentInfo.RentTerm}";
-                        <div class="col house-grid-item"
-                             data-price="@rentPrice"
-                             data-availability="@item.AvailableFor"
-                             data-category="@item.HouseCategory?.Id"
-                             data-city="@item.HouseAddress?.City">
-                            <div class="card bg-dark text-white shadow rounded-4 overflow-hidden"
-                                 style="background-image: url('@item.MainPhotoUrl'); background-size: cover; background-position: center; height: 350px;">
-                                <div class="card-img-overlay d-flex flex-column justify-content-end p-3">
-                                    <h5 class="card-title fw-bold text-truncate">@item.Title</h5>
-                                    <p class="card-text small mb-1"><i class="bi bi-geo-alt-fill"></i> @item.HouseAddress?.City</p>
-                                    <p class="card-text fw-bold mb-0">
-                                        ETB @item.Price.ToString("N0")
-                                    </p>
-                                    <div class="mt-2">
-                                        <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-light rounded-pill">View Details</a>
-                                    </div>
-                                </div>
+                    var isForRent = HouseAvailability.IsForRent(item.AvailableFor);
+                    var listingPrice = HouseAvailability.ListingPrice(item);
+                    <div class="col house-grid-item"
+                         data-price="@HouseAvailability.InvariantNumber(listingPrice)"
+                         data-availability="@HouseAvailability.Normalize(item.AvailableFor)"
+                         data-category="@item.HouseCategory?.Id"
+                         data-city="@item.HouseAddress?.City">
+                        <div class="card mh-media-card h-100">
+                            @if (!string.IsNullOrEmpty(item.MainPhotoUrl))
+                            {
+                                <img src="@item.MainPhotoUrl" class="card-img-top" alt="@item.Title" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="card-img-top d-flex align-items-center justify-content-center text-muted fs-1" aria-hidden="true"><i class="bi bi-house"></i></div>
+                            }
+                            <div class="card-body d-flex flex-column">
+                                <span class="mh-chip @(isForRent ? "mh-chip--accent" : "") align-self-start mb-2">@HouseAvailability.Label(item.AvailableFor)</span>
+                                <h3 class="card-title h6 text-truncate mb-1">@item.Title</h3>
+                                <p class="card-text small text-muted mb-2"><i class="bi bi-geo-alt" aria-hidden="true"></i> @item.HouseAddress?.City</p>
+                                <p class="card-text fw-bold text-navy mb-3">
+                                    ETB @listingPrice.ToString("N0")
+                                    @if (isForRent && item.HouseRentInfo is not null)
+                                    {
+                                        <span class="fw-normal small text-muted">/ @HouseAvailability.RentTermLabel(item.HouseRentInfo.RentTerm).ToLowerInvariant()</span>
+                                    }
+                                </p>
+                                <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary mt-auto align-self-start">View Details</a>
                             </div>
                         </div>
-
-                    }
-                    else
-                    {
-                        <div class="col house-grid-item"
-                             data-price="@item.HouseRentInfo.PricePerTerm"
-                             data-availability="@item.AvailableFor"
-                             data-category="@item.HouseCategory?.Id"
-                             data-city="@item.HouseAddress?.City">
-                            <div class="card bg-dark text-white shadow rounded-4 overflow-hidden"
-                                 style="background-image: url('@item.MainPhotoUrl'); background-size: cover; background-position: center; height: 350px;">
-                                <div class="card-img-overlay d-flex flex-column justify-content-end p-3">
-                                    <h5 class="card-title fw-bold text-truncate">@item.Title</h5>
-                                    <p class="card-text small mb-1"><i class="bi bi-geo-alt-fill"></i> @item.HouseAddress?.City</p>
-                                    <p class="card-text fw-bold mb-0">
-                                        ETB @item.Price.ToString("N0")
-                                    </p>
-                                    <div class="mt-2">
-                                        <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-light rounded-pill">View Details</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    }
-                    }
-            </div>
+                    </div>
+                }
+            }
         </div>
+
+        @if (!hasRows)
+        {
+            <div class="card">
+                <div class="mh-empty">
+                    <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-house"></i></span>
+                    <h2>No houses listed yet</h2>
+                    <p>Houses appear here once owners list them for rent or sale.</p>
+                    <a asp-page="/Houses/Create" class="btn btn-primary"><i class="bi bi-house-add" aria-hidden="true"></i> <span>Add New House</span></a>
+                </div>
+            </div>
+        }
     </div>
 </div>
-
-<style>
-    .house-grid-item {
-        height: 350px;
-    }
-
-    .card-img-overlay {
-    }
-</style>
 
 @section Scripts {
     <script>

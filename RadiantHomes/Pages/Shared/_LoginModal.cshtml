@@ -1,30 +1,28 @@
 ﻿@inject SignInManager<AppUser> SigninManager
-@* Login dialog opened from the "Log in" buttons in both layouts. *@
+@* Login dialog opened from the "Log in" buttons in both layouts. Standard modal anatomy (see michu-theme.css "Modals");
+   sign-in dialogs use a full-width primary button like the Login page. *@
 @{
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
 }
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="loginModalLabel"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Log in</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body px-4 pb-4 pt-0">
-                <div class="text-center mb-4">
-                    <div class="d-inline-block mb-3" style="width: 180px"><partial name="_BrandLogo" model="@("color")" /></div>
-                    <h2 class="modal-title fs-4" id="loginModalLabel">Welcome back</h2>
-                    <p class="text-muted mb-0">Log in to manage your homes and listings.</p>
-                </div>
+            <div class="modal-body">
+                <p class="mh-modal-lead">Welcome back. Log in to manage your homes and listings.</p>
 
                 <form method="post" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@returnUrl">
                     <input type="hidden" name="ReturnUrl" value="@returnUrl" />
                     <div class="mb-3">
-                        <label for="Input_Email" class="form-label">Email address</label>
-                        <input name="Input.Email" id="Input_Email" type="email" class="form-control" autocomplete="username" required />
+                        <label for="LoginModal_Email" class="form-label">Email address</label>
+                        <input name="Input.Email" id="LoginModal_Email" type="email" class="form-control" autocomplete="username" required />
                     </div>
                     <div class="mb-3">
-                        <label for="Input_Password" class="form-label">Password</label>
-                        <input name="Input.Password" id="Input_Password" type="password" class="form-control" autocomplete="current-password" required />
+                        <label for="LoginModal_Password" class="form-label">Password</label>
+                        <input name="Input.Password" id="LoginModal_Password" type="password" class="form-control" autocomplete="current-password" required />
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Log in</button>
                 </form>
@@ -39,6 +37,10 @@
                         <i class="fa-brands fa-facebook-f" aria-hidden="true"></i> Facebook
                     </button>
                 </form>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <span class="text-muted small">New to Michu Homes?</span>
+                <a class="small fw-semibold" asp-area="Identity" asp-page="/Account/Register">Create an account</a>
             </div>
         </div>
     </div>

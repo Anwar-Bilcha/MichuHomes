@@ -2,129 +2,109 @@
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.DetailsModel
 
 @{
-    ViewData["Title"] = "Housing Company Details";
+    ViewData["Title"] = "Housing company details";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<div class="container py-4">
-    <h2 class="mb-4">@ViewData["Title"]</h2>
+@section PageActions {
+    <a class="btn btn-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to list</a>
+    <a class="btn btn-primary" asp-page="./Edit" asp-route-id="@Model.HousingCompany.CompanyId"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+}
 
-    <div class="card shadow border-0">
-        <div class="card-header bg-white fw-semibold">
-            <i class="bi bi-building me-2 text-primary"></i> Housing Company Overview
-        </div>
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-building" aria-hidden="true"></i> Housing Company Overview</h2>
+    </div>
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>Name</dt>
+            <dd>@Model.HousingCompany.Name</dd>
+            <dt>License Number</dt>
+            <dd>@Model.HousingCompany.LicenseNumber</dd>
+            <dt>Established Date</dt>
+            <dd>@Model.HousingCompany.EstablishedDate.ToShortDateString()</dd>
+            <dt>Status</dt>
+            <dd><span class="mh-chip">@Model.HousingCompany.Status</span></dd>
+            <dt>Company Category</dt>
+            <dd>@Model.HousingCompany.CompanyCategory.GetDisplayName()</dd>
+        </dl>
+    </div>
+</div>
 
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-3 fw-bold">Name</div>
-                <div class="col-md-9">@Model.HousingCompany.Name</div>
-
-                <div class="col-md-3 fw-bold">License Number</div>
-                <div class="col-md-9">@Model.HousingCompany.LicenseNumber</div>
-
-                <div class="col-md-3 fw-bold">Established Date</div>
-                <div class="col-md-9">@Model.HousingCompany.EstablishedDate.ToShortDateString()</div>
-
-                <div class="col-md-3 fw-bold">Status</div>
-                <div class="col-md-9">
-                    <span class="badge bg-info">@Model.HousingCompany.Status</span>
-                </div>
-
-                <div class="col-md-3 fw-bold">Company Category</div>
-                <div class="col-md-9">@Model.HousingCompany.CompanyCategory</div>
-            </div>
-
-            <hr />
-
-            <h5 class="text-muted mb-3">Contact & Address</h5>
-
-            <div class="row mb-3">
-                <div class="col-md-3 fw-bold">Email</div>
-                <div class="col-md-9">
-                    <i class="bi bi-envelope me-1 text-muted"></i>
-                    <a href="mailto:@Model.HousingCompany.Email">@Model.HousingCompany.Email</a>
-                </div>
-
-                <div class="col-md-3 fw-bold">Phone</div>
-                <div class="col-md-9">
-                    <i class="bi bi-telephone me-1 text-muted"></i>
-                    <a href="tel:@Model.HousingCompany.PhoneNumber">@Model.HousingCompany.PhoneNumber</a>
-                </div>
-
-                <div class="col-md-3 fw-bold">Website</div>
-                <div class="col-md-9">
-                    @if (!string.IsNullOrEmpty(Model.HousingCompany.Website))
-                    {
-                        <a href="@Model.HousingCompany.Website" target="_blank" rel="noopener noreferrer">
-                            @Model.HousingCompany.Website <i class="bi bi-box-arrow-up-right ms-1"></i>
-                        </a>
-                    }
-                </div>
-
-                <div class="col-md-3 fw-bold">Address</div>
-                <div class="col-md-9">
-                    @if (Model.HousingCompany.Address != null)
-                    {
-                        <div>
-                            <i class="bi bi-geo-alt me-1 text-muted"></i>
-                            @Model.HousingCompany.Address.Street ,
-                            @Model.HousingCompany.Address.SubCity,
-                            @Model.HousingCompany.Address.City,
-                            @Model.HousingCompany.Address.Region,
-                            @Model.HousingCompany.Address.Country
-                            @if (!string.IsNullOrEmpty(Model.HousingCompany.Address.PostalCode))
-                            {
-                                <text> (@Model.HousingCompany.Address.PostalCode)</text>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <span class="text-muted">No Address Information</span>
-                    }
-                </div>
-            </div>
-
-            <hr />
-
-            <h5 class="text-muted mb-3">Metadata</h5>
-
-            <div class="row mb-3">
-                <div class="col-md-3 fw-bold">Created By</div>
-                <div class="col-md-9">@Model.HousingCompany.CreatedBy</div>
-
-                <div class="col-md-3 fw-bold">Created On</div>
-                <div class="col-md-9">@Model.HousingCompany.CreatedOn</div>
-
-                <div class="col-md-3 fw-bold">Updated By</div>
-                <div class="col-md-9">@Model.HousingCompany.UpdatedBy</div>
-
-                <div class="col-md-3 fw-bold">Updated On</div>
-                <div class="col-md-9">@Model.HousingCompany.UpdatedOn</div>
-            </div>
-
-            <hr />
-
-            <h5 class="text-muted mb-3">Logo</h5>
-            <div>
-                @if (!string.IsNullOrEmpty(Model.HousingCompany.LogoUrl))
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-geo-alt" aria-hidden="true"></i> Contact &amp; Address</h2>
+    </div>
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>Email</dt>
+            <dd>
+                <i class="bi bi-envelope me-1 text-muted" aria-hidden="true"></i>
+                <a href="mailto:@Model.HousingCompany.Email">@Model.HousingCompany.Email</a>
+            </dd>
+            <dt>Phone</dt>
+            <dd>
+                <i class="bi bi-telephone me-1 text-muted" aria-hidden="true"></i>
+                <a href="tel:@Model.HousingCompany.PhoneNumber">@Model.HousingCompany.PhoneNumber</a>
+            </dd>
+            <dt>Website</dt>
+            <dd>
+                @if (!string.IsNullOrEmpty(Model.HousingCompany.Website))
                 {
-                    <img src="@Model.HousingCompany.LogoUrl" alt="Company Logo" class="img-thumbnail" style="max-width: 220px;">
+                    <a href="@Model.HousingCompany.Website" target="_blank" rel="noopener noreferrer">
+                        @Model.HousingCompany.Website <i class="bi bi-box-arrow-up-right ms-1" aria-hidden="true"></i>
+                    </a>
+                }
+            </dd>
+            <dt>Address</dt>
+            <dd>
+                @if (Model.HousingCompany.Address != null)
+                {
+                    <div>
+                        <i class="bi bi-geo-alt me-1 text-muted" aria-hidden="true"></i>
+                        @Model.HousingCompany.Address.FormattedAddressCompact
+                    </div>
                 }
                 else
                 {
-                    <span class="text-muted">No Logo Uploaded</span>
+                    <span class="text-muted">No Address Information</span>
                 }
-            </div>
-        </div>
+            </dd>
+        </dl>
+    </div>
+</div>
 
-        <div class="card-footer bg-white text-end">
-            <a asp-page="./Edit" asp-route-id="@Model.HousingCompany.CompanyId" class="btn btn-outline-primary me-2">
-                <i class="bi bi-pencil-square me-1"></i> Edit
-            </a>
-            <a asp-page="./Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back to List
-            </a>
-        </div>
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-image" aria-hidden="true"></i> Logo</h2>
+    </div>
+    <div class="card-body">
+        @if (!string.IsNullOrEmpty(Model.HousingCompany.LogoUrl))
+        {
+            <img src="@Model.HousingCompany.LogoUrl" alt="Company Logo" class="img-thumbnail" style="max-width: 220px;">
+        }
+        else
+        {
+            <span class="text-muted">No Logo Uploaded</span>
+        }
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-clock-history" aria-hidden="true"></i> Metadata</h2>
+    </div>
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>Created By</dt>
+            <dd>@Model.HousingCompany.CreatedBy</dd>
+            <dt>Created On</dt>
+            <dd>@Model.HousingCompany.CreatedOn</dd>
+            <dt>Updated By</dt>
+            <dd>@Model.HousingCompany.UpdatedBy</dd>
+            <dt>Updated On</dt>
+            <dd>@Model.HousingCompany.UpdatedOn</dd>
+        </dl>
     </div>
 </div>

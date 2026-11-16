@@ -14,6 +14,7 @@
     </a>
 }
 
+
 <div class="card">
     @if (!hasRows)
     {
@@ -48,7 +49,7 @@
                     @foreach (var item in Model.HouseRentPayment!)
                     {
                         <tr>
-                            <td>@Html.DisplayFor(modelItem => item.Transaction.Id)</td>
+                            <td><a asp-page="/Houses/Actions/Rent/Details" asp-route-id="@item.TransactionId">@DisplayText.RentTransaction(item.Transaction)</a></td>
                             <td>@Html.DisplayFor(modelItem => item.RentCommision)</td>
                             <td>@Html.DisplayFor(modelItem => item.RentPricePerTerm)</td>
                             <td>@Html.DisplayFor(modelItem => item.TotalRentPrice)</td>

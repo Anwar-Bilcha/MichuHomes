@@ -1,180 +1,224 @@
 ﻿@page "{UserId?}/{CompanyId:guid?}"
 @model RadiantHomes.Pages.HouseOwner.CreateModel
 @{
-    ViewData["Title"] = "Register Customer";
+    ViewData["Title"] = "Create account";
+    ViewData["Subtitle"] = "Register as a house buyer, seller or renter.";
     Layout = "/Pages/Shared/_Layout.cshtml";
 }
 @using RadiantHomes.Models
 
+<div class="row g-4">
+    <!-- LEFT SIDE PANEL -->
+    <div class="col-lg-5">
+        <div class="card bg-navy-subtle border-0 h-100">
+            <div class="card-body p-4">
+                <h2 class="h4 mb-3">Why Register with Michu Homes?</h2>
 
-
-<div class="container">
-    <h2 class="text-center mb-4">Register As House Buyer , Seller or Renter</h2>
-    <div class="row g-4">
-        <!-- LEFT SIDE PANEL -->
-        <div class="col-md-6 d-flex flex-column justify-content-center" style="background: #f5f9ff; border-radius: 12px; padding: 25px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);">
-            <h4 class="mb-3" data-translate="CustomerRegistrationInfo.Title">Why Register with RadiantHomes?</h4>
-
-            <p class="mb-3 text-muted" data-translate="CustomerRegistrationInfo.Note">
-                Unlock a seamless real estate experience. Whether you're buying, selling, or renting, we make sure you're covered with:
-            </p>
-
-           
-                <p class="mb-3">
-                    <i class="bi bi-house-door-fill text-primary"></i>
-                    <label class="form-label" data-translate="CustomerRegistrationInfo.Note.Note1">Post rental or sale listings</label>
-                </p>
-                <p class="mb-3">
-                    <i class="bi bi-check-circle-fill text-success"></i>
-                    <label data-translate="CustomerRegistrationInfo.Note.Note2">Get verified by RadiantHomes</label>
-                </p>
-                <p class="mb-3">
-                    <i class="bi bi-clock-history text-warning"></i>
-                    <label data-translate="CustomerRegistrationInfo.Note.Note3">Manage your listings anytime</label>
-                </p>
-                <p class="mb-3">
-                    <i class="bi bi-shield-lock-fill text-info"></i>
-                    <label data-translate="CustomerRegistrationInfo.Note.Note4">Secure profile & document handling</label>
-                </p>
-                <p class="mb-3">
-                    <i class="bi bi-people-fill text-secondary"></i>
-                    <label data-translate="CustomerRegistrationInfo.Note.Note5">Connect with trusted buyers, sellers & renters</label>
-                </p>
-                <p class="mb-3">
-                <i class="bi bi-bar-chart-line-fill text-dark"></i>
-                <label data-translate="CustomerRegistrationInfo.Note.Note6">View market trends & get insights</label>
+                <p class="mb-4 text-muted">
+                    Unlock a seamless real estate experience. Whether you're buying, selling, or renting, we make sure you're covered with:
                 </p>
 
+                <ul class="list-unstyled d-grid gap-3 mb-4">
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-house-door-fill text-accent" aria-hidden="true"></i>
+                        <span>Post rental or sale listings</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-check-circle-fill text-accent" aria-hidden="true"></i>
+                        <span>Get verified by Michu Homes</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-clock-history text-accent" aria-hidden="true"></i>
+                        <span>Manage your listings anytime</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-shield-lock-fill text-accent" aria-hidden="true"></i>
+                        <span>Secure profile & document handling</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-people-fill text-accent" aria-hidden="true"></i>
+                        <span>Connect with trusted buyers, sellers & renters</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-bar-chart-line-fill text-accent" aria-hidden="true"></i>
+                        <span>View market trends & get insights</span>
+                    </li>
+                </ul>
 
-            <div class="mt-4">
-                <p class="text-muted" data-translate="CustomerRegistrationInfo.Note.Note7">
-                    <i class="bi bi-info-circle"></i> Uploaded documents should be clear and authentic.
-                </p>
-                <p class="text-muted" data-translate="CustomerRegistrationInfo.Note.Note8">
-                    <i class="bi bi-clock"></i> Verifications take 24–48 hours. You’ll be notified via SMS or Email.
-                </p>
+                <div class="border-top pt-3 small text-muted">
+                    <p class="d-flex gap-2 mb-2">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i>
+                        <span>Uploaded documents should be clear and authentic.</span>
+                    </p>
+                    <p class="d-flex gap-2 mb-0">
+                        <i class="bi bi-clock" aria-hidden="true"></i>
+                        <span>Verifications take 24–48 hours. You’ll be notified via SMS or Email.</span>
+                    </p>
+                </div>
             </div>
         </div>
+    </div>
 
+    <!-- RIGHT SIDE FORM -->
+    <div class="col-lg-7">
+        <form method="post" enctype="multipart/form-data" class="card">
+            <div class="card-body">
+                @if (@Model.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <label asp-for="ErrorMessage" class="mb-0">@Model.ErrorMessage</label>
+                    </div>
+                }
 
-        <!-- RIGHT SIDE FORM -->
-        <div class="col-md-6">
-            <form method="post" enctype="multipart/form-data" style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 20px; border-radius: 12px;">
-                <div class="form-group mb-3">
-                    @if(@Model.ErrorMessage!=null)
-                    {
-                        <label asp-for="ErrorMessage" class="text-danger">@Model.ErrorMessage</label>
-                    }
-                    
+                <div class="mh-fieldset">
+                    <h2 class="mh-fieldset-title">Personal details</h2>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Customer.FirstName" class="form-label">First Name</label>
+                            <input asp-for="Customer.FirstName" class="form-control" required />
+                            <span asp-validation-for="Customer.FirstName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Customer.LastName" class="form-label">Last Name</label>
+                            <input asp-for="Customer.LastName" class="form-control" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Customer.CustomerCategory" class="form-label">Category</label>
+                            <select asp-for="Customer.CustomerCategory" class="form-select">
+                                <option value="Individual">Individual</option>
+                                <option value="Agency">Agency</option>
+                                <option value="Real Estate">Real Estate</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Customer.CustomerRole" class="form-label">Customer Role</label>
+                            <select asp-for="Customer.CustomerRole" class="form-select">
+                                @foreach (var role in Enum.GetNames(typeof(CustomerRoles)))
+                                {
+                                    <option value="@role">@role</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group mb-3">
-                    <label><localize key="Customer.FirstName"></localize></label>
-                    <label asp-for="Customer.FirstName" data-translate="Customer.FirstName" class="form-label">First Name</label>
-                    <input asp-for="Customer.FirstName" class="form-control" required/>
-                    <span asp-validation-for="Customer.FirstName" class="text-danger"></span>
-                </div>
 
-                <div class="form-group mb-3">
-                    <label asp-for="Customer.LastName" data-translate="Customer.LastName" class="form-label">Last Name</label>
-                    <input asp-for="Customer.LastName" class="form-control" />
-                </div>
+                <div class="mh-fieldset">
+                    <h2 class="mh-fieldset-title">Contact</h2>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Customer.PhoneNumber" class="form-label">Phone Number</label>
+                            <input asp-for="Customer.PhoneNumber" class="form-control" />
+                        </div>
 
-
-                <div class="form-group mb-3">
-                    <label data-translate="Customer.CustomerCategory" class="form-label">Category</label>
-                    <select asp-for="Customer.CustomerCategory" class="form-select">
-                        <option value="Individual">Individual</option>
-                        <option value="Agency">Agency</option>
-                        <option value="Real Estate">Real Estate</option>
-                    </select>
-                </div>
-
-                <div class="form-group mb-3">
-                    <label asp-for="Customer.PhoneNumber" data-translate="Customer.PhoneNumber" class="form-label">Phone Number</label>
-                    <input asp-for="Customer.PhoneNumber" class="form-control" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label asp-for="Customer.Email" data-translate="Customer.Email" class="form-label">Email</label>
-                    <input asp-for="Customer.Email" class="form-control" />
-                </div>
-
-                <div class="form-group mb-3">
-                    <label asp-for="Customer.CustomerRole" data-translate="Customer.CustomerRole" class="form-label">Customer Role</label>
-                    <select asp-for="Customer.CustomerRole" class="form-select">
-                        @foreach (var role in Enum.GetNames(typeof(CustomerRoles)))
-                        {
-                            <option value="@role">@role</option>
-                        }
-                    </select>
+                        <div class="col-md-6">
+                            <label asp-for="Customer.Email" class="form-label">Email</label>
+                            <input asp-for="Customer.Email" class="form-control" />
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Address Section -->
-                <div class="form-group mb-3">
-                    <label data-translate="Address" class="form-label">Address</label>
-                    <select asp-for="Customer.AddressId" class="form-select" asp-items="Model.AddressOptions" id="addressSelect">
-                        <option value="">-- Select Address --</option>
-                        <option value="new">+ Add New Address</option>
-                    </select>
-                </div>
+                <div class="mh-fieldset">
+                    <h2 class="mh-fieldset-title">Address</h2>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="addressSelect" class="form-label">Address</label>
+                            <select asp-for="Customer.AddressId" class="form-select" asp-items="Model.AddressOptions" id="addressSelect">
+                                <option value="">-- Select Address --</option>
+                                <option value="new">+ Add New Address</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <!-- New Address Section -->
-                <div id="newAddressSection" style="display:none;">
-                    <h4 class="mb-3">New Address</h4>
-                    <div class="form-group mb-3">
-                        <label class="form-label">City</label>
-                        <input name="NewAddress.City" class="form-control" />
-                    </div>
-                    <div class="form-group mb-3">
-                        <label class="form-label">Subcity</label>
-                        <input name="NewAddress.Subcity" class="form-control" />
-                    </div>
-                    <div class="form-group mb-3">
-                        <label class="form-label">Wereda</label>
-                        <input name="NewAddress.Wereda" class="form-control" />
-                    </div>
-                    <div class="form-group mb-3">
-                        <label class="form-label">House Number</label>
-                        <input name="NewAddress.HouseNumber" class="form-control" />
+                    <!-- New Address Section -->
+                    @* Field names must match PartyAddress (City, SubCity, Woreda, Street, LocationSub, Country);
+                       City, Street and Country are required by the model. The inputs are disabled while the
+                       section is hidden so they are neither validated by the browser nor posted. *@
+                    <div id="newAddressSection" class="mt-3 p-3 rounded-3 bg-navy-subtle" style="display:none;">
+                        <h3 class="h6 mb-3">New Address</h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="NewAddress.City" class="form-label">City</label>
+                                <input asp-for="NewAddress.City" class="form-control" required disabled />
+                                <span asp-validation-for="NewAddress.City" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="NewAddress.SubCity" class="form-label">Subcity</label>
+                                <input asp-for="NewAddress.SubCity" class="form-control" disabled />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="NewAddress.Woreda" class="form-label">Woreda</label>
+                                <input asp-for="NewAddress.Woreda" class="form-control" disabled />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="NewAddress.Street" class="form-label">Street</label>
+                                <input asp-for="NewAddress.Street" class="form-control" required disabled />
+                                <span asp-validation-for="NewAddress.Street" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="NewAddress.LocationSub" class="form-label">House Number</label>
+                                <input asp-for="NewAddress.LocationSub" class="form-control" disabled />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="NewAddress.Country" class="form-label">Country</label>
+                                <input asp-for="NewAddress.Country" class="form-control" required disabled />
+                                <span asp-validation-for="NewAddress.Country" class="text-danger"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Document Section -->
-                <div class="form-group mb-3">
-                    <label data-translate="Customer.DocumentUsed" asp-for="Customer.DocumentUsed" class="form-label">Document Type</label>
-                    <select asp-for="Customer.DocumentUsed" class="form-select">
-                        <option>NationalID</option>
-                        <option>Passport</option>
-                        <option>KebeleId</option>
-                        <option>EmployeeID</option>
-                        <option>StudentId</option>
-                        <option>Other</option>
-                    </select>
+                <div class="mh-fieldset">
+                    <h2 class="mh-fieldset-title">Documents</h2>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="Customer.DocumentUsed" class="form-label">Document Type</label>
+                            <select asp-for="Customer.DocumentUsed" class="form-select">
+                                <option>NationalID</option>
+                                <option>Passport</option>
+                                <option>KebeleId</option>
+                                <option>EmployeeID</option>
+                                <option>StudentId</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="IdCardFile" class="form-label">Upload ID Card</label>
+                            <input type="file" asp-for="IdCardFile" class="form-control" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CustomerPhoto" class="form-label">Upload Profile Photo</label>
+                            <input type="file" asp-for="CustomerPhoto" class="form-control" />
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group mb-3">
-                    <label data-translate="Customer.IdCardFileUrl" class="form-label">Upload ID Card</label>
-                    <input type="file" asp-for="IdCardFile" class="form-control" />
+                <div class="mh-form-actions">
+                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-person-check" aria-hidden="true"></i> <span>Register</span></button>
                 </div>
-
-                <div class="form-group mb-3">
-                    <label data-translate="Customer.CustomerPhotoUrl" class="form-label">Upload Profile Photo</label>
-                    <input type="file" asp-for="CustomerPhoto" class="form-control" />
-                </div>
-
-                <div class="form-group text-center mb-4">
-                    <button type="submit" class="btn btn-primary w-100"><span data-translate="Register"></span></button>
-                </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        document.getElementById('addressSelect').addEventListener('change', function () {
+        (function () {
+            var select = document.getElementById('addressSelect');
             var section = document.getElementById('newAddressSection');
-            section.style.display = this.value === 'new' ? 'block' : 'none';
-        });
+            function sync() {
+                var isNew = select.value === 'new';
+                section.style.display = isNew ? 'block' : 'none';
+                section.querySelectorAll('input').forEach(function (input) { input.disabled = !isNew; });
+            }
+            select.addEventListener('change', sync);
+            sync(); // e.g. redisplayed after a validation error with "+ Add New Address" still selected
+        })();
     </script>
 }

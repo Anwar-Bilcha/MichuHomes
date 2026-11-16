@@ -33,11 +33,16 @@ namespace RadiantHomes.Pages.Address
         // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    return Page();
-            //}
+            // City, Country and Street are required; without this check an empty form reached the
+            // database and failed with a 500 (NOT NULL constraint) instead of showing the messages.
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
 
+            // Generate the key here: the model declares a NEWID() default for AddressID but the
+            // database has no such default, so leaving it to SQL Server inserts NULL.
+            PartyAddress.AddressID = Guid.NewGuid();
             _context.Addresses.Add(PartyAddress);
             await _context.SaveChangesAsync();
 

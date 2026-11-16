@@ -1,0 +1,46 @@
+@*
+    One place that shows the result of the previous action as a toast (see wwwroot/js/michu-dialogs.js).
+    Rendered by every layout after _CoreScripts.
+
+    Page models set:  TempData["Success"] / TempData["Error"] / TempData["Warning"] / TempData["Info"]
+    and redirect. Older key names (SuccessMessage, ErrorMessage, error, StatusMessage) are still picked up so
+    every message is shown exactly once, wherever the user lands.
+    Errors about the form currently on screen stay inline in that form (validation summary / alert).
+*@
+@inject RadiantHomes.Localization.TranslationCatalog Catalog
+@{
+    var culture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var keys = new (string Key, string Type)[]
+    {
+        ("Success", "success"), ("SuccessMessage", "success"),
+        ("Info", "info"),
+        ("Warning", "warning"),
+        ("Error", "error"), ("ErrorMessage", "error"), ("error", "error"),
+        ("StatusMessage", "status"),
+        (RadiantHomes.Pages.SubscribeModel.MessageKey, "subscribe"),
+    };
+
+    var messages = new List<object>();
+    foreach (var (key, type) in keys)
+    {
+        if (TempData[key] is not string text || string.IsNullOrWhiteSpace(text)) continue;
+
+        var resolved = type switch
+        {
+            // Identity "StatusMessage" convention: "Error…" (or "Unexpected error…") means failure.
+            "status" => text.Contains("error", StringComparison.OrdinalIgnoreCase) ? "error" : "success",
+            "subscribe" => TempData[RadiantHomes.Pages.SubscribeModel.StatusKey] as string == "danger" ? "error" : "success",
+            _ => type
+        };
+        // Toast texts never pass through the HTML translator, so translate them here.
+        messages.Add(new { type = resolved, text = Catalog.T(text, culture) });
+    }
+}
+@if (messages.Count > 0)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.MichuDialog) MichuDialog.flash(@Html.Raw(Json.Serialize(messages)));
+        });
+    </script>
+}

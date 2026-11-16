@@ -2,184 +2,84 @@
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses.DetailsModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Apartment details";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<h1>Details</h1>
+@section PageActions {
+    <a class="btn btn-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to list</a>
+    <a class="btn btn-primary" asp-page="./Edit" asp-route-id="@Model.ApartmentHouse.Id"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+}
 
-<div>
-    <h4>ApartmentHouse</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.Title)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.Title)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.HouseNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.HouseNumber)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.Description)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.Description)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.SalePrice)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.SalePrice)
-        </dd>
-       
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.HouseCategory)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.HouseCategory.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.AvailableFor)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.AvailableFor)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.HouseAddress)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.HouseAddress.AddressID)
-        </dd>
-       
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.Status)
-        </dd>
-        
-        @* <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.OutOfCompoundViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.OutOfCompoundViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.FrontCompoundViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.FrontCompoundViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.HouseInternalViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.HouseInternalViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.MainSalonViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.MainSalonViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.MasterBedRoomViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.MasterBedRoomViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.KitchenViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.KitchenViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.RestRoomViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.RestRoomViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.AuxiSalonViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.AuxiSalonViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.SecBedRoomViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.SecBedRoomViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.AdditionalViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.AdditionalViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.BackyardViewPhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.BackyardViewPhotoUrl)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.Additional2PhotoUrl)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.Additional2PhotoUrl)
-        </dd> *@
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.HouseType)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.HouseType)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.FloorNumber)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.FloorNumber)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.Building)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.Building.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.CreatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.CreatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.CreatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.CreatedOn)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.UpdatedBy)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.UpdatedBy)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.ApartmentHouse.UpdatedOn)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.ApartmentHouse.UpdatedOn)
-        </dd>
-    </dl>
+<div class="card">
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.Title)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.Title)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.HouseNumber)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.HouseNumber)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.Description)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.Description)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.SalePrice)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.SalePrice)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.HouseCategory)</dt>
+            <dd>@(Model.ApartmentHouse.HouseCategory?.Name ?? "—")</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.AvailableFor)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.AvailableFor)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.HouseAddress)</dt>
+            <dd>@(Model.ApartmentHouse.HouseAddress?.FormattedAddressCompact ?? "—")</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.Status)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.Status)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.HouseType)</dt>
+            <dd>@(Enum.TryParse<HouseTypesCateg>(Model.ApartmentHouse.HouseType, out var houseType) ? houseType.GetDisplayName() : Model.ApartmentHouse.HouseType)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.FloorNumber)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.FloorNumber)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.Building)</dt>
+            <dd>@(Model.ApartmentHouse.Building?.BuildingName ?? "—")</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.Project)</dt>
+            <dd>@(Model.ApartmentHouse.Project?.ProjectName ?? "—")</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.HousingCompany)</dt>
+            <dd>@(Model.ApartmentHouse.HousingCompany?.Name ?? "—")</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.CreatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.CreatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.CreatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.CreatedOn)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.UpdatedBy)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.UpdatedBy)</dd>
+            <dt>@Html.DisplayNameFor(model => model.ApartmentHouse.UpdatedOn)</dt>
+            <dd>@Html.DisplayFor(model => model.ApartmentHouse.UpdatedOn)</dd>
+        </dl>
+    </div>
 </div>
-<div>
-    <a asp-page="./Edit" asp-route-id="@Model.ApartmentHouse.Id">Edit</a> |
-    <a asp-page="./Index">Back to List</a>
-</div>
+
+@if (Model.Model3D is not null)
+{
+    <div class="mt-4">
+        <partial name="~/Pages/ApartmentHouses/_ApartmentModelViewer.cshtml" model="Model.Model3D" />
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <p class="mb-0 text-muted small">
+                @(Model.Model3D.Rooms.Count == 0 ? "No rooms are set up for the walk-through yet." : $"Rooms in the walk-through: {Model.Model3D.Rooms.Count}")
+            </p>
+            <a class="btn btn-sm btn-outline-primary" href="@Url.Page("/ApartmentHouses/Tour", new { area = "", id = Model.ApartmentHouse.Id })">
+                <i class="bi bi-door-open" aria-hidden="true"></i> Set up the rooms
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card mt-4">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <p class="mb-0 text-muted"><i class="bi bi-badge-3d" aria-hidden="true"></i> No 3D model yet. Buyers can turn a 3D model around on the apartment page.</p>
+            <a class="btn btn-sm btn-outline-primary" asp-page="./Edit" asp-route-id="@Model.ApartmentHouse.Id" asp-fragment="model3DFile">Add a 3D model</a>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @if (Model.Model3D is not null)
+    {
+        <script src="~/js/model-view.js" asp-append-version="true"></script>
+    }
+}

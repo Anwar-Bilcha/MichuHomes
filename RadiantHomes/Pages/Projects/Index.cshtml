@@ -1,60 +1,93 @@
 ﻿@page
+@using RadiantHomes.DAL
 @model RadiantHomes.Pages.Projects.IndexModel
 
 @{
     ViewData["Title"] = "Projects";
-    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    // The list is public (navbar "Projects"); creating, editing and deleting are for administrators only,
+    // so visitors get the public layout instead of the admin sidebar.
+    var canManage = User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin);
+    Layout = canManage ? "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml" : "~/Pages/Shared/_Layout.cshtml";
 }
 
-<section class="container mt-5">
-    <div class="d-flex justify-content-between mb-4 align-items-center">
-        <h2 class="display-4 text-dark">Projects</h2>
-        <a asp-page="Create" class="btn btn-success btn-lg">
-            <i class="fas fa-plus-circle"></i> Create New
+@if (canManage)
+{
+    @section PageActions {
+        <a class="btn btn-primary" asp-page="Create">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> New project
         </a>
-    </div>
+    }
+}
 
+<div class="card">
     @if (Model.HouseProject?.Any() == true)
     {
-        <!-- Bootstrap 4/5 grid system for responsive 3-column layout -->
-        <div class="row g-4">
-            @foreach (var project in Model.HouseProject)
-            {
-                <div class="col-12 col-sm-6 col-md-4 col-lg-4">
-                    <div class="card shadow-lg border-0 rounded-lg h-100">
-                        <div class="card-body">
-                            <h5 class="card-title text-dark">@project.ProjectName</h5>
-                            <p class="card-text text-muted"><strong>Location:</strong> @project.Location</p>
-                            <p class="card-text text-muted">@project.Description</p>
-                            <p class="card-text text-muted"><strong>Start:</strong> @project.StartDate.ToShortDateString()</p>
-                            <p class="card-text text-muted"><strong>End:</strong> @project.EndDate?.ToShortDateString()</p>
-                            <p class="card-text text-muted"><strong>Total Area:</strong> @project.TotalArea m²</p>
-
-                            <!-- Action Buttons with Modern Styles -->
-                            <div class="d-flex justify-content-between mt-4">
-                                <a asp-page="./Edit" asp-route-id="@project.ProjectId" class="btn btn-warning btn-sm text-white px-4 py-2 rounded-pill">
-                                    <i class="fas fa-pencil-alt"></i> Edit
-                                </a>
-                                <a asp-page="./Details" asp-route-id="@project.ProjectId" class="btn btn-info btn-sm text-white px-4 py-2 rounded-pill">
-                                    <i class="fas fa-info-circle"></i> Details
-                                </a>
-                                <a asp-page="./Delete" asp-route-id="@project.ProjectId" class="btn btn-danger btn-sm text-white px-4 py-2 rounded-pill">
-                                    <i class="fas fa-trash-alt"></i> Delete
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Project</th>
+                        <th scope="col">Company</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Start</th>
+                        <th scope="col">End</th>
+                        <th scope="col" class="text-end">Total area</th>
+                        <th scope="col" class="text-end position-relative"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var project in Model.HouseProject)
+                    {
+                        <tr>
+                            <td class="mh-project-cell">
+                                <a class="fw-semibold text-decoration-none" asp-page="./Details" asp-route-id="@project.ProjectId">@project.ProjectName</a>
+                                @if (!string.IsNullOrWhiteSpace(project.Description))
+                                {
+                                    <div class="small text-muted text-truncate">@project.Description</div>
+                                }
+                            </td>
+                            <td>@project.Company?.Name</td>
+                            <td>@project.Location</td>
+                            <td class="text-nowrap">@project.StartDate.ToShortDateString()</td>
+                            <td class="text-nowrap">@project.EndDate?.ToShortDateString()</td>
+                            <td class="text-end text-nowrap">@project.TotalArea m²</td>
+                            <td class="text-end">
+                                <div class="mh-row-actions">
+                                    <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@project.ProjectId" title="View details" aria-label="View details of @project.ProjectName"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                                    @if (canManage)
+                                    {
+                                        <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@project.ProjectId" title="Edit" aria-label="Edit @project.ProjectName"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                        <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@project.ProjectId" title="Delete" aria-label="Delete @project.ProjectName"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
+    }
+    else if (Model.NoCompany)
+    {
+        <partial name="~/Areas/HousingCompanyAdmin/Pages/_NoCompanyNotice.cshtml" />
     }
     else
     {
-        <div class="text-center text-muted mt-5">
-            <p>No projects found.</p>
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-kanban"></i></span>
+            <h2>No projects found</h2>
+            <p>Housing projects appear here, with their buildings and apartments.</p>
+            @if (canManage)
+            {
+                <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New project</a>
+            }
         </div>
     }
-</section>
+</div>
 
-<!-- Optionally, include FontAwesome for icons -->
-
+@section Styles {
+    <style>
+        .mh-project-cell { min-width: 12rem; }
+        .mh-project-cell .text-truncate { max-width: 18rem; }
+    </style>
+}

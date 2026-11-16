@@ -17,26 +17,38 @@
             <div class="row g-3">
                 <div class="col-12">
                     <label asp-for="HouseRentPayment.TransactionId" class="form-label"></label>
-                    <select asp-for="HouseRentPayment.TransactionId" class="form-select" asp-items="ViewBag.TransactionId"></select>
+                    @if (Model.CanEditParties)
+                    {
+                        <select asp-for="HouseRentPayment.TransactionId" class="form-select" asp-items="ViewBag.TransactionId"></select>
+                    }
+                    else
+                    {
+                        <input id="HouseRentPayment_TransactionId" class="form-control" value="@Model.TransactionText" readonly />
+                    }
                     <span asp-validation-for="HouseRentPayment.TransactionId" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
                     <label asp-for="HouseRentPayment.RentCommision" class="form-label"></label>
-                    <input asp-for="HouseRentPayment.RentCommision" class="form-control" />
+                    <input asp-for="HouseRentPayment.RentCommision" class="form-control" readonly="@(!Model.CanEditParties)" />
                     <span asp-validation-for="HouseRentPayment.RentCommision" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
                     <label asp-for="HouseRentPayment.RentPricePerTerm" class="form-label"></label>
-                    <input asp-for="HouseRentPayment.RentPricePerTerm" class="form-control" />
+                    <input asp-for="HouseRentPayment.RentPricePerTerm" class="form-control" readonly="@(!Model.CanEditParties)" />
                     <span asp-validation-for="HouseRentPayment.RentPricePerTerm" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
                     <label asp-for="HouseRentPayment.TotalRentPrice" class="form-label"></label>
-                    <input asp-for="HouseRentPayment.TotalRentPrice" class="form-control" />
+                    <input asp-for="HouseRentPayment.TotalRentPrice" class="form-control" readonly="@(!Model.CanEditParties)" />
                     <span asp-validation-for="HouseRentPayment.TotalRentPrice" class="text-danger"></span>
                 </div>
             </div>
         </div>
+
+        @if (!Model.CanEditParties)
+        {
+            <p class="form-text mt-n2 mb-4">The amounts are set by Michu Homes; you can update the preferred banks.</p>
+        }
 
         <div class="mh-fieldset">
             <h2 class="mh-fieldset-title">Banks</h2>
@@ -55,32 +67,6 @@
                     <label asp-for="HouseRentPayment.CommisionedPreferedBank" class="form-label"></label>
                     <input asp-for="HouseRentPayment.CommisionedPreferedBank" class="form-control" />
                     <span asp-validation-for="HouseRentPayment.CommisionedPreferedBank" class="text-danger"></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="mh-fieldset">
-            <h2 class="mh-fieldset-title">Record</h2>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label asp-for="HouseRentPayment.CreatedBy" class="form-label"></label>
-                    <input asp-for="HouseRentPayment.CreatedBy" class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.CreatedBy" class="text-danger"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="HouseRentPayment.CreatedOn" class="form-label"></label>
-                    <input asp-for="HouseRentPayment.CreatedOn" class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.CreatedOn" class="text-danger"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="HouseRentPayment.UpdatedBy" class="form-label"></label>
-                    <input asp-for="HouseRentPayment.UpdatedBy" class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.UpdatedBy" class="text-danger"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="HouseRentPayment.UpdatedOn" class="form-label"></label>
-                    <input asp-for="HouseRentPayment.UpdatedOn" class="form-control" />
-                    <span asp-validation-for="HouseRentPayment.UpdatedOn" class="text-danger"></span>
                 </div>
             </div>
         </div>

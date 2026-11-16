@@ -2,79 +2,80 @@
 @model RadiantHomes.Pages.Houses.Actions.Complaints.DetailsModel
 
 @{
-    ViewData["Title"] = "Complaint Details";
+    ViewData["Title"] = "Complaint details";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<div class="container my-5">
-    <div class="card shadow rounded-4">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">Complaint Details</h3>
-        </div>
-        <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-sm-4">Issue Name</dt>
-                <dd class="col-sm-8">@Model.IssueOrCompliant.IssueName</dd>
+@section PageActions {
+    <a class="btn btn-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to list</a>
+    @if (Model.CanChange)
+    {
+        <a class="btn btn-primary" asp-page="./Edit" asp-route-id="@Model.IssueOrCompliant.IssueId"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+    }
+}
 
-                <dt class="col-sm-4">House ID</dt>
-                <dd class="col-sm-8">@Model.IssueOrCompliant.House?.Id</dd>
+<div class="card">
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.IssueName)</dt>
+            <dd>@Model.IssueOrCompliant.IssueName</dd>
 
-                <dt class="col-sm-4">House Owner ID</dt>
-                <dd class="col-sm-8">@Model.IssueOrCompliant.HouseOwner?.Id</dd>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.House)</dt>
+            <dd>
+                @if (Model.IssueOrCompliant.House is not null)
+                {
+                    <a asp-page="/Houses/Details" asp-route-id="@Model.IssueOrCompliant.HouseId">@Model.IssueOrCompliant.House.Title</a>
+                }
+            </dd>
 
-                <dt class="col-sm-4">Issue Category</dt>
-                <dd class="col-sm-8">@Model.IssueOrCompliant.IssueCategory</dd>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.HouseOwner)</dt>
+            <dd>@DisplayText.PersonName(Model.IssueOrCompliant.HouseOwner)</dd>
 
-                <dt class="col-sm-4">Detailed Description</dt>
-                <dd class="col-sm-8 white-space-pre-wrap">@Model.IssueOrCompliant.DetailedDescription</dd>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.IssueCategory)</dt>
+            <dd>@Model.IssueOrCompliant.IssueCategory</dd>
 
-                <dt class="col-sm-4">Severity Level</dt>
-                <dd class="col-sm-8">@Model.IssueOrCompliant.SeverityLevel</dd>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.DetailedDescription)</dt>
+            <dd class="white-space-pre-wrap">@Model.IssueOrCompliant.DetailedDescription</dd>
 
-                <dt class="col-sm-4">Evidence File 1</dt>
-                <dd class="col-sm-8">
-                    @if (!string.IsNullOrEmpty(Model.IssueOrCompliant.SupportingEvidenceUrl))
-                    {
-                        <a href="@Model.IssueOrCompliant.SupportingEvidenceUrl" class="link-primary" target="_blank">View Evidence</a>
-                    }
-                    else
-                    {
-                        <span class="text-muted fst-italic">Not Provided</span>
-                    }
-                </dd>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.SeverityLevel)</dt>
+            <dd>@Model.IssueOrCompliant.SeverityLevel</dd>
 
-                <dt class="col-sm-4">Evidence File 2</dt>
-                <dd class="col-sm-8">
-                    @if (!string.IsNullOrEmpty(Model.IssueOrCompliant.SupportingEvidence2Url))
-                    {
-                        <a href="@Model.IssueOrCompliant.SupportingEvidence2Url" class="link-primary" target="_blank">View Evidence</a>
-                    }
-                    else
-                    {
-                        <span class="text-muted fst-italic">Not Provided</span>
-                    }
-                </dd>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.SupportingEvidenceUrl)</dt>
+            <dd>
+                @if (!string.IsNullOrEmpty(Model.IssueOrCompliant.SupportingEvidenceUrl))
+                {
+                    <a href="@Model.IssueOrCompliant.SupportingEvidenceUrl" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> View Evidence</a>
+                }
+                else
+                {
+                    <span class="text-muted fst-italic">Not Provided</span>
+                }
+            </dd>
 
-                <dt class="col-sm-4">Complainant Name</dt>
-                <dd class="col-sm-8">@Model.IssueOrCompliant.ComplainantFullName</dd>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.SupportingEvidence2Url)</dt>
+            <dd>
+                @if (!string.IsNullOrEmpty(Model.IssueOrCompliant.SupportingEvidence2Url))
+                {
+                    <a href="@Model.IssueOrCompliant.SupportingEvidence2Url" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> View Evidence</a>
+                }
+                else
+                {
+                    <span class="text-muted fst-italic">Not Provided</span>
+                }
+            </dd>
 
-                <dt class="col-sm-4">Preferred Contact Method</dt>
-                <dd class="col-sm-8">@Model.IssueOrCompliant.HowDoWeReachYou</dd>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.ComplainantFullName)</dt>
+            <dd>@Model.IssueOrCompliant.ComplainantFullName</dd>
 
-                <dt class="col-sm-4">Phone or Email</dt>
-                <dd class="col-sm-8">@Model.IssueOrCompliant.PhoneOrEmail</dd>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.HowDoWeReachYou)</dt>
+            <dd>@Model.IssueOrCompliant.HowDoWeReachYou</dd>
 
-                <dt class="col-sm-4">Complainant Address</dt>
-                <dd class="col-sm-8">@Model.IssueOrCompliant.ComplainantAddress</dd>
-            </dl>
-        </div>
-        <div class="card-footer bg-light d-flex justify-content-between">
-            <a asp-page="./Edit" asp-route-id="@Model.IssueOrCompliant.IssueId" class="btn btn-primary">
-                <i class="bi bi-pencil-square me-1"></i> Edit
-            </a>
-            <a asp-page="./Index" class="btn btn-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back to List
-            </a>
-        </div>
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.PhoneOrEmail)</dt>
+            <dd>@Model.IssueOrCompliant.PhoneOrEmail</dd>
+
+            <dt>@Html.DisplayNameFor(model => model.IssueOrCompliant.ComplainantAddress)</dt>
+            <dd>@Model.IssueOrCompliant.ComplainantAddress</dd>
+        </dl>
     </div>
 </div>

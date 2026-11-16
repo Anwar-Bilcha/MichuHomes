@@ -24,7 +24,10 @@
         <ul class="dropdown-menu dropdown-menu-end mh-profile-menu" aria-labelledby="profileDropdown">
             <li class="px-3 pt-2 pb-2">
                 <div class="mh-profile-name">@displayName</div>
-                <div class="mh-profile-email">@User.Identity?.Name</div>
+                @if (!string.Equals(displayName, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    <div class="mh-profile-email">@User.Identity?.Name</div>
+                }
             </li>
             <li><hr class="dropdown-divider" /></li>
             @if (isMichuAdmin)

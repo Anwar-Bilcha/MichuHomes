@@ -27,6 +27,7 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPost(string returnUrl = "/index")
         {
             await _signInManager.SignOutAsync();
+            HttpContext.Session.Clear(); // drop per-user session values (e.g. CustomerId set at login)
             _logger.LogInformation("User logged out.");
             if (returnUrl != null)
             {

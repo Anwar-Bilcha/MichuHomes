@@ -3,297 +3,89 @@
 @model RadiantHomes.Pages.Buildings.DetailsModel
 
 @{
-    ViewData["Title"] = "Building Details: ";
-    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml"; // Ensure this layout path is correct
+    ViewData["Title"] = "Building details";
+    ViewData["Subtitle"] = Model.Building?.Project != null
+        ? $"{Model.Building.BuildingName} is part of the {Model.Building.Project.ProjectName} project."
+        : null;
+    // Visitors can browse; creating, editing and deleting are for administrators only.
+    var canManage = User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.MichuAdmin) || User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.RealEstateAdmin);
+    // Visitors (e.g. from a public project page) get the public layout rather than the admin sidebar.
+    Layout = canManage ? "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml" : "~/Pages/Shared/_Layout.cshtml";
 }
 
-<style>
-    /* Hero Section Styles */
-    .hero-section {
-        background-color: #f8f9fa; /* Fallback color */
-        background-size: cover;
-        background-position: center;
-        position: relative;
-        color: white;
-        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
-        padding: 4rem 0; /* Adjusted padding for better mobile fit */
-        margin-bottom: 3rem;
-        min-height: 250px; /* Adjusted minimum height for buildings on all screens */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        border-radius: 0.5rem;
-        overflow: hidden;
+@section PageActions {
+    <a asp-page="./Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to list
+    </a>
+    @if (canManage)
+    {
+        <a asp-page="./Edit" asp-route-id="@Model.Building?.Id" class="btn btn-primary">
+            <i class="bi bi-pencil" aria-hidden="true"></i> Edit building
+        </a>
     }
+}
 
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5); /* Dark overlay for text readability */
-            z-index: 1;
-        }
+@* Building details *@
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-building" aria-hidden="true"></i> Building Information</h2>
+    </div>
+    <div class="card-body">
+        <dl class="mh-dl">
+            <dt>Name</dt>
+            <dd>@(Model.Building?.BuildingName ?? "N/A")</dd>
 
-    .hero-content {
-        position: relative;
-        z-index: 2;
-        max-width: 90%; /* Allow content to take more width on small screens */
-        margin: 0 auto;
-        padding: 0 1rem;
-    }
+            <dt>Number of Floors</dt>
+            <dd>@(Model.Building?.NumberOfFloors.ToString() ?? "N/A")</dd>
 
-        .hero-content h1 {
-            font-size: 2.25rem; /* Adjusted font size for building name */
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
+            <dt>Type</dt>
+            <dd>@(string.IsNullOrWhiteSpace(Model.Building?.BuildingType) ? "N/A" : BuildingOptions.TypeName(Model.Building.BuildingType))</dd>
 
-        .hero-content p {
-            font-size: 1.1rem; /* Adjusted font size for subtitle */
-            opacity: 0.9;
-            margin-bottom: 1.5rem;
-        }
+            <dt>Construction Status</dt>
+            <dd>@(string.IsNullOrWhiteSpace(Model.Building?.ConstructionStatus) ? "N/A" : BuildingOptions.StatusName(Model.Building.ConstructionStatus))</dd>
 
-    .hero-buttons {
-        flex-direction: column; /* Stack buttons vertically on small screens */
-        gap: 0.75rem; /* Reduced gap for mobile */
-    }
+            <dt>Associated Project</dt>
+            <dd>
+                @if (Model.Building?.Project != null)
+                {
+                    <a asp-page="/Projects/Details" asp-route-id="@Model.Building.Project.ProjectId">
+                        @Model.Building.Project.ProjectName
+                    </a>
+                }
+                else
+                {
+                    <span>N/A</span>
+                }
+            </dd>
 
-    /* Adjust hero text and buttons for smaller screens */
-    @@media (min-width: 576px) { /* Small devices (landscape phones, 576px and up) */
-        .hero-buttons {
-            flex-direction: row; /* Buttons side-by-side on larger mobiles and up */
-            gap: 1.5rem;
-        }
-    }
+            <dt>Created By</dt>
+            <dd>@(Model.Building?.CreatedBy ?? "N/A")</dd>
 
-    @@media (min-width: 768px) { /* Medium devices (tablets, 768px and up) */
-        .hero-section {
-            min-height: 300px;
-            padding: 5rem 0;
-        }
+            <dt>Created On</dt>
+            <dd>@(Model.Building?.CreatedOn.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</dd>
 
-        .hero-content h1 {
-            font-size: 2.75rem;
-        }
+            <dt>Updated By</dt>
+            <dd>@(Model.Building?.UpdatedBy ?? "N/A")</dd>
 
-        .hero-content p {
-            font-size: 1.2rem;
-        }
-    }
-
-    /* General Card Styles */
-    .card {
-        border-radius: 0.75rem !important;
-        border: none;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
-    }
-
-    .card-header {
-        border-bottom: none !important;
-        border-top-left-radius: calc(0.75rem - 1px) !important;
-        border-top-right-radius: calc(0.75rem - 1px) !important;
-        padding: 1rem 1.5rem;
-    }
-
-    /* Building Details Specifics */
-    .building-details-card .card-header {
-        background-color: var(--bs-primary) !important;
-        color: white;
-    }
-
-    /* Houses in Building Section */
-    .houses-in-building .card-header {
-        background-color: var(--bs-info) !important;
-        color: white;
-    }
-
-    /* Image Gallery Styles */
-    .gallery-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Smaller thumbnails for very small screens */
-        gap: 0.75rem;
-        padding: 0.75rem;
-        background-color: var(--bs-light);
-        border-bottom-left-radius: calc(0.75rem - 1px);
-        border-bottom-right-radius: calc(0.75rem - 1px);
-    }
-
-    @@media (min-width: 576px) {
-        .gallery-container {
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Larger thumbnails for small screens and up */
-        }
-    }
-
-    @@media (min-width: 768px) {
-        .gallery-container {
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Original size for tablets and desktops */
-        }
-    }
-
-    .gallery-item img {
-        width: 100%;
-        height: 100px; /* Adjusted thumbnail height for mobile */
-        object-fit: cover;
-        border-radius: 0.5rem;
-        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-
-    @@media (min-width: 576px) {
-        .gallery-item img {
-            height: 120px; /* Slightly taller for small screens */
-        }
-    }
-
-    @@media (min-width: 768px) {
-        .gallery-item img {
-            height: 150px; /* Original height for tablets and desktops */
-        }
-    }
-
-    .gallery-item img:hover {
-        transform: scale(1.03);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
-    }
-
-    .no-photos-placeholder {
-        min-height: 120px; /* Adjusted height for mobile */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background-color: var(--bs-light);
-        color: var(--bs-secondary-text-emphasis);
-        padding: 1rem; /* Adjusted padding */
-        border-bottom-left-radius: calc(0.75rem - 1px);
-        border-bottom-right-radius: calc(0.75rem - 1px);
-    }
-
-    @@media (min-width: 576px) {
-        .no-photos-placeholder {
-            min-height: 150px;
-            padding: 1.5rem;
-        }
-    }
-
-    /* House Card Image (in Buildings Detail) */
-    .house-card-img {
-        max-height: 120px; /* Adjusted max height for mobile */
-        object-fit: cover;
-        width: 100%;
-        border-bottom-left-radius: calc(0.75rem - 1px);
-        border-bottom-right-radius: calc(0.75rem - 1px);
-    }
-
-    @@media (min-width: 576px) {
-        .house-card-img {
-            max-height: 150px; /* Original height for larger screens */
-        }
-    }
-
-    /* Info text for detail lists */
-    dl.row dt, dl.row dd {
-        padding-top: 0.25rem; /* Small padding for definition list items */
-        padding-bottom: 0.25rem;
-    }
-
-    /* Ensure text wraps gracefully */
-    .text-muted, .fw-semibold {
-        word-wrap: break-word;
-    }
-
-</style>
-
-<div class="hero-section" style="background-image:url('~/wwwroot/images/building1.jpg'); background-color: #6c757d;">
-    <div class="hero-content">
-        <h1 class="display-4 fw-bold mb-2">
-            @(Model.Building?.BuildingName ?? "Building Details")
-        </h1>
-        @if (Model.Building?.Project != null)
-        {
-            <p class="lead mb-4">
-                Part of Project: <a asp-page="/Projects/Details" asp-route-id="@Model.Building.Project.ProjectId" class="text-white text-decoration-underline">@Model.Building.Project.ProjectName</a>
-            </p>
-        }
-        <div class="hero-buttons d-flex justify-content-center">
-            <a asp-page="./Edit" asp-route-id="@Model.Building?.Id" class="btn btn-primary btn-lg w-100 w-sm-auto">
-                <i class="bi bi-pencil-square me-2"></i> Edit Building
-            </a>
-            <a asp-page="./Index" class="btn btn-outline-light btn-lg w-100 w-sm-auto">
-                <i class="bi bi-arrow-left-circle me-2"></i> Back to Buildings
-            </a>
-        </div>
+            <dt>Updated On</dt>
+            <dd>@(Model.Building?.UpdatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</dd>
+        </dl>
     </div>
 </div>
 
-<div class="container py-4 px-3 px-md-4">
-    @* Added graceful padding to the main container *@
-    @* Building Details Section *@
-    <div class="card building-details-card shadow-sm rounded-4 mb-5 p-3 p-md-4">
-        @* Added padding to card body *@
-        <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-building me-2"></i> Building Information</h5>
-        </div>
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-md-3 col-sm-4 fw-semibold text-dark"><i class="bi bi-tag me-2"></i> Name</dt>
-                <dd class="col-md-9 col-sm-8 text-muted">@(Model.Building?.BuildingName ?? "N/A")</dd>
-
-                <dt class="col-md-3 col-sm-4 fw-semibold text-dark"><i class="bi bi-list-ol me-2"></i> Number of Floors</dt>
-                <dd class="col-md-9 col-sm-8 text-muted">@(Model.Building?.NumberOfFloors.ToString() ?? "N/A")</dd>
-
-                <dt class="col-md-3 col-sm-4 fw-semibold text-dark"><i class="bi bi-bricks me-2"></i> Type</dt>
-                <dd class="col-md-9 col-sm-8 text-muted">@(Model.Building?.BuildingType ?? "N/A")</dd>
-
-                <dt class="col-md-3 col-sm-4 fw-semibold text-dark"><i class="bi bi-wrench-adjustable me-2"></i> Construction Status</dt>
-                <dd class="col-md-9 col-sm-8 text-muted">@(Model.Building?.ConstructionStatus ?? "N/A")</dd>
-
-                <dt class="col-md-3 col-sm-4 fw-semibold text-dark"><i class="bi bi-link-45deg me-2"></i> Associated Project</dt>
-                <dd class="col-md-9 col-sm-8 text-muted">
-                    @if (Model.Building?.Project != null)
-                    {
-                        <a asp-page="/Projects/Details" asp-route-id="@Model.Building.Project.ProjectId">
-                            Project #@Model.Building.Project.ProjectId: @Model.Building.Project.ProjectName
-                        </a>
-                    }
-                    else
-                    {
-                        <span>N/A</span>
-                    }
-                </dd>
-
-                <dt class="col-md-3 col-sm-4 fw-semibold text-dark"><i class="bi bi-person me-2"></i> Created By</dt>
-                <dd class="col-md-9 col-sm-8 text-muted">@(Model.Building?.CreatedBy ?? "N/A")</dd>
-
-                <dt class="col-md-3 col-sm-4 fw-semibold text-dark"><i class="bi bi-calendar-plus me-2"></i> Created On</dt>
-                <dd class="col-md-9 col-sm-8 text-muted">@(Model.Building?.CreatedOn.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</dd>
-
-                <dt class="col-md-3 col-sm-4 fw-semibold text-dark"><i class="bi bi-person-check me-2"></i> Updated By</dt>
-                <dd class="col-md-9 col-sm-8 text-muted">@(Model.Building?.UpdatedBy ?? "N/A")</dd>
-
-                <dt class="col-md-3 col-sm-4 fw-semibold text-dark"><i class="bi bi-calendar-check me-2"></i> Updated On</dt>
-                <dd class="col-md-9 col-sm-8 text-muted">@(Model.Building?.UpdatedOn?.ToString("yyyy-MM-dd HH:mm") ?? "N/A")</dd>
-            </dl>
-        </div>
+@* Building photos (gallery with lightbox) *@
+<div class="card mb-4">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-images" aria-hidden="true"></i> Building Photos</h2>
     </div>
-
-    @* Building Photos Section (Gallery with Lightbox) *@
     @if (Model.Building?.Photos != null && Model.Building.Photos.Any())
     {
-        <div class="card shadow-lg rounded-4 mb-5">
-            <div class="card-header bg-primary text-white py-3">
-                <h5 class="mb-0"><i class="bi bi-images me-2"></i> Building Photos</h5>
-            </div>
+        <div class="card-body">
             <div class="gallery-container">
                 @foreach (var photo in Model.Building.Photos)
                 {
                     <a href="@photo.PhotoPath" class="gallery-item">
-                        <img src="@photo.PhotoPath" alt="Building Photo" loading="lazy" />
+                        <img src="@photo.PhotoPath" alt="@(string.IsNullOrWhiteSpace(photo.Name) ? "Building photo" : photo.Name)" loading="lazy" />
                     </a>
                 }
             </div>
@@ -301,62 +93,71 @@
     }
     else
     {
-        <div class="no-photos-placeholder text-center shadow-sm rounded-4 mb-5">
-            <i class="bi bi-image-fill fs-1 mb-3"></i>
-            <p class="lead">No photos available for this building yet.</p>
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-image"></i></span>
+            <h3>No photos yet</h3>
+            <p>No photos available for this building yet.</p>
         </div>
     }
+</div>
 
-    @* Houses in the Building Section *@
+@* Houses in the building *@
+<div class="card">
+    <div class="card-header">
+        <h2 class="mh-section-title"><i class="bi bi-house-door" aria-hidden="true"></i> Houses in this Building</h2>
+    </div>
     @if (Model.Building?.Houses != null && Model.Building.Houses.Any())
     {
-        <div class="card houses-in-building shadow-sm rounded-4 mb-5">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-house-fill me-2"></i> Houses in this Building</h5>
-            </div>
-            <div class="card-body">
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-                    @* Adjusted grid for better mobile stacking *@
-                    @foreach (var house in Model.Building.Houses)
-                    {
-                        <div class="col">
-                            <a asp-page="/ApartmentHouses/Details" asp-route-id="@house.Id" class="card h-100 shadow-sm text-decoration-none border rounded-3 overflow-hidden d-block">
-                                <div class="card-body p-3">
-                                    @* Added padding to house card body *@
-                                    <h5 class="card-title text-primary mb-1"><i class="bi bi-key-fill me-2"></i> @house.Title</h5>
-                                    <p class="card-text text-muted mb-0"><i class="bi bi-sort-numeric-up me-2"></i> Floor: @house.FloorNumber</p>
-                                    <p class="card-text text-muted mb-0"><i class="bi bi-fullscreen me-2"></i> Area: @(house.Area.ToString("N2") ?? "N/A") sqm</p>
-                                    <p class="card-text text-muted mb-0"><i class="bi bi-cash-coin me-2"></i> Price: @(house.SalePrice.ToString("C") ?? "N/A")</p>
-                                </div>
-                                <img src="@Url.Content("./images/Villa1.jpg")" class="house-card-img" alt="@house.Title Image" loading="lazy" />
-                            </a>
-                        </div>
-                    }
-                </div>
+        <div class="card-body">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+                @foreach (var house in Model.Building.Houses)
+                {
+                    <div class="col">
+                        <a asp-page="/ApartmentHouses/Details" asp-route-id="@house.Id" class="card mh-media-card h-100 text-decoration-none">
+                            <img src="@Url.Content("~/images/Villa1.jpg")" class="card-img-top" alt="@house.Title Image" loading="lazy" />
+                            <div class="card-body">
+                                <h3 class="h5 card-title mb-2">@house.Title</h3>
+                                <ul class="list-unstyled small text-muted mb-0">
+                                    <li><i class="bi bi-sort-numeric-up me-2" aria-hidden="true"></i>Floor: @house.FloorNumber</li>
+                                    <li><i class="bi bi-arrows-fullscreen me-2" aria-hidden="true"></i>Area: @(house.Area > 0 ? house.Area.ToString("N0") + " m²" : "N/A")</li>
+                                </ul>
+                                <p class="fw-bold text-navy mt-2 mb-0">@RadiantHomes.Pages.ApartmentHouses.ApartmentHouseForm.Price(house.SalePrice, house.Currency)</p>
+                            </div>
+                        </a>
+                    </div>
+                }
             </div>
         </div>
     }
     else
     {
-        <div class="alert alert-info text-center shadow-sm rounded-4 p-4 mb-5">
-            @* Added padding here too *@
-            <i class="bi bi-info-circle-fill fs-4 me-2"></i> No houses associated with this building yet.
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-house-door"></i></span>
+            <h3>No houses yet</h3>
+            <p>No houses associated with this building yet.</p>
+            @if (canManage)
+            {
+                <a class="btn btn-primary" asp-page="/ApartmentHouses/Create" asp-route-id="@Model.Building?.Id"><i class="bi bi-house-add" aria-hidden="true"></i> Register houses</a>
+            }
         </div>
     }
-
-    <div class="mt-4 d-flex flex-column flex-sm-row gap-3">
-        @* Ensured buttons stack on mobile and go side-by-side on larger screens *@
-        <a asp-page="./Edit" asp-route-id="@Model.Building?.Id" class="btn btn-primary w-100 w-sm-auto">
-            <i class="bi bi-pencil-square me-2"></i> Edit
-        </a>
-        <a asp-page="./Index" class="btn btn-outline-secondary w-100 w-sm-auto">
-            <i class="bi bi-arrow-left-circle me-2"></i> Back to Buildings
-        </a>
-    </div>
 </div>
 
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .gallery-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .75rem; }
+        .gallery-container .gallery-item { display: block; overflow: hidden; border-radius: var(--mh-radius-sm); background: var(--mh-surface-3); }
+        .gallery-container .gallery-item img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; transition: transform .2s ease; }
+        .gallery-container .gallery-item:hover img { transform: scale(1.03); }
+        @@media (min-width: 768px) {
+            .gallery-container { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+        }
+    </style>
+}
+
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.js" integrity="sha512-RzU6j8f5T+4Tf0m0x9G4r0h7LwM/n5lF+w6qQ/1d7M5tG6f3s9V0f2/V+4W8bQ/4b2G5/z+G9/6V1Q+Q/5t+Q=" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var gallery = new SimpleLightbox('.gallery-container a', {

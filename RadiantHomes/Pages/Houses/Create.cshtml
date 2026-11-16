@@ -2,283 +2,256 @@
 @model RadiantHomes.Pages.Houses.CreateModel
 
 @{
-    ViewData["Title"] = "Create House";
+    ViewData["Title"] = "New house";
+    ViewData["Subtitle"] = "List a house for rent or sale.";
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<style>
-    
-
-    .card {
-        backdrop-filter: blur(6px);
-        border-radius: 16px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .card-header {
-        background: linear-gradient(to right, #007bff, #6f42c1);
-        color: white;
-        font-size: 1.3rem;
-        font-weight: bold;
-        border-radius: 16px 16px 0 0;
-    }
-
-    .form-control, .form-select {
-        border-radius: 10px;
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-    }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.25);
+@section Styles {
+    <style>
+        .form-label-required::after {
+            content: " *";
+            color: var(--mh-danger);
         }
+    </style>
+}
 
-    h6 {
-        font-weight: 600;
-        color: #343a40;
-        border-bottom: 2px solid #e2e6ea;
-        padding-bottom: 0.5rem;
-        margin-top: 2rem;
-    }
-
-    .btn-primary {
-        border-radius: 25px;
-        padding: 0.6rem 2rem;
-        font-weight: bold;
-        font-size: 1rem;
-        transition: 0.3s ease;
-    }
-
-        .btn-primary:hover {
-            background-color: #0056b3;
-            transform: scale(1.03);
-        }
-
-    .btn-outline-secondary {
-        border-radius: 25px;
-        font-weight: bold;
-    }
-
-    .form-label-required::after {
-        content: " *";
-        color: red;
-    }
-</style>
-
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-8">
-            <div class="card">
-                <div class="card-header py-3 px-4">
-                    Create New House
-                </div>
-                <div class="card-body p-4">
-                    <form method="post" enctype="multipart/form-data">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                        <h6>Basic Information</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6 form-floating">
-                                <input asp-for="House.Title" class="form-control" placeholder="Title" />
-                                <label asp-for="House.Title">Title</label>
-                                <span asp-validation-for="House.Title" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-md-6 form-floating">
-                                <textarea asp-for="House.Description" class="form-control" placeholder="Description" style="height: 100px;"></textarea>
-                                <label asp-for="House.Description">Description</label>
-                                <span asp-validation-for="House.Description" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-md-6 form-floating">
-                                <select asp-for="House.HouseOwnerId" class="form-select" asp-items="ViewBag.HouseOwnerId">
-                                    <option value="">-- Select Owner --</option>
-                                </select>
-                                <label asp-for="House.HouseOwnerId">Owner</label>
-                            </div>
-
-                            <div class="col-md-6 form-floating">
-                                <input asp-for="House.Price" class="form-control" placeholder="Price" />
-                                <label asp-for="House.Price">Price</label>
-                                <span asp-validation-for="House.Price" class="text-danger small"></span>
-                            </div>
-                        </div>
-
-                        <h6>Property Details</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6 form-floating">
-                                <input asp-for="House.TotalBedRooms" class="form-control" placeholder="Bedrooms" />
-                                <label asp-for="House.TotalBedRooms">Bedrooms</label>
-                                <span asp-validation-for="House.TotalBedRooms" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-md-6 form-floating">
-                                <input asp-for="House.TotalRooms" class="form-control" placeholder="Total Rooms" />
-                                <label asp-for="House.TotalRooms">Total Rooms</label>
-                                <span asp-validation-for="House.TotalRooms" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-md-6 form-floating">
-                                <input asp-for="House.TotalArea" class="form-control" placeholder="Total Area" />
-                                <label asp-for="House.TotalArea">Total Area</label>
-                                <span asp-validation-for="House.TotalArea" class="text-danger small"></span>
-                            </div>
-
-                            <div class="col-md-6 d-flex align-items-center mt-4">
-                                <div class="form-check form-switch ms-2">
-                                    <input class="form-check-input" type="checkbox" asp-for="House.HasOwnershipDocument" />
-                                    <label class="form-check-label" asp-for="House.HasOwnershipDocument">
-                                        Ownership Document Available
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <h6>Location & Availability</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6 form-floating">
-                                <label asp-for="House.AddressId" >Address</label>
-                                <select asp-for="House.AddressId" class="form-select" >
-                                    @foreach(var address in Model.AddressList)
-                                    {
-                                        <option value="@address.Value">@address.Text</option>
-
-                                    }
-                                </select>
-                                <label asp-for="House.AddressId">Address</label>
-                            </div>
-
-                            <div class="col-md-6 form-floating">
-                                <select asp-for="House.HouseCategoryId" class="form-select" asp-items="ViewBag.HouseCategoryId">
-                                    <option value="">-- Select Category --</option>
-                                </select>
-                                <label asp-for="House.HouseCategoryId">Category</label>
-                            </div>
-
-                            <div class="col-md-6 form-floating">
-                                <select asp-for="House.AvailableFor" class="form-select">
-                                    <option value="">-- Select Availability --</option>
-                                    <option value="Rent">Rent</option>
-                                    <option value="Sell">Sell</option>
-                                </select>
-                                <label asp-for="House.AvailableFor">Available For</label>
-                            </div>
-                        </div>
-
-                        <h6>Media & Documents</h6>
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <label asp-for="MainPhotoUrl" class="form-label form-label-required">Main House Photo</label>
-                                <input asp-for="MainPhotoUrl" type="file" class="form-control" />
-                                <span asp-validation-for="MainPhotoUrl" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="House.LatestHouseTaxVoucherUrl" class="form-label">Tax Voucher</label>
-                                <input asp-for="House.LatestHouseTaxVoucherUrl" type="file" class="form-control" />
-                                <span asp-validation-for="House.LatestHouseTaxVoucherUrl" class="text-danger small"></span>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <h5>Compound & External Views</h5>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label asp-for="OutOfCompoundViewPhoto" class="form-label">External View</label>
-                                    <input asp-for="OutOfCompoundViewPhoto" type="file" class="form-control" />
-                                    <span asp-validation-for="OutOfCompoundViewPhoto" class="text-danger"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <label asp-for="FrontCompoundViewPhoto" class="form-label">Front Yard View</label>
-                                    <input asp-for="FrontCompoundViewPhoto" type="file" class="form-control" />
-                                    <span asp-validation-for="FrontCompoundViewPhoto" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <h4>Interior Views</h4>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label asp-for="MainSalonViewPhoto" class="form-label">Master Salon View</label>
-                                    <input asp-for="MainSalonViewPhoto" type="file" class="form-control" />
-                                    <span asp-validation-for="MainSalonViewPhoto" class="text-danger"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <label asp-for="MasterBedRoomViewPhoto" class="form-label">Master Bedroom View</label>
-                                    <input asp-for="MasterBedRoomViewPhoto" type="file" class="form-control" />
-                                    <span asp-validation-for="MasterBedRoomViewPhoto" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <h4>Other Views</h4>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label asp-for="KitchenViewPhoto" class="form-label">Kitchen View</label>
-                                    <input asp-for="KitchenViewPhoto" type="file" class="form-control" />
-                                    <span asp-validation-for="KitchenViewPhoto" class="text-danger"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <label asp-for="BackyardViewPhoto" class="form-label">Back Yard View</label>
-                                    <input asp-for="BackyardViewPhoto" type="file" class="form-control" />
-                                    <span asp-validation-for="BackyardViewPhoto" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div id="rent-info-section" style="display:none;">
-                                <div class="col-md-6 form-floating">
-                                    <select asp-for="House.HouseRentInfo.RentTerm" class="form-select">
-                                        <option value="">-- Select Rent Term --</option>
-                                        @foreach (var term in Enum.GetValues(typeof(RentInfo.RentTerms)))
-                                        {
-                                            <option value="@term">@term</option>
-                                        }
-                                    </select>
-                                    <label asp-for="House.HouseRentInfo.RentTerm">Rent Term</label>
-                                </div>
-
-                                <div class="col-md-6 form-floating">
-                                    <input asp-for="House.HouseRentInfo.PricePerTerm" class="form-control" />
-                                    <label asp-for="House.HouseRentInfo.PricePerTerm">Price Per Term</label>
-                                </div>
-
-                                <div class="col-md-6 form-floating">
-                                    <input asp-for="House.HouseRentInfo.ExcepectedAdvancePayment" class="form-control" />
-                                    <label asp-for="House.HouseRentInfo.ExcepectedAdvancePayment">Advance Payment</label>
-                                </div>
-                            </div>
-
-
-                        </div>
-                
-
-                        <div class="mt-5 text-end">
-                            <button type="submit" class="btn btn-primary me-2">
-                                <i class="bi bi-save"></i> Save House
-                            </button>
-                            <a asp-page="./Index" class="btn btn-outline-secondary">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+@if (Model.ProfileMissing)
+{
+    <div class="card">
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-person-vcard"></i></span>
+            <h2>Create your owner profile first</h2>
+            <p>
+                Houses are listed under the owner's customer profile, and your account doesn't have one yet.
+                Register as a house owner, then come back to list your house.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a asp-page="./Index" class="btn btn-secondary">Back to houses</a>
+                <a asp-page="/HouseOwner/Create" class="btn btn-primary"><i class="bi bi-person-plus" aria-hidden="true"></i> Register as a house owner</a>
             </div>
         </div>
     </div>
-</div>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const availableForSelect = document.querySelector('[name="House.AvailableFor"]');
-        const rentInfoSection = document.getElementById("rent-info-section");
+    return;
+}
 
-        function toggleRentInfo() {
-            if (availableForSelect.value === "Rent") {
-                rentInfoSection.style.display = "block";
-            } else {
-                rentInfoSection.style.display = "none";
+<form method="post" enctype="multipart/form-data" class="card">
+    <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Basic information</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="House.Title" class="form-label">Title</label>
+                    <input asp-for="House.Title" class="form-control" />
+                    <span asp-validation-for="House.Title" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="House.Price" class="form-label">Price</label>
+                    <input asp-for="House.Price" class="form-control" />
+                    <span asp-validation-for="House.Price" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    @if (Model.CanChooseOwner)
+                    {
+                        <label asp-for="House.HouseOwnerId" class="form-label">Owner</label>
+                        <select asp-for="House.HouseOwnerId" class="form-select" asp-items="ViewBag.HouseOwnerId">
+                            <option value="">-- Select Owner --</option>
+                        </select>
+                    }
+                    else
+                    {
+                        @* Listed under the signed-in user's own profile; the server sets the owner, nothing is posted. *@
+                        <label for="house-owner-self" class="form-label">Owner</label>
+                        <input id="house-owner-self" class="form-control" value="@Model.OwnOwnerName" readonly aria-describedby="house-owner-self-help" />
+                        <div id="house-owner-self-help" class="form-text">Houses you list are registered under your own profile.</div>
+                    }
+                    <span asp-validation-for="House.HouseOwnerId" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="House.Description" class="form-label">Description</label>
+                    <textarea asp-for="House.Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="House.Description" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Property details</h2>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="House.TotalBedRooms" class="form-label">Bedrooms</label>
+                    <input asp-for="House.TotalBedRooms" class="form-control" />
+                    <span asp-validation-for="House.TotalBedRooms" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="House.TotalRooms" class="form-label">Total Rooms</label>
+                    <input asp-for="House.TotalRooms" class="form-control" />
+                    <span asp-validation-for="House.TotalRooms" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="House.TotalArea" class="form-label">Total Area</label>
+                    <input asp-for="House.TotalArea" class="form-control" />
+                    <span asp-validation-for="House.TotalArea" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" asp-for="House.HasOwnershipDocument" />
+                        <label class="form-check-label" asp-for="House.HasOwnershipDocument">
+                            Ownership Document Available
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Location &amp; availability</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="House.AddressId" class="form-label">Address</label>
+                    <select asp-for="House.AddressId" class="form-select" asp-items="Model.AddressList">
+                        <option value="">-- Select Address --</option>
+                    </select>
+                    <span asp-validation-for="House.AddressId" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="House.HouseCategoryId" class="form-label">Category</label>
+                    <select asp-for="House.HouseCategoryId" class="form-select" asp-items="ViewBag.HouseCategoryId">
+                        <option value="">-- Select Category --</option>
+                    </select>
+                    <span asp-validation-for="House.HouseCategoryId" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="House.AvailableFor" class="form-label">Available For</label>
+                    <select asp-for="House.AvailableFor" class="form-select">
+                        <option value="">-- Select Availability --</option>
+                        <option value="@HouseAvailability.Rent">Rent</option>
+                        <option value="@HouseAvailability.Sale">Sale</option>
+                    </select>
+                    <span asp-validation-for="House.AvailableFor" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset" id="rent-info-section" style="display:none;">
+            <h2 class="mh-fieldset-title">Rent terms</h2>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="House.HouseRentInfo.RentTerm" class="form-label">Rent Term</label>
+                    <select asp-for="House.HouseRentInfo.RentTerm" class="form-select">
+                        <option value="">-- Select Rent Term --</option>
+                        @foreach (var term in Enum.GetValues<RentInfo.RentTerms>())
+                        {
+                            <option value="@term">@HouseAvailability.RentTermLabel(term)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="House.HouseRentInfo.RentTerm" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="House.HouseRentInfo.PricePerTerm" class="form-label">Price Per Term</label>
+                    <input asp-for="House.HouseRentInfo.PricePerTerm" class="form-control" />
+                    <span asp-validation-for="House.HouseRentInfo.PricePerTerm" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="House.HouseRentInfo.ExcepectedAdvancePayment" class="form-label">Advance Payment</label>
+                    <input asp-for="House.HouseRentInfo.ExcepectedAdvancePayment" class="form-control" />
+                    <span asp-validation-for="House.HouseRentInfo.ExcepectedAdvancePayment" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Media &amp; documents</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="MainPhotoUrl" class="form-label form-label-required">Main House Photo</label>
+                    <input asp-for="MainPhotoUrl" type="file" class="form-control" accept="image/*" />
+                    <span asp-validation-for="MainPhotoUrl" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="TaxVoucherFile" class="form-label">Tax Voucher</label>
+                    <input asp-for="TaxVoucherFile" type="file" class="form-control" accept="image/*,.pdf" />
+                    <span asp-validation-for="TaxVoucherFile" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Compound &amp; external views</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="OutOfCompoundViewPhoto" class="form-label">External View</label>
+                    <input asp-for="OutOfCompoundViewPhoto" type="file" class="form-control" accept="image/*" />
+                    <span asp-validation-for="OutOfCompoundViewPhoto" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="FrontCompoundViewPhoto" class="form-label">Front Yard View</label>
+                    <input asp-for="FrontCompoundViewPhoto" type="file" class="form-control" accept="image/*" />
+                    <span asp-validation-for="FrontCompoundViewPhoto" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Interior views</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="MainSalonViewPhoto" class="form-label">Master Salon View</label>
+                    <input asp-for="MainSalonViewPhoto" type="file" class="form-control" accept="image/*" />
+                    <span asp-validation-for="MainSalonViewPhoto" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="MasterBedRoomViewPhoto" class="form-label">Master Bedroom View</label>
+                    <input asp-for="MasterBedRoomViewPhoto" type="file" class="form-control" accept="image/*" />
+                    <span asp-validation-for="MasterBedRoomViewPhoto" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Other views</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="KitchenViewPhoto" class="form-label">Kitchen View</label>
+                    <input asp-for="KitchenViewPhoto" type="file" class="form-control" accept="image/*" />
+                    <span asp-validation-for="KitchenViewPhoto" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="BackyardViewPhoto" class="form-label">Back Yard View</label>
+                    <input asp-for="BackyardViewPhoto" type="file" class="form-control" accept="image/*" />
+                    <span asp-validation-for="BackyardViewPhoto" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mh-form-actions">
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Save House</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const availableForSelect = document.querySelector('[name="House.AvailableFor"]');
+            const rentInfoSection = document.getElementById("rent-info-section");
+
+            function toggleRentInfo() {
+                if (availableForSelect.value === "Rent") {
+                    rentInfoSection.style.display = "block";
+                } else {
+                    rentInfoSection.style.display = "none";
+                }
             }
-        }
 
-        availableForSelect.addEventListener("change", toggleRentInfo);
+            availableForSelect.addEventListener("change", toggleRentInfo);
 
-        // Initial check in case value was pre-filled
-        toggleRentInfo();
-    });
-</script>
+            // Initial check in case value was pre-filled
+            toggleRentInfo();
+        });
+    </script>
+}

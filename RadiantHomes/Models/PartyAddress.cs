@@ -10,6 +10,7 @@ namespace RadiantHomes.Models
     public class PartyAddress : BaseEntity // Inherits CreatedOn, CreatedBy, UpdatedOn, UpdatedBy
     {
         [Key] // Denotes AddressID as the primary key
+        [Display(Name = "Address")]
         public Guid AddressID { get; set; }
 
         // --- Address Components (with sensible required fields) ---
@@ -19,11 +20,13 @@ namespace RadiantHomes.Models
         public string City { get; set; } = string.Empty; // Initialize non-nullable string
 
         public string? Woreda { get; set; } // Nullable if optional
+        [Display(Name = "Sub-city")]
         public string? SubCity { get; set; } // Nullable if optional
 
         public string? Region { get; set; } // Nullable if optional
 
         [StringLength(20, ErrorMessage = "Postal Code cannot exceed 20 characters.")]
+        [Display(Name = "Postal code")]
         public string? PostalCode { get; set; } // Nullable if optional
 
         [Required(ErrorMessage = "Country is required.")]
@@ -34,7 +37,9 @@ namespace RadiantHomes.Models
         [StringLength(200, ErrorMessage = "Street cannot exceed 200 characters.")]
         public string Street { get; set; } = string.Empty; // Initialize non-nullable string
 
+        [Display(Name = "Main location")]
         public string? LocationMain { get; set; } // General location description (e.g., "Near Central Park")
+        [Display(Name = "Sub-location")]
         public string? LocationSub { get; set; }  // More specific location details (e.g., "2nd floor, Suite 300")
 
         // --- Navigation Properties (Collections) ---
@@ -51,9 +56,11 @@ namespace RadiantHomes.Models
         // [NotMapped] indicates that this property should not be mapped to a database column.
         // It provides a convenient way to get a display-friendly address string.
         [NotMapped]
+        [Display(Name = "Address")]
         public string FormattedAddressFull => this.GetFormattedAddress(singleLine: false);
 
         [NotMapped]
+        [Display(Name = "Address")]
         public string FormattedAddressCompact => this.GetFormattedAddress(singleLine: true);
     }
 

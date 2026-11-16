@@ -1,4 +1,117 @@
 ﻿@page
 @model RadiantHomes.Pages.RealEstates.OnBoarding.HouseProjectsModel
 @{
+    ViewData["Title"] = "Onboarding: housing project";
+    ViewData["Subtitle"] = Model.Company is null
+        ? "Step 4 of 4. Choose the company you are onboarding."
+        : $"Step 4 of 4. Add the first housing project for {Model.Company.Name}.";
+    ViewData["PageWidth"] = "narrow";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var returnUrl = Model.Company is null ? null : Url.Page("./HouseProjects", new { companyId = Model.Company.CompanyId });
+}
+
+@* Onboarding stepper *@
+<nav aria-label="Onboarding progress">
+    <div class="stepper-wrapper">
+        <div class="stepper-item completed">
+            <div class="step-counter">1</div>
+            <div class="step-name">Company Profile</div>
+        </div>
+        <div class="stepper-item completed">
+            <div class="step-counter">2</div>
+            <div class="step-name">Financial Details</div>
+        </div>
+        <div class="stepper-item completed">
+            <div class="step-counter">3</div>
+            <div class="step-name">Contact Person</div>
+        </div>
+        <div class="stepper-item active" aria-current="step">
+            <div class="step-counter">4</div>
+            <div class="step-name">Housing Project</div>
+        </div>
+    </div>
+</nav>
+
+@if (Model.NoCompany)
+{
+    <div class="card">
+        <partial name="~/Areas/HousingCompanyAdmin/Pages/_NoCompanyNotice.cshtml" />
+    </div>
+}
+else if (Model.Company is null)
+{
+    @* Opened without a company: pick one, then continue on this step *@
+    <form method="get" class="card">
+        <div class="card-body">
+            <h2 class="mh-section-title mb-3"><i class="bi bi-building" aria-hidden="true"></i> Which company are you onboarding?</h2>
+            <label for="onboardingCompany" class="form-label">Housing company</label>
+            <select id="onboardingCompany" name="companyId" class="form-select" asp-items="Model.CompanySelectList" required>
+                <option value="">-- Select a company --</option>
+            </select>
+            <div class="mh-form-actions">
+                <a asp-page="./CompanyProfile" class="btn btn-secondary">Register a new company</a>
+                <button type="submit" class="btn btn-primary">Continue <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+            </div>
+        </div>
+    </form>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="mh-section-title"><i class="bi bi-kanban" aria-hidden="true"></i> Housing projects for @Model.Company.Name</h2>
+        </div>
+        <div class="card-body">
+            <p class="mb-0">
+                A housing project is a development the company builds and sells or rents: its name, location, total
+                area and dates. Once the project exists you can add its buildings, and then the apartments in each
+                building. The project you create here is registered under <strong>@Model.Company.Name</strong>, and you
+                come back to this page when it is saved.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mh-section-title"><i class="bi bi-list-ul" aria-hidden="true"></i> Projects</h2>
+        </div>
+        @if (Model.Projects.Any())
+        {
+            <ul class="list-group list-group-flush">
+                @foreach (var project in Model.Projects)
+                {
+                    <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <span>
+                            <a asp-page="/Projects/Details" asp-route-id="@project.ProjectId" class="fw-semibold">@project.ProjectName</a>
+                            @if (!string.IsNullOrWhiteSpace(project.Location))
+                            {
+                                <span class="text-muted small ms-2"><i class="bi bi-geo-alt" aria-hidden="true"></i> @project.Location</span>
+                            }
+                        </span>
+                        <span class="text-muted small">Starts @project.StartDate.ToString("MMM d, yyyy")</span>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="card-body">
+                <p class="text-muted mb-0">@Model.Company.Name has no housing projects yet.</p>
+            </div>
+        }
+        <div class="card-footer mh-form-actions">
+            <a asp-page="/RealEstates/Details" asp-route-id="@Model.Company.CompanyId"
+               class="btn @(Model.Projects.Any() ? "btn-primary" : "btn-secondary")">
+                <i class="bi bi-flag" aria-hidden="true"></i> @(Model.Projects.Any() ? "Finish onboarding" : "Finish without a project")
+            </a>
+            <a asp-page="/Projects/Create" asp-route-companyId="@Model.Company.CompanyId" asp-route-returnUrl="@returnUrl"
+               class="btn @(Model.Projects.Any() ? "btn-outline-primary" : "btn-primary")">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> @(Model.Projects.Any() ? "Add another project" : "Create housing project")
+            </a>
+        </div>
+    </div>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/OnboardingStepper.css" asp-append-version="true" />
 }

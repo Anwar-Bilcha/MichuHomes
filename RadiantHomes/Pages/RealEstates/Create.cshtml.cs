@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models;
 using RadiantHomes.Models.HousingCompanies;
-using System.Security.Claims;
 
 namespace RadiantHomes.Pages.RealEstates
 {
@@ -29,73 +28,51 @@ namespace RadiantHomes.Pages.RealEstates
             _logger = logger;
         }
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
-            
-                ViewData["AddressId"] = new SelectList(_context.Addresses, "AddressID", "FormattedAddressCompact", HousingCompany?.AddressId);
-                return Page();
-            
+            HousingCompany = new HousingCompany();
+            await PopulateAddressesAsync();
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    ViewData["AddressId"] = new SelectList(_context.Addresses, "AddressID", "FormattedAddress", HousingCompany.AddressId);
-            //    return Page();
-            //}
+            if (HousingCompany == null)
+            {
+                return BadRequest();
+            }
 
-            // Duplicate Check
-            bool isDuplicate = await _context.HousingCompanies
-                .AnyAsync(h => h.Name == HousingCompany.Name && h.LicenseNumber == HousingCompany.LicenseNumber);
+            await CompanyForm.ValidateAsync(_context, ModelState, HousingCompany);
+            CompanyForm.ValidateLogo(ModelState, Logo, nameof(Logo));
 
-            if (isDuplicate)
+            if (ModelState.IsValid && await _context.HousingCompanies
+                    .AnyAsync(h => h.Name == HousingCompany.Name && h.LicenseNumber == HousingCompany.LicenseNumber))
             {
                 ModelState.AddModelError(string.Empty, "A housing company with the same name and license number already exists.");
-                ViewData["AddressId"] = new SelectList(_context.Addresses, "AddressID", "FormattedAddress", HousingCompany.AddressId);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateAddressesAsync();
                 return Page();
             }
 
-            // File Upload Handling
-            if (Logo != null)
+            if (Logo != null && Logo.Length > 0)
             {
-                var folderName = HousingCompany.Name.Split(" ")[0];
-                var safeFolderName = Path.GetInvalidFileNameChars()
-                                         .Aggregate(folderName, (current, c) => current.Replace(c.ToString(), ""));
-
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "CompanyLogos", safeFolderName);
-
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(Logo.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await Logo.CopyToAsync(stream);
-                }
-
-                // Save web-accessible URL (not physical path)
-                HousingCompany.LogoUrl = $"/uploads/CompanyLogos/{safeFolderName}/{fileName}";
+                // Web-accessible URL (not the physical path).
+                HousingCompany.LogoUrl = await CompanyForm.SaveLogoAsync(_env, HousingCompany.Name, Logo);
             }
 
-            // Audit Info
-            var currentUser = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "System";
-            var currentTime = DateTime.Now;
-
-            HousingCompany.CreatedBy = currentUser;
-            HousingCompany.CreatedOn = currentTime;
-            HousingCompany.UpdatedBy = currentUser;
-            HousingCompany.UpdatedOn = currentTime;
-
+            // CreatedOn/CreatedBy are stamped by ApplicationDbContext.SaveChanges.
+            HousingCompany.CompanyId = Guid.NewGuid();
             _context.HousingCompanies.Add(HousingCompany);
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = $"Housing company called {HousingCompany.Name} was successfully created!";
             return RedirectToPage("/Financial/Create", new { area = "HousingCompanyAdmin", companyId = HousingCompany.CompanyId });
         }
+
+        private async Task PopulateAddressesAsync() =>
+            ViewData["AddressId"] = await CompanyForm.AddressSelectListAsync(_context, HousingCompany?.AddressId);
     }
 }

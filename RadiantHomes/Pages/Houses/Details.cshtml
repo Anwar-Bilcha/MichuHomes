@@ -2,129 +2,220 @@
 @model RadiantHomes.Pages.Houses.DetailsModel
 
 @{
-    ViewData["Title"] = "House Details";
+    ViewData["Title"] = "House details";
     Layout = "~/Pages/Shared/_Layout.cshtml";
+    var isForRent = HouseAvailability.IsForRent(Model.House.AvailableFor);
+    var isForSale = HouseAvailability.IsForSale(Model.House.AvailableFor);
+    var rentInfo = isForRent ? Model.House.HouseRentInfo : null;
 }
 
-<!-- Include Swiper for slider -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+@section Styles {
+    <style>
+        .house-hero-img {
+            width: 100%;
+            max-height: 420px;
+            object-fit: cover;
+            background: var(--mh-surface-3);
+        }
 
-<div class="w-100 py-4">
-    <div class="card shadow rounded-4 mx-auto" style="max-width: 1400px;">
-        <div class="card-header bg-secondary text-white py-3">
-            <h4 class="mb-0">🏡 House Details</h4>
-        </div>
-        <div class="card-body p-4">
+        .house-hero-placeholder {
+            min-height: 220px;
+            background: var(--mh-surface-3);
+            color: var(--mh-ink-3);
+        }
 
-            <!-- House Info -->
-            <div class="text-center mb-4">
-                @if (!string.IsNullOrEmpty(Model.House.MainPhotoUrl))
-                {
-                    <img src="@Model.House.MainPhotoUrl" class="img-fluid rounded-4 shadow" alt="@Model.House.Title" style="max-height: 300px; object-fit: cover;">
-                }
-                else
-                {
-                    <div class="bg-secondary text-white rounded-3 py-5">No Main Photo Available</div>
-                }
-                <h3 class="mt-3">@Model.House.Title</h3>
-                <p class="text-muted">
-                    <i class="bi bi-geo-alt-fill"></i> @Model.House.HouseAddress?.AddressID
+        .mySwiper {
+            width: 100%;
+            --swiper-theme-color: var(--mh-orange);
+        }
+
+        .house-slide-img {
+            width: 100%;
+            height: clamp(240px, 45vw, 500px);
+            object-fit: cover;
+        }
+
+        @@media (min-width: 992px) {
+            .house-actions-card {
+                position: sticky;
+                top: calc(var(--mh-nav-h) + 1rem);
+            }
+        }
+    </style>
+}
+
+@section PageActions {
+    <a class="btn btn-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to List</a>
+    @if (Model.CanManage)
+    {
+        <a class="btn btn-primary" asp-page="./Edit" asp-route-id="@Model.House.Id"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+    }
+}
+
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- House Info -->
+        <div class="card overflow-hidden mb-4">
+            @if (!string.IsNullOrEmpty(Model.House.MainPhotoUrl))
+            {
+                <img src="@Model.House.MainPhotoUrl" class="house-hero-img" alt="@Model.House.Title">
+            }
+            else
+            {
+                <div class="house-hero-placeholder d-flex flex-column align-items-center justify-content-center gap-2">
+                    <i class="bi bi-image fs-1" aria-hidden="true"></i>
+                    <span>No Main Photo Available</span>
+                </div>
+            }
+            <div class="card-body">
+                <h2 class="h3 mb-2">@Model.House.Title</h2>
+                <p class="text-muted mb-2">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i> @(Model.House.HouseAddress?.FormattedAddressCompact ?? "Address not available")
                 </p>
-                <h4 class="text-success fw-bold mb-3">ETB @Model.House.Price.ToString("N0")</h4>
-                <p>@Model.House.Description</p>
+                <p class="h4 text-accent fw-bold mb-3">
+                    ETB @HouseAvailability.ListingPrice(Model.House).ToString("N0")
+                    @if (rentInfo is not null)
+                    {
+                        <span class="fs-6 fw-normal text-muted">/ @HouseAvailability.RentTermLabel(rentInfo.RentTerm).ToLowerInvariant()</span>
+                    }
+                </p>
+                @if (rentInfo is { ExcepectedAdvancePayment: > 0 })
+                {
+                    <p class="small text-muted mb-3">Expected advance payment: ETB @rentInfo.ExcepectedAdvancePayment.ToString("N0")</p>
+                }
+                <p class="mb-0">@Model.House.Description</p>
             </div>
+        </div>
 
-            <hr class="my-4">
-
-            <!-- Icons in one row -->
-            <h5 class="mb-3">Property Information</h5>
-            <div class="d-flex flex-wrap justify-content-between text-center gap-4">
-
-                <div class="flex-fill">
-                    <i class="fa-solid fa-bed text-warning" style="font-size: 2.5rem;"></i>
-                    <div>Bedrooms: <br><strong>@Model.House.TotalBedRooms</strong></div>
-                </div>
-                <div class="flex-fill">
-                    <i class="fa-solid fa-shower text-success" style="font-size: 2.5rem;"></i>
-                    <div>Total Rooms: <br><strong>@Model.House.TotalRooms</strong></div>
-                </div>
-                <div class="flex-fill">
-                    <i class="fa-solid fa-warehouse text-warning" style="font-size: 2.5rem;"></i>
-                    <div>Area: <br><strong>@Model.House.TotalArea</strong> sqm</div>
-                </div>
-                <div class="flex-fill">
-                    <i class="bi bi-key-fill text-success" style="font-size: 2rem;"></i>
-                    <div>Ownership: <br><strong>@Model.House.HouseOwnership</strong></div>
-                </div>
-                <div class="flex-fill">
-                    <i class="bi bi-tag-fill text-danger" style="font-size: 2rem;"></i>
-                    <div>Category: <br><strong>@Model.House.HouseCategory?.Id</strong></div>
-                </div>
-                <div class="flex-fill">
-                    <i class="bi bi-signpost-fill text-secondary" style="font-size: 2rem;"></i>
-                    <div>Available For: <br><strong>@Model.House.AvailableFor</strong></div>
-                </div>
-                <div class="flex-fill">
-                    <i class="fa-solid fa-file-circle-check" style="font-size: 2.5rem"></i>
-                    <div>
-                        Ownership Document:
-                        @if (Model.House.HasOwnershipDocument)
-                        {
-                            <span class="fw-bold text-success">Yes</span>
-                            @if (!string.IsNullOrEmpty(Model.House.OwnershipDocumentUrl))
-                            {
-                                <a href="@Model.House.OwnershipDocumentUrl" target="_blank" class="ms-2 text-decoration-underline">View</a>
-                            }
-                        }
-                        else
-                        {
-                            <span class="fw-bold text-danger">No</span>
-                        }
+        <!-- Property information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-info-circle" aria-hidden="true"></i> Property Information</h2>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-md-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="mh-stat-icon" aria-hidden="true"><i class="fa-solid fa-bed"></i></span>
+                            <div>
+                                <p class="mh-stat-label">Bedrooms</p>
+                                <p class="fw-semibold mb-0">@Model.House.TotalBedRooms</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="mh-stat-icon" aria-hidden="true"><i class="fa-solid fa-shower"></i></span>
+                            <div>
+                                <p class="mh-stat-label">Total Rooms</p>
+                                <p class="fw-semibold mb-0">@Model.House.TotalRooms</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="mh-stat-icon" aria-hidden="true"><i class="fa-solid fa-warehouse"></i></span>
+                            <div>
+                                <p class="mh-stat-label">Area</p>
+                                <p class="fw-semibold mb-0">@Model.House.TotalArea sqm</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="mh-stat-icon mh-stat-icon--accent" aria-hidden="true"><i class="bi bi-key"></i></span>
+                            <div>
+                                <p class="mh-stat-label">Ownership</p>
+                                <p class="fw-semibold mb-0">@Model.House.HouseOwnership</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="mh-stat-icon mh-stat-icon--accent" aria-hidden="true"><i class="bi bi-tag"></i></span>
+                            <div>
+                                <p class="mh-stat-label">Category</p>
+                                <p class="fw-semibold mb-0">@Model.House.HouseCategory?.Name</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="mh-stat-icon mh-stat-icon--accent" aria-hidden="true"><i class="bi bi-signpost"></i></span>
+                            <div>
+                                <p class="mh-stat-label">Available For</p>
+                                <p class="fw-semibold mb-0">@HouseAvailability.Label(Model.House.AvailableFor)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-8">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="mh-stat-icon" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
+                            <div>
+                                <p class="mh-stat-label">Ownership Document</p>
+                                <p class="mb-0">
+                                    @if (Model.House.HasOwnershipDocument)
+                                    {
+                                        <span class="mh-chip mh-chip--success">Yes</span>
+                                        @if (!string.IsNullOrEmpty(Model.House.OwnershipDocumentUrl))
+                                        {
+                                            <a href="@Model.House.OwnershipDocumentUrl" target="_blank" rel="noopener" class="ms-2">View</a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="mh-chip mh-chip--danger">No</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <hr class="my-4">
-
-            <!-- Full-width Auto-sliding Swiper -->
-            <h5 class="mb-3">Photos</h5>
-            <div class="swiper mySwiper rounded-4 shadow" style="width: 100%; max-height: 500px;">
+        <!-- Full-width Auto-sliding Swiper -->
+        <div class="card overflow-hidden mb-4">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-images" aria-hidden="true"></i> Photos</h2>
+            </div>
+            <div class="swiper mySwiper">
                 <div class="swiper-wrapper">
                     @if (!string.IsNullOrEmpty(Model.House.MainPhotoUrl))
                     {
                         <div class="swiper-slide">
-                            <img src="@Model.House.MainPhotoUrl" class="img-fluid w-100" style="height: 500px; object-fit: cover;" />
+                            <img src="@Model.House.MainPhotoUrl" class="house-slide-img" alt="@Model.House.Title" />
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(Model.House.OutOfCompoundViewPhotoUrl))
                     {
                         <div class="swiper-slide">
-                            <img src="@Model.House.OutOfCompoundViewPhotoUrl" class="img-fluid w-100" style="height: 500px; object-fit: cover;" />
+                            <img src="@Model.House.OutOfCompoundViewPhotoUrl" class="house-slide-img" alt="Out of compound view" />
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(Model.House.KitchenViewPhotoUrl))
                     {
                         <div class="swiper-slide">
-                            <img src="@Model.House.KitchenViewPhotoUrl" class="img-fluid w-100" style="height: 500px; object-fit: cover;" />
+                            <img src="@Model.House.KitchenViewPhotoUrl" class="house-slide-img" alt="Kitchen view" />
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(Model.House.FrontCompoundViewPhotoUrl))
                     {
                         <div class="swiper-slide">
-                            <img src="@Model.House.FrontCompoundViewPhotoUrl" class="img-fluid w-100" style="height: 500px; object-fit: cover;" />
+                            <img src="@Model.House.FrontCompoundViewPhotoUrl" class="house-slide-img" alt="Front compound view" />
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(Model.House.HouseInternalViewPhotoUrl))
                     {
                         <div class="swiper-slide">
-                            <img src="@Model.House.HouseInternalViewPhotoUrl" class="img-fluid w-100" style="height: 500px; object-fit: cover;" />
+                            <img src="@Model.House.HouseInternalViewPhotoUrl" class="house-slide-img" alt="House internal view" />
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(Model.House.MainSalonViewPhotoUrl))
                     {
                         <div class="swiper-slide">
-                            <img src="@Model.House.MainSalonViewPhotoUrl" class="img-fluid w-100" style="height: 500px; object-fit: cover;" />
+                            <img src="@Model.House.MainSalonViewPhotoUrl" class="house-slide-img" alt="Main salon view" />
                         </div>
                     }
                 </div>
@@ -133,71 +224,60 @@
                 <div class="swiper-button-prev"></div>
                 <div class="swiper-pagination"></div>
             </div>
+        </div>
 
-            <script>
-                var swiper = new Swiper(".mySwiper", {
-                    loop: true,
-                    autoplay: {
-                        delay: 300000,
-                        disableOnInteraction: false,
-                    },
-                    pagination: {
-                        el: ".swiper-pagination",
-                        clickable: true,
-                    },
-                    navigation: {
-                        nextEl: ".swiper-button-next",
-                        prevEl: ".swiper-button-prev",
-                    },
-                });
-            </script>
+        <!-- 3D views -->
+        <div class="card overflow-hidden">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-badge-3d" aria-hidden="true"></i> 3D View</h2>
+            </div>
+            <div class="sketchfab-embed-wrapper ratio ratio-16x9">
+                <iframe title="Room" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/6417cbc1870a4a1691cca06912ae0369/embed"> </iframe>
+            </div>
+        </div>
+    </div>
 
-            <hr class="my-4">
-            <model-viewer src="~/models/sample-house.glb"
-                          alt="3D house model"
-                          auto-rotate
-                          camera-controls
-                          style="width: 100%; height: 500px;">
-            </model-viewer>
-            <div class="sketchfab-embed-wrapper">
-                <iframe title="Room" frameborder="0" allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true" allow="autoplay; fullscreen; xr-spatial-tracking" xr-spatial-tracking execution-while-out-of-viewport execution-while-not-rendered web-share src="https://sketchfab.com/models/6417cbc1870a4a1691cca06912ae0369/embed"> </iframe> 
-                </div>
-            <!-- Actions -->
-            <div class="d-flex flex-wrap gap-3 mt-5 justify-content-center">
-                <a asp-page="./Edit" asp-route-id="@Model.House.Id" class="btn btn-outline-primary rounded-pill px-4 py-2 shadow-sm">
-                    <i class="bi bi-pencil-square me-2"></i> Edit
-                </a>
-                <a asp-page="./Index" class="btn btn-outline-secondary rounded-pill px-4 py-2 shadow-sm">
-                    <i class="bi bi-arrow-left me-2"></i> Back to List
-                </a>
-                <a asp-page="/Houses/Actions/GetOwnersContact" asp-route-id="@Model.House.Id" class="btn btn-info text-white rounded-pill px-4 py-2 shadow-sm">
-                    <i class="bi bi-person-lines-fill me-2"></i> Contact Owner
-                </a>
-                <a asp-page="./RequestMoreInfo" asp-route-id="@Model.House.Id" class="btn btn-warning text-dark rounded-pill px-4 py-2 shadow-sm">
-                    <i class="bi bi-info-circle-fill me-2"></i> Request Info
-                </a>
-                @if (!string.IsNullOrEmpty(Model.House.AvailableFor) && Model.House.AvailableFor?.ToLower() == "rent")
+    <!-- Actions -->
+    <div class="col-lg-4">
+        <div class="card house-actions-card">
+            <div class="card-header">
+                <h2 class="mh-section-title"><i class="bi bi-hand-index" aria-hidden="true"></i> Interested in this house?</h2>
+            </div>
+            <div class="card-body d-grid gap-2">
+                @if (Model.IsOwnHouse)
                 {
-                    <a asp-page="/Houses/Actions/Rent/Create" asp-route-id="@Model.House.Id" class="btn btn-success rounded-pill px-4 py-2 shadow-sm">
-                        <i class="bi bi-house-door-fill me-2"></i> Rent House
+                    @* Owners can't rent, buy, request the contact of or report their own house. *@
+                    <p class="text-muted mb-0">This is your house. Other users can rent or buy it, contact you and report issues from here.</p>
+                }
+                else
+                {
+                    @if (isForRent)
+                    {
+                        <a asp-page="/Houses/Actions/Rent/Create" asp-route-id="@Model.House.Id" class="btn btn-accent">
+                            <i class="bi bi-house-door" aria-hidden="true"></i> Rent House
+                        </a>
+                    }
+                    @if (isForSale)
+                    {
+                        <a asp-page="/Houses/Actions/Sales/Create" asp-route-id="@Model.House.Id" class="btn btn-accent">
+                            <i class="bi bi-cash-stack" aria-hidden="true"></i> Buy House
+                        </a>
+                    }
+                    <a asp-page="/Houses/Actions/GetOwnersContact" asp-route-id="@Model.House.Id" class="btn btn-primary">
+                        <i class="bi bi-person-lines-fill" aria-hidden="true"></i> Contact Owner
+                    </a>
+                    <a asp-page="/Houses/Actions/Complaints/Create" asp-route-id="@Model.House.Id" class="btn btn-outline-danger">
+                        <i class="bi bi-exclamation-octagon" aria-hidden="true"></i> Report
                     </a>
                 }
-                @if (!string.IsNullOrEmpty(Model.House.AvailableFor) && Model.House.AvailableFor?.ToLower() == "sell")
-                {
-                    <a asp-page="/Houses/Actions/Sales/Create" asp-route-id="@Model.House.Id" class="btn btn-success rounded-pill px-4 py-2 shadow-sm">
-                        <i class="bi bi-cash-stack me-2"></i> Buy House
-                    </a>
-                }
-                <a asp-page="./ScheduleViewing" asp-route-id="@Model.House.Id" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm">
-                    <i class="bi bi-calendar2-event-fill me-2"></i> Schedule Viewing
-                </a>
-                <a asp-page="./ShareProperty" asp-route-id="@Model.House.Id" class="btn btn-outline-dark rounded-pill px-4 py-2 shadow-sm">
-                    <i class="bi bi-share-fill me-2"></i> Share
-                </a>
-                <a asp-page="/Houses/Actions/Complaints/Create" asp-route-id="@Model.House.Id" class="btn btn-outline-danger rounded-pill px-4 py-2 shadow-sm">
-                    <i class="bi bi-exclamation-octagon-fill me-2"></i> Report
-                </a>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Shared photo-slider behaviour (wwwroot/js/site.js): 5 s auto-advance, pause on hover, keyboard/swipe.
+        initPhotoSlider('.mySwiper');
+    </script>
+}

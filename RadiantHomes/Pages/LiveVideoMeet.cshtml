@@ -1,14 +1,15 @@
 ﻿@page
 @model RadiantHomes.Pages.LiveVideoMeetModel
 @{
-    ViewData["Title"] = "Live Class";
+    ViewData["Title"] = "Live class";
     var userName = User.Identity?.Name ?? "Guest";
     var roomName = $"RadiantClass_{Model.RoomId}"; // You can set RoomId from the model
+    ViewData["Subtitle"] = $"Room: {roomName}";
 }
 
-<h2>Live Class - @roomName</h2>
-
-<div id="jitsi-container" style="height: 800px; width: 100%; border: 1px solid #ccc; border-radius: 10px;"></div>
+<div class="card overflow-hidden">
+    <div id="jitsi-container" style="height: 800px; width: 100%;"></div>
+</div>
 
 @section Scripts {
     <script src='https://meet.jit.si/external_api.js'></script>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace RadiantHomes.Pages.Houses.Actions.Rent
     public class DetailsModel : PageModel
     {
         private readonly RadiantHomes.DAL.ApplicationDbContext _context;
+        private readonly UserManager<AppUser> _userManager;
 
-        public DetailsModel(RadiantHomes.DAL.ApplicationDbContext context)
+        public DetailsModel(RadiantHomes.DAL.ApplicationDbContext context, UserManager<AppUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public HouseRentTransaction HouseRentTransaction { get; set; } = default!;
@@ -28,16 +31,28 @@ namespace RadiantHomes.Pages.Houses.Actions.Rent
                 return NotFound();
             }
 
-            var houserenttransaction = await _context.HouseRentTransactions.FirstOrDefaultAsync(m => m.Id == id);
+            var houserenttransaction = await _context.HouseRentTransactions
+                .AsNoTracking()
+                .Include(t => t.House)
+                .Include(t => t.Receiver)
+                .Include(t => t.HomeOwner)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (houserenttransaction is not null)
+            if (houserenttransaction is null)
             {
-                HouseRentTransaction = houserenttransaction;
-
-                return Page();
+                return NotFound();
+            }
+            if (!await CanAccessAsync(houserenttransaction))
+            {
+                return Forbid();
             }
 
-            return NotFound();
+            HouseRentTransaction = houserenttransaction;
+            return Page();
         }
+
+        /// <summary>A Michu admin or a party to the rent transaction (owner / tenant).</summary>
+        private Task<bool> CanAccessAsync(HouseRentTransaction record) =>
+            TransactionAccess.CanAccessAsync(_userManager, User, record.OwnerId, record.CustomerId);
     }
 }

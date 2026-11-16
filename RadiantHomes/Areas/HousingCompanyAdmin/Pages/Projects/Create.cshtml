@@ -1,150 +1,115 @@
 ﻿@page "{companyId:guid?}"
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects.CreateModel
 @{
-    ViewData["Title"] = "Create House Project";
+    ViewData["Title"] = "New project";
+    if (Model.Company != null)
+    {
+        ViewData["Subtitle"] = $"Create a new project for {Model.Company.Name}.";
+    }
+    ViewData["PageWidth"] = "narrow";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
 }
 
-<div class="container-fluid py-4"> @* Using container-fluid for wider content *
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        @* Dynamically display company name or a generic title *@
-        <h5 class="mb-0">
-            Create a New Project for
-            @if (Model.Company != null)
+<form method="post" class="card needs-validation">
+    <div class="card-body">
+        @* Display validation summary for general errors (like "No addresses available" or server-side binding issues) *@
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Company</h2>
+            @* Conditional display of company selection based on user role *@
+            @if (Model.ShowCompanyDropdown)
             {
-                <strong class="text-primary">@Model.Company.Name</strong>
-            }
-            else
-            {
-                <strong class="text-primary">New Company</strong>
-            }
-        </h5>
-    </div>
-
-    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @Model.SuccessMessage
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    @* Display validation summary for general errors (like "No addresses available" or server-side binding issues) *@
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-    <form method="post" class="needs-validation"> @* Keep novalidate if using custom validation or rely heavily on server-side *
-        @Html.AntiForgeryToken()
-
-        @* Conditional display of company selection based on user role *@
-        @if (Model.ShowCompanyDropdown)
-        {
-            <div class="mb-3">
                 <label asp-for="HouseProject.HousingCompanyId" class="form-label">Select Housing Company</label>
                 <select asp-for="HouseProject.HousingCompanyId" class="form-select" asp-items="Model.AvailableHousingCompanies" required>
                     <option value="">-- Select Company --</option>
                 </select>
                 <span asp-validation-for="HouseProject.HousingCompanyId" class="text-danger"></span>
-            </div>
-        }
-        else
-        {
-            @* For Real Estate Admin, display the fixed company name and pass the ID via hidden field *@
-            @if (Model.Company != null)
+            }
+            else
             {
-                <div class="mb-3">
+                @* For Real Estate Admin, display the fixed company name and pass the ID via hidden field *@
+                @if (Model.Company != null)
+                {
                     <label class="form-label">Associated Company</label>
                     <input type="text" class="form-control" value="@Model.Company.Name" readonly aria-label="Associated Company Name" />
                     @* Crucial hidden fields to ensure CompanyId and HouseProject.HousingCompanyId are posted back *@
                     <input type="hidden" asp-for="CompanyId" />
                     <input type="hidden" asp-for="HouseProject.HousingCompanyId" />
-                </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">Your profile is not linked to a housing company. Please contact support.</div>
+                    @* If no company, disable form submission or provide alternative action *@
+                    <button type="submit" class="btn btn-primary" disabled>Create Project</button>
+                }
             }
-            else
-            {
-                <div class="alert alert-warning">Your profile is not linked to a housing company. Please contact support.</div>
-                @* If no company, disable form submission or provide alternative action *@
-                <button type="submit" class="btn btn-primary" disabled>Create Project</button>
-            }
-        }
+        </div>
 
         @* Common House Project fields - these apply to both roles *@
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label asp-for="HouseProject.ProjectName" class="form-label">Project Name</label>
-                <input asp-for="HouseProject.ProjectName" class="form-control" placeholder="e.g., Sunrise Apartments" required />
-                <span asp-validation-for="HouseProject.ProjectName" class="text-danger"></span>
+        <div class="mh-fieldset">
+            <h2 class="mh-fieldset-title">Project</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="HouseProject.ProjectName" class="form-label">Project Name</label>
+                    <input asp-for="HouseProject.ProjectName" class="form-control" placeholder="e.g., Sunrise Apartments" required />
+                    <span asp-validation-for="HouseProject.ProjectName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="HouseProject.Location" class="form-label">Location</label>
+                    <input asp-for="HouseProject.Location" class="form-control" placeholder="Specific location details" />
+                    <span asp-validation-for="HouseProject.Location" class="text-danger"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="HouseProject.Description" class="form-label">Description</label>
+                    <textarea asp-for="HouseProject.Description" class="form-control" rows="3" placeholder="Project details..."></textarea>
+                    <span asp-validation-for="HouseProject.Description" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="HouseProject.StartDate" class="form-label">Start Date</label>
+                    <input asp-for="HouseProject.StartDate" type="date" class="form-control" required />
+                    <span asp-validation-for="HouseProject.StartDate" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="HouseProject.EndDate" class="form-label">End Date</label>
+                    <input asp-for="HouseProject.EndDate" type="date" class="form-control" />
+                    <span asp-validation-for="HouseProject.EndDate" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="HouseProject.TotalArea" class="form-label">Total Area (sqm)</label>
+                    <input asp-for="HouseProject.TotalArea" type="number" step="0.01" class="form-control" placeholder="e.g., 1500.50" required />
+                    <span asp-validation-for="HouseProject.TotalArea" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="HouseProject.AddressId" class="form-label">
+                        <i class="bi bi-geo-alt" aria-hidden="true"></i> @Html.DisplayNameFor(m => m.HouseProject.AddressId)
+                    </label>
+                    <select asp-for="HouseProject.AddressId" class="form-select" asp-items="Model.Addresses" required>
+                        <option value="">-- Select Address --</option>
+                    </select>
+                    <span asp-validation-for="HouseProject.AddressId" class="text-danger"></span>
+                </div>
             </div>
-
-            <div class="col-md-6 mb-3">
-                <label asp-for="HouseProject.Location" class="form-label">Location</label>
-                <input asp-for="HouseProject.Location" class="form-control" placeholder="Specific location details" />
-                <span asp-validation-for="HouseProject.Location" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-12 mb-3">
-                <label asp-for="HouseProject.Description" class="form-label">Description</label>
-                <textarea asp-for="HouseProject.Description" class="form-control" rows="3" placeholder="Project details..."></textarea>
-                <span asp-validation-for="HouseProject.Description" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <label asp-for="HouseProject.StartDate" class="form-label">Start Date</label>
-                <input asp-for="HouseProject.StartDate" type="date" class="form-control" required />
-                <span asp-validation-for="HouseProject.StartDate" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <label asp-for="HouseProject.EndDate" class="form-label">End Date</label>
-                <input asp-for="HouseProject.EndDate" type="date" class="form-control" />
-                <span asp-validation-for="HouseProject.EndDate" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <label asp-for="HouseProject.TotalArea" class="form-label">Total Area (sqm)</label>
-                <input asp-for="HouseProject.TotalArea" type="number" step="0.01" class="form-control" placeholder="e.g., 1500.50" required />
-                <span asp-validation-for="HouseProject.TotalArea" class="text-danger"></span>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <label asp-for="HouseProject.AddressId" class="form-label">
-                    <i class="bi bi-geo-alt"></i> @Html.DisplayNameFor(m => m.HouseProject.AddressId)
-                </label>
-                @* Removed redundant 'name' attribute, asp-for handles it. Added initial option. *@
-                <select asp-for="HouseProject.AddressId" class="form-select" asp-items="Model.Addresses" required>
-                    <option value="">-- Select Address --</option>
-                </select>
-                <span asp-validation-for="HouseProject.AddressId" class="text-danger"></span>
-            </div>
-
         </div>
 
-        @* Hidden fields for auditing and CompanyId (if not using dropdown) *@
-        <input type="hidden" asp-for="HouseProject.CreatedOn" />
-        <input type="hidden" asp-for="HouseProject.CreatedBy" />
-        <input type="hidden" asp-for="HouseProject.UpdatedOn" />
-        <input type="hidden" asp-for="HouseProject.UpdatedBy" />
-
-        @* CompanyId hidden field is now managed by the conditional logic above,
-           so this general one is removed to avoid conflicts. *@
-        @* <input type="hidden" asp-for="CompanyId" /> *@
-
-        <div class="mt-4">
+        <div class="mh-form-actions">
+            <a asp-page="./Index" asp-route-companyId="@Model.CompanyId" class="btn btn-secondary">Back</a>
             @if (Model.Company != null || Model.ShowCompanyDropdown) @* Only show submit if a company is associated or can be selected *@
             {
-                <button type="submit" class="btn btn-primary">Create Project</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Create Project</button>
             }
-            <a asp-page="./Index" asp-route-companyId="@Model.CompanyId" class="btn btn-secondary">Back</a>
         </div>
-    </form>
-</div>
+    </div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_Select2" />
     <script>
         $(document).ready(function () {
             // Initialize Select2 for the Address dropdown
             $('#HouseProject_AddressId').select2({
-                placeholder: "-- Select Address --",
+                placeholder: (window.MichuI18n ? MichuI18n.t : (s => s))("-- Select Address --"),
                 allowClear: true
             });
 
@@ -152,7 +117,7 @@
             // Check if the element exists in the DOM before initializing
             if ($('#HouseProject_HousingCompanyId').length) {
                 $('#HouseProject_HousingCompanyId').select2({
-                    placeholder: "-- Select Company --",
+                    placeholder: (window.MichuI18n ? MichuI18n.t : (s => s))("-- Select Company --"),
                     allowClear: true
                 });
             }

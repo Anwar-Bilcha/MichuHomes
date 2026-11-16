@@ -2,197 +2,99 @@
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses.IndexModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Apartments";
+    ViewData["Subtitle"] = "Apartment houses registered in your buildings.";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var hasRows = Model.ApartmentHouse is not null && Model.ApartmentHouse.Any();
+
+    string StatusChip(string? status) => (status ?? string.Empty).Trim().ToLowerInvariant() switch
+    {
+        "approved" or "active" => "mh-chip mh-chip--success",
+        "pending" => "mh-chip mh-chip--accent",
+        "rejected" => "mh-chip mh-chip--danger",
+        _ => "mh-chip",
+    };
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].HouseNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].SalePrice)
-            </th>
-            
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].HouseCategory)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].AvailableFor)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].HouseAddress)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].Status)
-            </th>
-           
-@*             <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].OutOfCompoundViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].FrontCompoundViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].HouseInternalViewPhotoUrl)
-            </th> *@
-            @* <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].MainSalonViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].MasterBedRoomViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].KitchenViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].RestRoomViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].AuxiSalonViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].SecBedRoomViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].AdditionalViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].BackyardViewPhotoUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].Additional2PhotoUrl)
-            </th> *@
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].HouseType)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].FloorNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].Building)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].CreatedBy)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].CreatedOn)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].UpdatedBy)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ApartmentHouse[0].UpdatedOn)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.ApartmentHouse) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HouseNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SalePrice)
-            </td>
-            
-            <td>
-                @Html.DisplayFor(modelItem => item.HouseCategory.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AvailableFor)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HouseAddress.AddressID)
-            </td>
-            
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            
-            @* <td>
-                @Html.DisplayFor(modelItem => item.OutOfCompoundViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FrontCompoundViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HouseInternalViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MainSalonViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MasterBedRoomViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.KitchenViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RestRoomViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AuxiSalonViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SecBedRoomViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AdditionalViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BackyardViewPhotoUrl)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Additional2PhotoUrl)
-            </td> *@
-            <td>
-                @Html.DisplayFor(modelItem => item.HouseType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FloorNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Building.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedBy)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedOn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UpdatedBy)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UpdatedOn)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@section PageActions {
+    <a class="btn btn-primary" asp-page="Create">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> New apartment
+    </a>
 }
-    </tbody>
-</table>
+
+<div class="card">
+    @if (Model.NoCompany)
+    {
+        <partial name="~/Areas/HousingCompanyAdmin/Pages/_NoCompanyNotice.cshtml" />
+    }
+    else if (!hasRows)
+    {
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-house-door"></i></span>
+            <h2>No apartments yet</h2>
+            <p>Apartments appear here once they are registered for a building.</p>
+            <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New apartment</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive position-relative">
+            <table class="table table-hover align-middle mb-0 text-nowrap">
+                <thead>
+                    <tr>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].Title)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].HouseNumber)</th>
+                        <th scope="col" class="text-wrap" style="min-width: 16rem;">@Html.DisplayNameFor(model => model.ApartmentHouse[0].Description)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].SalePrice)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].HouseCategory)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].AvailableFor)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].HouseAddress)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].Status)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].HouseType)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].FloorNumber)</th>
+                        <th scope="col">@Html.DisplayNameFor(model => model.ApartmentHouse[0].Building)</th>
+                        <th scope="col" class="d-none d-xl-table-cell">@Html.DisplayNameFor(model => model.ApartmentHouse[0].CreatedBy)</th>
+                        <th scope="col" class="d-none d-xl-table-cell">@Html.DisplayNameFor(model => model.ApartmentHouse[0].CreatedOn)</th>
+                        <th scope="col" class="d-none d-xl-table-cell">@Html.DisplayNameFor(model => model.ApartmentHouse[0].UpdatedBy)</th>
+                        <th scope="col" class="d-none d-xl-table-cell">@Html.DisplayNameFor(model => model.ApartmentHouse[0].UpdatedOn)</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.ApartmentHouse!)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@Html.DisplayFor(modelItem => item.Title)</td>
+                            <td>@Html.DisplayFor(modelItem => item.HouseNumber)</td>
+                            <td class="text-wrap">@Html.DisplayFor(modelItem => item.Description)</td>
+                            <td>@Html.DisplayFor(modelItem => item.SalePrice)</td>
+                            <td>@Html.DisplayFor(modelItem => item.HouseCategory.Name)</td>
+                            <td>@Html.DisplayFor(modelItem => item.AvailableFor)</td>
+                            <td>@(item.HouseAddress is null ? string.Empty : string.Join(", ", new[] { item.HouseAddress.SubCity, item.HouseAddress.City }.Where(s => !string.IsNullOrWhiteSpace(s))))</td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(item.Status))
+                                {
+                                    <span class="@StatusChip(item.Status)">@Html.DisplayFor(modelItem => item.Status)</span>
+                                }
+                            </td>
+                            <td>@Html.DisplayFor(modelItem => item.HouseType)</td>
+                            <td>@Html.DisplayFor(modelItem => item.FloorNumber)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Building.BuildingName)</td>
+                            <td class="d-none d-xl-table-cell">@Html.DisplayFor(modelItem => item.CreatedBy)</td>
+                            <td class="d-none d-xl-table-cell">@Html.DisplayFor(modelItem => item.CreatedOn)</td>
+                            <td class="d-none d-xl-table-cell">@Html.DisplayFor(modelItem => item.UpdatedBy)</td>
+                            <td class="d-none d-xl-table-cell">@Html.DisplayFor(modelItem => item.UpdatedOn)</td>
+                            <td class="text-end">
+                                <div class="mh-row-actions">
+                                    <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@item.Id" title="View details" aria-label="View details"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                                    <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                    <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,4 +1,140 @@
 ﻿@page
 @model RadiantHomes.Pages.RealEstates.OnBoarding.ContactPersonModel
 @{
+    ViewData["Title"] = "Onboarding: contact person";
+    ViewData["Subtitle"] = Model.Company is null
+        ? "Step 3 of 4. Choose the company you are onboarding."
+        : $"Step 3 of 4. Who manages {Model.Company.Name} on Michu Homes.";
+    ViewData["PageWidth"] = "narrow";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+@* Onboarding stepper *@
+<nav aria-label="Onboarding progress">
+    <div class="stepper-wrapper">
+        <div class="stepper-item completed">
+            <div class="step-counter">1</div>
+            <div class="step-name">Company Profile</div>
+        </div>
+        <div class="stepper-item completed">
+            <div class="step-counter">2</div>
+            <div class="step-name">Financial Details</div>
+        </div>
+        <div class="stepper-item active" aria-current="step">
+            <div class="step-counter">3</div>
+            <div class="step-name">Contact Person</div>
+        </div>
+        <div class="stepper-item">
+            <div class="step-counter">4</div>
+            <div class="step-name">Housing Project</div>
+        </div>
+    </div>
+</nav>
+
+@* Results of the previous action are shown as toasts by _FlashMessages. *@
+
+@if (Model.NoCompany)
+{
+    <div class="card">
+        <partial name="~/Areas/HousingCompanyAdmin/Pages/_NoCompanyNotice.cshtml" />
+    </div>
+}
+else if (Model.Company is null)
+{
+    @* Opened without a company: pick one, then continue on this step *@
+    <form method="get" class="card">
+        <div class="card-body">
+            <h2 class="mh-section-title mb-3"><i class="bi bi-building" aria-hidden="true"></i> Which company are you onboarding?</h2>
+            <label for="onboardingCompany" class="form-label">Housing company</label>
+            <select id="onboardingCompany" name="companyId" class="form-select" asp-items="Model.CompanySelectList" required>
+                <option value="">-- Select a company --</option>
+            </select>
+            <div class="mh-form-actions">
+                <a asp-page="./CompanyProfile" class="btn btn-secondary">Register a new company</a>
+                <button type="submit" class="btn btn-primary">Continue <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+            </div>
+        </div>
+    </form>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="mh-section-title"><i class="bi bi-person-badge" aria-hidden="true"></i> Contact person for @Model.Company.Name</h2>
+        </div>
+        <div class="card-body">
+            <p>
+                The contact person is the company's real estate admin: the person customers and Michu Homes reach about
+                the company's listings, and who manages its projects, buildings and apartments.
+            </p>
+            <ol class="mb-0">
+                <li><strong>Create the profile</strong>: name, phone, email, address and ID document. It is linked to
+                    <strong>@Model.Company.Name</strong> and approved straight away.</li>
+                <li><strong>Register the sign-in account</strong>: after the profile is saved you are taken to account
+                    registration for the contact person.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mh-section-title"><i class="bi bi-people" aria-hidden="true"></i> Linked contact persons</h2>
+        </div>
+        @if (Model.ContactPersons.Any())
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var person in Model.ContactPersons)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@person.FirstName @person.LastName</td>
+                                <td>@person.Email</td>
+                                <td class="text-nowrap">@person.PhoneNumber</td>
+                                <td>@person.ProfileStatus</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="card-body">
+                <p class="text-muted mb-0">No contact person is linked to @Model.Company.Name yet.</p>
+            </div>
+        }
+        <div class="card-body border-top">
+            <p class="form-text my-0">
+                The contact person form opens in a new tab. When you have finished there, come back to this tab and
+                reload it to see the new contact person, then continue.
+            </p>
+        </div>
+        <div class="card-footer mh-form-actions">
+            <a asp-page="./HouseProjects" asp-route-companyId="@Model.Company.CompanyId"
+               class="btn @(Model.ContactPersons.Any() ? "btn-primary" : "btn-secondary")">
+                @(Model.ContactPersons.Any() ? "Next: housing project" : "Skip for now")
+                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+            <a asp-page="/HouseOwner/Create" asp-route-UserId="@Model.ProposedContactPersonId" asp-route-CompanyId="@Model.Company.CompanyId"
+               target="_blank" rel="noopener"
+               class="btn @(Model.ContactPersons.Any() ? "btn-outline-primary" : "btn-primary")">
+                <i class="bi bi-person-plus" aria-hidden="true"></i>
+                @(Model.ContactPersons.Any() ? "Add another contact person" : "Create contact person")
+                <span class="visually-hidden">(opens in a new tab)</span>
+            </a>
+        </div>
+    </div>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/OnboardingStepper.css" asp-append-version="true" />
 }

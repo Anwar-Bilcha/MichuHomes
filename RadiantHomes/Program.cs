@@ -16,6 +16,7 @@ using RadiantHomes.LogConfig;
 using Serilog.Core;
 using RadiantHomes.Services.NotificationService;
 using RadiantHomes.Services.AdminServices;
+using RadiantHomes.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 QuestPDF.Settings.License = LicenseType.Community;
@@ -32,6 +33,8 @@ builder.Services.AddIdentity<AppUser, IdentityRole>().AddRoles<IdentityRole>()
 
 builder.Services.AddHttpClient<ChapaPaymentService>();
 builder.Services.AddScoped<IHouseServices,HouseServices>();
+builder.Services.Configure<RadiantHomes.Models.Shared.TwilioSettings>(
+    builder.Configuration.GetSection(RadiantHomes.Models.Shared.TwilioSettings.SectionName));
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<ICustomerService,CustomerService>();
 builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
@@ -39,11 +42,48 @@ builder.Services.AddScoped<IAdminDashboard, AdminDashboardService>();
 //builder.Services.AddScoped<ExcelExportService>();
 // Add services to the container.
 //builder.Services.AddRazorPages();
-builder.Services.AddRazorPages()
-    .AddRazorPagesOptions(options =>
+// Access rules. Policies: MichuAdminOnly (platform admins), CompanyAdmin (platform or real-estate admins).
+// Pages not listed here stay public (home, listings, details, registration).
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AccessPolicies.MichuAdminOnly, p => p.RequireRole(MichuHomesRoles.MichuAdmin));
+    options.AddPolicy(AccessPolicies.CompanyAdmin, p => p.RequireRole(MichuHomesRoles.MichuAdmin, MichuHomesRoles.RealEstateAdmin));
+});
+
+// Areas/HousingCompanyAdmin/Pages/Index.cshtml is already reachable at /HousingCompanyAdmin by convention;
+// an extra AddAreaPageRoute for the same URL made that request ambiguous (500), so none is added.
+builder.Services.AddRazorPages(options =>
+{
+    var c = options.Conventions;
+
+    // Platform administration
+    c.AuthorizePage("/Admin/Dashboard/AdminDashboard", AccessPolicies.MichuAdminOnly);
+    c.AuthorizeFolder("/Admin/Reports", AccessPolicies.MichuAdminOnly);
+    c.AuthorizeFolder("/Admin/Notifications", AccessPolicies.CompanyAdmin);
+
+    // Company administration
+    c.AuthorizeAreaFolder("HousingCompanyAdmin", "/", AccessPolicies.CompanyAdmin);
+    c.AuthorizeFolder("/RealEstates/OnBoarding", AccessPolicies.CompanyAdmin);
+    c.AuthorizePage("/UploadPhotos", AccessPolicies.CompanyAdmin);
+    c.AuthorizePage("/HouseOwner/Index", AccessPolicies.CompanyAdmin);
+    foreach (var folder in new[] { "/Projects", "/Buildings", "/ApartmentHouses", "/RealEstates", "/RealEstates/Testimonials" })
     {
-        options.Conventions.AddAreaPageRoute("HousingCompanyAdmin", "/Index", "HousingCompanyAdmin");
-    });
+        foreach (var page in new[] { "Create", "Edit", "Delete" })
+        {
+            c.AuthorizePage($"{folder}/{page}", AccessPolicies.CompanyAdmin);
+        }
+    }
+    c.AuthorizePage("/ApartmentHouses/Tour", AccessPolicies.CompanyAdmin); // rooms of an apartment's 3D tour
+
+    // Signed-in users (house owners, buyers, tenants)
+    c.AuthorizePage("/Houses/Create");
+    c.AuthorizePage("/Houses/Edit");
+    c.AuthorizePage("/Houses/Delete");
+    c.AuthorizeFolder("/Houses/Actions");
+});
+
+// Languages: English source + Amharic (Resources/Translations/am.json, see Localization/)
+builder.Services.AddMichuLocalization();
 
 builder.Services.AddSession(options =>
 {
@@ -141,13 +181,30 @@ using (var scope = app.Services.CreateScope())
         }
     }
 }
-app.UseStaticFiles();
+// Uploaded ID documents live under wwwroot/uploads/ids but must not be public:
+// they're only served through the authorised /HouseOwner/IdDocument page.
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/uploads/ids", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        return;
+    }
+    await next();
+});
+// Apartment 3D models (.glb, see Pages/ApartmentHouses/ApartmentModel3D.cs) are not in the default list of
+// served file types; without this they would be answered with 404.
+var staticFileTypes = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+staticFileTypes.Mappings[".glb"] = "model/gltf-binary";
+app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = staticFileTypes });
 app.UseHttpsRedirection();
+app.UseMichuLocalization(); // picks the visitor's language and translates the rendered pages
 app.UseRouting();
 app.UseAuthentication();
 
 app.UseAuthorization();
 app.UseSession();
 app.MapRazorPages();
+app.MapMichuLocalizationEndpoints();
 
 app.Run();

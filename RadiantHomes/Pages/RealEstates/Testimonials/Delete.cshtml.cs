@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Services.AdminServices;
 
 namespace RadiantHomes.Pages.RealEstates.Testimonials
 {
@@ -29,10 +30,18 @@ namespace RadiantHomes.Pages.RealEstates.Testimonials
                 return NotFound();
             }
 
-            var customertestimonial = await _context.CustomerTestimonials.FirstOrDefaultAsync(m => m.Id == id);
+            var customertestimonial = await _context.CustomerTestimonials
+                .Include(t => t.Company)
+                .Include(t => t.Customer)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (customertestimonial is not null)
             {
+                // Real Estate Admins may only delete their own company's testimonials
+                if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(customertestimonial.CompanyId))
+                {
+                    return Forbid();
+                }
                 CustomerTestimonial = customertestimonial;
 
                 return Page();
@@ -51,6 +60,10 @@ namespace RadiantHomes.Pages.RealEstates.Testimonials
             var customertestimonial = await _context.CustomerTestimonials.FindAsync(id);
             if (customertestimonial != null)
             {
+                if (!(await CompanyScope.ForAsync(User, _context)).CanAccess(customertestimonial.CompanyId))
+                {
+                    return Forbid();
+                }
                 CustomerTestimonial = customertestimonial;
                 _context.CustomerTestimonials.Remove(CustomerTestimonial);
                 await _context.SaveChangesAsync();
