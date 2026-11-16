@@ -3,6 +3,8 @@
    sign-in dialogs use a full-width primary button like the Login page. *@
 @{
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    // Only the providers whose keys are configured (Program.cs registers Google/Facebook when they are set).
+    var externalLogins = (await SigninManager.GetExternalAuthenticationSchemesAsync()).ToList();
 }
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -27,16 +29,24 @@
                     <button type="submit" class="btn btn-primary w-100">Log in</button>
                 </form>
 
-                <div class="mh-auth-divider">or continue with</div>
+                @if (externalLogins.Count > 0)
+                {
+                    <div class="mh-auth-divider">or continue with</div>
 
-                <form asp-area="Identity" asp-page="/Account/ExternalLogin" asp-route-returnUrl="/index" method="post" class="d-grid gap-2">
-                    <button type="submit" class="btn btn-outline-secondary" name="provider" value="Google">
-                        <i class="fa-brands fa-google" aria-hidden="true"></i> Google
-                    </button>
-                    <button type="submit" class="btn btn-outline-secondary" name="provider" value="Facebook">
-                        <i class="fa-brands fa-facebook-f" aria-hidden="true"></i> Facebook
-                    </button>
-                </form>
+                    <form asp-area="Identity" asp-page="/Account/ExternalLogin" asp-route-returnUrl="/index" method="post" class="d-grid gap-2">
+                        @foreach (var provider in externalLogins)
+                        {
+                            var icon = provider.Name switch { "Google" => "fa-google", "Facebook" => "fa-facebook-f", _ => null };
+                            <button type="submit" class="btn btn-outline-secondary" name="provider" value="@provider.Name">
+                                @if (icon is not null)
+                                {
+                                    <i class="fa-brands @icon" aria-hidden="true"></i>
+                                }
+                                @(provider.DisplayName ?? provider.Name)
+                            </button>
+                        }
+                    </form>
+                }
             </div>
             <div class="modal-footer justify-content-center">
                 <span class="text-muted small">New to Michu Homes?</span>

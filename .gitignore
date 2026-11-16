@@ -91,3 +91,9 @@ $RECYCLE.BIN/
 
 # Application logs (Serilog writes RadiantHomes/Logs/log-YYYYMMDD.txt)
 RadiantHomes/Logs/
+
+# Server-only settings with real values (template: RadiantHomes/appsettings.Production.example.json)
+RadiantHomes/appsettings.Production.json
+
+# Data protection keys and other runtime data (Program.cs keeps the keys in App_Data/keys)
+RadiantHomes/App_Data/

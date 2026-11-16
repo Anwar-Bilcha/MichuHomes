@@ -25,8 +25,16 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
         [BindProperty]
         public string ReturnUrl { get; set; }
 
-        public IActionResult OnPost(string provider, string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string provider, string returnUrl = null)
         {
+            // Google/Facebook are registered only when their keys are configured (Program.cs).
+            var configured = await _signInManager.GetExternalAuthenticationSchemesAsync();
+            if (!configured.Any(s => string.Equals(s.Name, provider, StringComparison.OrdinalIgnoreCase)))
+            {
+                TempData["Error"] = "This sign-in option is not available at the moment. Please log in with your email and password.";
+                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+            }
+
             var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return new ChallengeResult(provider, properties);

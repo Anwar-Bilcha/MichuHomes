@@ -2210,5 +2210,6 @@
   "Questions about this home?": "ስለዚህ ቤት ጥያቄ አለዎት?",
   "Talk to an agent by video call.": "ከወኪል ጋር በቪዲዮ ጥሪ ይነጋገሩ።",
   "Video calls with our agents use 8x8 Jitsi as a Service (8x8.vc), which handles the audio and video of the call. We share only the name you enter for the call; the phone number and topic you give stay with Michu Homes.": "ከወኪሎቻችን ጋር የሚደረጉ የቪዲዮ ጥሪዎች 8x8 Jitsi as a Service (8x8.vc)ን ይጠቀማሉ፤ የጥሪውን ድምፅ እና ቪዲዮ የሚያስተናግደው እሱ ነው። የምናጋራው ለጥሪው ያስገቡትን ስም ብቻ ነው፤ የሰጡት ስልክ ቁጥር እና ርዕስ ከሚቹ ሆምስ ዘንድ ይቆያሉ።",
-  "Video call with an agent · Michu Homes": "ከወኪል ጋር የቪዲዮ ጥሪ · ሚቹ ሆምስ"
+  "Video call with an agent · Michu Homes": "ከወኪል ጋር የቪዲዮ ጥሪ · ሚቹ ሆምስ",
+  "This sign-in option is not available at the moment. Please log in with your email and password.": "ይህ የመግቢያ አማራጭ በአሁኑ ጊዜ አይገኝም። እባክዎ በኢሜይልዎ እና በይለፍ ቃልዎ ይግቡ።"
 }

@@ -49,6 +49,10 @@
 
 
   <ItemGroup>
+    <!-- Settings template for servers (documentation only): never published. -->
+    <Content Update="appsettings.Production.example.json">
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </Content>
     <Content Update="wwwroot\js\bootstrap.bundle.min.js">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

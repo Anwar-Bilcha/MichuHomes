@@ -17,6 +17,8 @@ using Serilog.Core;
 using RadiantHomes.Services.NotificationService;
 using RadiantHomes.Services.AdminServices;
 using RadiantHomes.Localization;
+using RadiantHomes.Utilities;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 QuestPDF.Settings.License = LicenseType.Community;
@@ -109,20 +111,34 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+var authentication = builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Identity/Account/Login";
         options.LogoutPath = "/Identity/Account/Logout";
-    })
-    .AddGoogle(googleOptions =>
+    });
+
+// External sign-in only when its keys are configured: a provider with an empty ClientId/AppId makes every request
+// fail. The login page and dialog list the registered providers, so their buttons disappear with them.
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    authentication.AddGoogle(googleOptions =>
     {
-        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-    }).AddFacebook(facebookOptions =>
+        googleOptions.ClientId = googleClientId;
+        googleOptions.ClientSecret = googleClientSecret;
+    });
+}
+
+var facebookAppId = builder.Configuration["Authentication:Facebook:AppId"];
+var facebookAppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+if (!string.IsNullOrWhiteSpace(facebookAppId) && !string.IsNullOrWhiteSpace(facebookAppSecret))
+{
+    authentication.AddFacebook(facebookOptions =>
     {
-        facebookOptions.AppId = builder.Configuration["Authentication:Facebook:AppId"];
-        facebookOptions.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+        facebookOptions.AppId = facebookAppId;
+        facebookOptions.AppSecret = facebookAppSecret;
         facebookOptions.Scope.Add("email");
         facebookOptions.Fields.Add("email");
         facebookOptions.Scope.Add("email");
@@ -138,6 +154,16 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         facebookOptions.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
         facebookOptions.ClaimActions.MapJsonKey("urn:facebook:picture", "picture", "string");
     });
+}
+
+// Data protection keys (sign-in cookies, antiforgery tokens, video call links) are kept in App_Data/keys so they
+// survive restarts: on shared IIS the app pool often has no user profile, and in-memory keys would sign everyone out
+// at every recycle. Falls back to the default store when that folder can't be written.
+var keysFolder = new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Data", "keys"));
+var dataProtection = builder.Services.AddDataProtection().SetApplicationName("MichuHomes");
+var keysFolderWritable = StartupChecks.CanWrite(keysFolder);
+if (keysFolderWritable) dataProtection.PersistKeysToFileSystem(keysFolder);
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.AccessDeniedPath = "/AccessDenied"; // this is the key line
@@ -158,7 +184,8 @@ Log.Logger = new LoggerConfiguration()
         builder.Services.BuildServiceProvider().GetRequiredService<IHttpContextAccessor>()))
     .WriteTo.Console()
     .WriteTo.File(
-        path: "Logs/log-.txt",
+        // Next to the app (on the host: \wwwroot\Logs\log-YYYYMMDD.txt), whatever the process's working folder is.
+        path: Path.Combine(builder.Environment.ContentRootPath, "Logs", "log-.txt"),
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] ({UserName}) {SourceContext} {Message:lj}{NewLine}{Exception}",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 7)
@@ -172,16 +199,34 @@ builder.Services.AddSingleton<IHttpContextAccessor>(httpContextAccessor); // reg
 
 builder.Host.UseSerilog(); // Plug into the host
 
+// Anything that still stops the app (IIS then shows "500.30 app failed to start") is written to the log first.
+AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+{
+    if (e.ExceptionObject is Exception ex && ex.GetType().Name != "HostAbortedException") // EF tools stop the host that way
+    {
+        Log.Fatal(ex, "Michu Homes stopped because of an unhandled exception");
+        Log.CloseAndFlush();
+    }
+};
+
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error").UseAntiforgery();
     app.UseHsts();
+    StartupChecks.LogMissingSettings(app.Configuration, app.Logger);
+}
+if (!keysFolderWritable)
+{
+    app.Logger.LogWarning("App_Data/keys can't be written: sign-ins will not survive a restart of the app.");
 }
 
-using (var scope = app.Services.CreateScope())
+// The user roles must exist. A database that can't be reached must not stop the whole site (IIS 500.30 with no
+// explanation): the site starts, pages that need the database show the error page, and the reason is logged.
+try
 {
+    using var scope = app.Services.CreateScope();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     string[] roleNames = {
         MichuHomesRoles.IndividualHouseOwner,
@@ -198,6 +243,11 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(roleName));
         }
     }
+}
+catch (Exception ex)
+{
+    app.Logger.LogCritical(ex, "Cannot reach the database at startup. Check ConnectionStrings:DefaultConnection " +
+        "(on the server: environment variable ConnectionStrings__DefaultConnection or appsettings.Production.json).");
 }
 // Uploaded ID documents live under wwwroot/uploads/ids but must not be public:
 // they're only served through the authorised /HouseOwner/IdDocument page.
