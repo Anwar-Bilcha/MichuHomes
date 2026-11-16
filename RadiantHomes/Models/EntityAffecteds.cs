@@ -32,6 +32,9 @@ namespace RadiantHomes.Models
         [Display(Name = "House specifications")]
         HouseSpecs,
         [Display(Name = "Housing companies")]
-        HousingCompanies
+        HousingCompanies,
+        /// <summary>A customer waiting in a video call for an agent (Services/VideoCalls).</summary>
+        [Display(Name = "Video calls")]
+        VideoCalls
     }
 }

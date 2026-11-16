@@ -1,0 +1,154 @@
+﻿@page
+@model RadiantHomes.Pages.LiveVideoMeet.IndexModel
+@using RadiantHomes.DAL
+@{
+    var inCall = Model.CallView is not null;
+    if (inCall)
+    {
+        // The call fills the screen: no page header, footer or chat bubble over the call's buttons.
+        ViewData["Title"] = "Video call";
+        ViewData["PageHeader"] = false;
+        ViewData["PageWidth"] = "full";
+        ViewData["HideFooter"] = true;
+        ViewData["HideChat"] = true;
+    }
+    else
+    {
+        ViewData["Title"] = "Video call with an agent";
+        ViewData["Subtitle"] = "Talk face to face with a Michu Homes agent about a home, prices or the buying steps.";
+    }
+}
+
+@section Scripts {
+    @if (inCall)
+    {
+        <script src="~/js/video-call.js" asp-append-version="true"></script>
+    }
+    else
+    {
+        <partial name="_ValidationScriptsPartial" />
+    }
+}
+
+@if (Model.CallView is { } call)
+{
+    <div class="mh-call-page">
+        <partial name="_CallFrame" model="call" />
+    </div>
+    return;
+}
+
+@if (Model.LinkExpired)
+{
+    <div class="alert alert-warning d-flex gap-2" role="alert">
+        <i class="bi bi-clock-history" aria-hidden="true"></i>
+        <div>This call link has expired or is not valid. Please start a new call below.</div>
+    </div>
+}
+
+@if (!Model.VideoAvailable)
+{
+    <div class="alert alert-info d-flex gap-2" role="status">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <div>
+            <strong>Video calls are not available at the moment.</strong>
+            Please call us or write to us, we are happy to help.
+            @if (User.IsInRole(MichuHomesRoles.MichuAdmin))
+            {
+                <small class="d-block mt-1">For administrators: add the JaaS keys (Jaas:AppId, Jaas:ApiKeyId and Jaas:PrivateKey) to the server settings to turn video calls on.</small>
+            }
+        </div>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form method="post" asp-route-apartment="@Model.Apartment" class="card mh-call-form" novalidate>
+            <div class="card-body">
+                @if (Model.About is { } home)
+                {
+                    <div class="mh-call-about">
+                        <img src="@(home.PhotoUrl ?? "/images/brand/michu-homes-mark.svg")" class="@(home.PhotoUrl == null ? "is-logo" : null)" alt="" loading="lazy"
+                             onerror="this.onerror=null;this.src='/images/brand/michu-homes-mark.svg';this.classList.add('is-logo')" />
+                        <div class="min-w-0">
+                            <span class="mh-eyebrow">You are asking about</span>
+                            <strong class="mh-call-about-title">@home.Title</strong>
+                            @* Price and company in separate elements, so the price is translated on its own. *@
+                            <span class="mh-call-about-meta">
+                                <span>@(home.HasPrice ? home.PriceText : "Price not listed")</span>
+                                @if (!string.IsNullOrWhiteSpace(home.Company))
+                                {
+                                    <span aria-hidden="true">·</span>
+                                    <span>@home.Company</span>
+                                }
+                            </span>
+                        </div>
+                    </div>
+                }
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.Name" class="form-label"></label>
+                    <input asp-for="Input.Name" class="form-control" autocomplete="name" maxlength="60" />
+                    <span asp-validation-for="Input.Name" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.Phone" class="form-label"></label>
+                    <input asp-for="Input.Phone" class="form-control" type="tel" inputmode="tel" autocomplete="tel" maxlength="25" placeholder="e.g. +251 911 000 000" aria-describedby="callPhoneHelp" />
+                    <div id="callPhoneHelp" class="form-text">So the agent can call you back if the video connection drops.</div>
+                    <span asp-validation-for="Input.Phone" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Input.Topic" class="form-label"></label>
+                    <textarea asp-for="Input.Topic" class="form-control" rows="3" maxlength="300" placeholder="e.g. payment plans, a visit, a 3-bedroom home in Bole"></textarea>
+                    <span asp-validation-for="Input.Topic" class="text-danger"></span>
+                </div>
+
+                <div class="mh-call-form-actions">
+                    <button type="submit" class="btn btn-accent btn-lg" disabled="@(!Model.VideoAvailable)">
+                        <i class="bi bi-camera-video" aria-hidden="true"></i> Start the video call
+                    </button>
+                    <p class="form-text mb-0">Your details are only shared with the Michu Homes agents who answer the call.</p>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="mh-call-aside">
+            <section class="card">
+                <div class="card-body">
+                    <h2 class="mh-call-aside-title">How it works</h2>
+                    <ol class="mh-call-steps">
+                        <li><strong>We tell our agents</strong><span>As soon as you start the call, our agents are notified.</span></li>
+                        <li><strong>You wait in your own room</strong><span>The call is private: only you and the agent are in it.</span></li>
+                        <li><strong>An agent joins</strong><span>Usually within a few minutes during working hours.</span></li>
+                    </ol>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-body">
+                    <h2 class="mh-call-aside-title">Before you start</h2>
+                    <ul class="mh-call-tips">
+                        <li><i class="bi bi-mic" aria-hidden="true"></i> Allow the browser to use your camera and microphone.</li>
+                        <li><i class="bi bi-browser-chrome" aria-hidden="true"></i> Use a recent Chrome, Edge, Firefox or Safari.</li>
+                        <li><i class="bi bi-wifi" aria-hidden="true"></i> Wi-Fi or 4G gives the best picture and sound.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-body">
+                    <h2 class="mh-call-aside-title">Other ways to reach us</h2>
+                    <ul class="mh-call-contact">
+                        <li><i class="bi bi-telephone" aria-hidden="true"></i><a href="tel:+251900000000">+251-900-000-000</a></li>
+                        <li><i class="bi bi-envelope" aria-hidden="true"></i><a href="mailto:info@michuhomes.et">info@michuhomes.et</a></li>
+                        <li><i class="bi bi-geo-alt" aria-hidden="true"></i>Bole, Addis Ababa</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>

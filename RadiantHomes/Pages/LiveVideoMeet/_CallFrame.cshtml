@@ -1,0 +1,80 @@
+@model RadiantHomes.Pages.LiveVideoMeet.CallView
+@*
+    The embedded video call (customer and agent). It fills the screen height below the site's top bar; the status
+    texts are rendered here (so they are translated with the page) and switched by wwwroot/js/video-call.js.
+*@
+<section class="mh-call" data-call data-role="@(Model.IsAgent ? "agent" : "customer")"
+         data-domain="@Model.Domain" data-script="@Model.ScriptUrl" data-room="@Model.RoomPath" data-jwt="@Model.Jwt"
+         aria-labelledby="callHeading">
+    <div class="mh-call-bar">
+        <span class="mh-call-bar-icon" aria-hidden="true"><i class="bi bi-camera-video-fill"></i></span>
+        <div class="min-w-0">
+            <h1 class="mh-call-title" id="callHeading">@Model.Heading</h1>
+            <p class="mh-call-status" role="status" aria-live="polite">
+                <span class="mh-call-dot" aria-hidden="true"></span>
+                <span data-call-status="loading">Connecting…</span>
+                <span data-call-status="prejoin" hidden>Check your camera and microphone, then press "Join meeting".</span>
+                @if (Model.IsAgent)
+                {
+                    <span data-call-status="waiting" hidden>You are in the call. Waiting for the customer…</span>
+                    <span data-call-status="joined" hidden>The customer is in the call.</span>
+                    <span data-call-status="alone" hidden>The customer left the call.</span>
+                }
+                else
+                {
+                    <span data-call-status="waiting" hidden>Waiting for an agent. We have told our team and someone will join shortly.</span>
+                    <span data-call-status="joined" hidden>An agent joined the call.</span>
+                    <span data-call-status="alone" hidden>The agent left the call.</span>
+                }
+                <span data-call-status="ended" hidden>The call has ended.</span>
+                <span data-call-status="error" hidden>The video call could not start.</span>
+            </p>
+            @if (!string.IsNullOrWhiteSpace(Model.Subheading))
+            {
+                <p class="mh-call-sub">@Model.Subheading</p>
+            }
+        </div>
+    </div>
+
+    @if (!Model.IsAgent)
+    {
+        <div class="mh-call-slow" data-call-slow hidden>
+            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+            <span>Our agents may be busy. Please keep waiting, or call us on <a href="tel:+251900000000">+251-900-000-000</a>.</span>
+        </div>
+    }
+
+    <div class="mh-call-stage">
+        <div class="mh-call-frame" data-call-frame></div>
+
+        <div class="mh-call-panel" data-call-panel="loading">
+            <div class="spinner-border" role="presentation" aria-hidden="true"></div>
+            <p class="mb-0">Starting the video call…</p>
+        </div>
+
+        <div class="mh-call-panel" data-call-panel="error" hidden>
+            <span class="mh-call-panel-icon" aria-hidden="true"><i class="bi bi-wifi-off"></i></span>
+            <h2>The video call could not start</h2>
+            <p>Please check your internet connection and try again. You can also call us on <a href="tel:+251900000000">+251-900-000-000</a>.</p>
+            <a class="btn btn-accent" href="@Context.Request.Path@Context.Request.QueryString"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Try again</a>
+        </div>
+
+        <div class="mh-call-panel" data-call-panel="ended" hidden>
+            <span class="mh-call-panel-icon" aria-hidden="true"><i class="bi bi-check2-circle"></i></span>
+            @if (Model.IsAgent)
+            {
+                <h2>The call has ended</h2>
+                <p>You can close this page.</p>
+            }
+            else
+            {
+                <h2>Thank you for calling Michu Homes</h2>
+                <p>We hope we answered your questions. You can call again at any time.</p>
+            }
+            <div class="mh-call-panel-actions">
+                <a class="btn btn-accent" href="@Model.DoneUrl">@Model.DoneLabel</a>
+                <a class="btn btn-outline-light" href="@Context.Request.Path@Context.Request.QueryString"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Rejoin the call</a>
+            </div>
+        </div>
+    </div>
+</section>

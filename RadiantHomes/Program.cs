@@ -46,6 +46,13 @@ builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.CustomerNotifica
 builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.ReservationService>();
 builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.ApartmentComments>();
 builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.ReferralService>();
+// Video calls with agents (Pages/LiveVideoMeet, Services/VideoCalls). JaaS keys come from user-secrets or
+// environment variables (Jaas__AppId, Jaas__ApiKeyId, Jaas__PrivateKey); without them the page says calls are off.
+builder.Services.Configure<RadiantHomes.Services.VideoCalls.JaasSettings>(
+    builder.Configuration.GetSection(RadiantHomes.Services.VideoCalls.JaasSettings.Section));
+builder.Services.AddSingleton<RadiantHomes.Services.VideoCalls.JaasTokens>();
+builder.Services.AddScoped<RadiantHomes.Services.VideoCalls.VideoCallService>();
+builder.Services.AddMemoryCache();
 //builder.Services.AddScoped<ExcelExportService>();
 // Add services to the container.
 //builder.Services.AddRazorPages();
@@ -81,6 +88,7 @@ builder.Services.AddRazorPages(options =>
         }
     }
     c.AuthorizePage("/ApartmentHouses/Tour", AccessPolicies.CompanyAdmin); // rooms of an apartment's 3D tour
+    c.AuthorizePage("/LiveVideoMeet/Join", AccessPolicies.CompanyAdmin);   // agents answering a customer's video call
 
     // Customer portal: any signed-in user (pages that need a customer profile ask for it)
     c.AuthorizeFolder("/Portal");

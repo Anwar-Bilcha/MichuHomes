@@ -51,6 +51,9 @@
                     <button type="button" class="btn btn-accent btn-lg" data-bs-toggle="modal" data-bs-target="#reserveModal">
                         <i class="bi bi-calendar-check" aria-hidden="true"></i> Reserve House
                     </button>
+                    <a asp-page="/LiveVideoMeet/Index" asp-route-apartment="@Model.ApartmentHouse.Id" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-camera-video" aria-hidden="true"></i> Video call an agent
+                    </a>
                     <a asp-page="/Houses/Actions/Complaints/Create" asp-route-id="@Model.ApartmentHouse.Id" class="btn btn-outline-danger btn-lg">
                         <i class="bi bi-exclamation-octagon" aria-hidden="true"></i> Report
                     </a>

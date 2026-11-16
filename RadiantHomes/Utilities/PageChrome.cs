@@ -27,6 +27,7 @@ namespace RadiantHomes.Utilities
                 ["ApartmentHouses"] = "Apartments",
                 ["RealEstates"] = "Real Estates",
                 ["Identity"] = "Account",
+                ["LiveVideoMeet"] = "Video call with an agent",
             };
 
         private static readonly object CacheLock = new();

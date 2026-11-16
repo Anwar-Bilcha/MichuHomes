@@ -11,7 +11,15 @@
 @section Styles {
     <style>
         /* Hero: base look (.hero, .hero-content, overlay) comes from site.css */
-        .mh-home-hero { height: auto; min-height: 84vh; padding: 4rem 0; }
+        /* Daylight photo of an Addis Ababa street (images/hero-addis*.jpg) at full strength; a navy tint keeps
+           the white headline readable. The plain navy background shows only until the photo loads. */
+        .mh-home-hero { height: auto; min-height: 84vh; padding: 4rem 0; background: var(--mh-navy); }
+        .mh-home-hero .hero-bg img { object-position: 55% 60%; }
+        .mh-home-hero .hero-overlay {
+            background:
+                radial-gradient(ellipse at 50% 45%, rgba(4, 19, 46, .55) 0%, rgba(4, 19, 46, .25) 70%),
+                linear-gradient(180deg, rgba(9, 43, 102, .35) 0%, rgba(4, 19, 46, .45) 100%);
+        }
         .mh-home-hero .search-box { max-width: 46rem; text-shadow: none; }
         .mh-hero-link:hover, .mh-hero-link:focus-visible { --bs-bg-opacity: .22; }
         .mh-hero-title { font-size: clamp(2rem, 1.3rem + 3vw, 3.25rem); font-weight: 800; margin-bottom: .75rem; }
@@ -54,9 +62,10 @@
 
 <div class="px-2 px-md-3 pt-2 pt-md-3">
     <section class="hero mh-home-hero position-relative text-white">
-        <div class="hero-bg" style="opacity:.7">
-            <img src="~/images/banner3.jpg" alt="">
-            <div class="hero-overlay position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50"></div>
+        <div class="hero-bg">
+            <img src="~/images/hero-addis.jpg" srcset="/images/hero-addis-960.jpg 960w, /images/hero-addis.jpg 1861w" sizes="100vw"
+                 alt="" fetchpriority="high" decoding="async">
+            <div class="hero-overlay position-absolute top-0 start-0 w-100 h-100"></div>
         </div>
 
         <div class="hero-content">
@@ -115,9 +124,9 @@
                    class="btn mh-hero-link text-white bg-white bg-opacity-10 border border-white border-opacity-50">
                     <i class="fa-solid fa-circle-play" aria-hidden="true"></i> Explore the Journey
                 </a>
-                <a asp-page="/LiveVideoMeet" asp-route-roomId=""
+                <a asp-page="/LiveVideoMeet/Index"
                    class="btn mh-hero-link text-white bg-white bg-opacity-10 border border-white border-opacity-50">
-                    <i class="bi bi-camera-video" aria-hidden="true"></i> Video Call Live Agents
+                    <i class="bi bi-camera-video" aria-hidden="true"></i> Video call an agent
                 </a>
             </div>
         </div>

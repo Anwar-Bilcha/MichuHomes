@@ -292,6 +292,21 @@
         </div>
     }
 
+    @if (isMichuAdmin || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+    {
+        @* Agents: a customer waiting in a video call (Pages/LiveVideoMeet). Checked every 20 seconds while the page is visible. *@
+        <div class="mh-call-alert" id="mhCallAlert" role="alert" hidden>
+            <span class="mh-call-alert-icon" aria-hidden="true"><i class="bi bi-camera-video-fill"></i></span>
+            <div class="min-w-0">
+                <strong data-call-alert-name></strong>
+                <span>is waiting for a video call.</span>
+                <small data-call-alert-about hidden></small>
+            </div>
+            <a class="btn btn-accent btn-sm" data-call-alert-join href="#">Join the call</a>
+            <button type="button" class="btn-close" data-call-alert-dismiss aria-label="Dismiss"></button>
+        </div>
+    }
+
     <partial name="_CoreScripts" />
     <partial name="_FlashMessages" />
     @RenderSection("Scripts", required: false)
@@ -299,6 +314,44 @@
     {
         <partial name="_LoginModal" />
     }
+    <script>
+        (function () {
+            var box = document.getElementById('mhCallAlert');
+            if (!box || document.querySelector('[data-call]')) return; // not while already in a call
+            var key = 'mh.dismissedCalls', dismissed = [];
+            try { dismissed = JSON.parse(sessionStorage.getItem(key) || '[]'); } catch (e) { dismissed = []; }
+            var current = null;
+            function show(call) {
+                current = call;
+                box.querySelector('[data-call-alert-name]').textContent = call.name;
+                var about = box.querySelector('[data-call-alert-about]');
+                about.textContent = call.about || '';
+                about.hidden = !call.about;
+                box.querySelector('[data-call-alert-join]').href = call.url;
+                box.hidden = false;
+            }
+            function check() {
+                if (document.hidden) return;
+                fetch('/LiveVideoMeet/Join?handler=Waiting', { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : []; })
+                    .then(function (calls) {
+                        var next = (calls || []).filter(function (c) { return dismissed.indexOf(c.id) < 0; })[0];
+                        if (next) show(next); else { box.hidden = true; current = null; }
+                    })
+                    .catch(function () { /* offline: try again next time */ });
+            }
+            box.querySelector('[data-call-alert-dismiss]').addEventListener('click', function () {
+                if (current) {
+                    dismissed.push(current.id);
+                    try { sessionStorage.setItem(key, JSON.stringify(dismissed)); } catch (e) { /* private mode */ }
+                }
+                box.hidden = true;
+            });
+            check();
+            setInterval(check, 20000);
+            document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+        })();
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

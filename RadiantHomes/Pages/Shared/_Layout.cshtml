@@ -10,6 +10,9 @@
 
     var showHeader = (ViewData["PageHeader"] as bool?) ?? true;
     var width = (ViewData["PageWidth"] as string ?? string.Empty).ToLowerInvariant();
+    // Full-screen tools (the video call): ViewData["HideFooter"] = true, ViewData["HideChat"] = true (chat bubble).
+    var showFooter = !((ViewData["HideFooter"] as bool?) ?? false);
+    var showChat = !((ViewData["HideChat"] as bool?) ?? false);
     var bodyContainer = width switch
     {
         "full" => null,
@@ -121,6 +124,8 @@
         }
     </main>
 
+    @if (showFooter)
+    {
     <footer class="mh-footer">
         <div class="container">
             <div class="row gy-4">
@@ -175,11 +180,14 @@
             </div>
         </div>
     </footer>
+    }
 
     <partial name="_CoreScripts" />
     <partial name="_FlashMessages" />
 
     @* Tawk.to live chat *@
+    @if (showChat)
+    {
     <script>
         var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
         (function () {
@@ -191,6 +199,7 @@
             s0.parentNode.insertBefore(s1, s0);
         })();
     </script>
+    }
 
     @RenderSection("Scripts", required: false)
     @if (User.Identity?.IsAuthenticated != true && area != "Identity")
