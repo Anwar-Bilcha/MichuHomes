@@ -1,0 +1,85 @@
+@page
+@model RadiantHomes.Pages.Staff.Uploads.DetailsModel
+@using RadiantHomes.Models.HousingCompanies
+@using RadiantHomes.Pages.ApartmentHouses
+@{
+    var b = Model.Batch;
+    ViewData["Title"] = $"Upload {b.Reference}";
+    ViewData["Subtitle"] = $"{b.Company.Name} · {b.Building.BuildingName} · {b.FileName} · {b.UploadedOn.ToLocalTime():d MMM yyyy HH:mm}";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var pending = b.Rows.Count(r => r.Status == UploadRowStatuses.Pending);
+    string RowBadge(string s) => s switch { UploadRowStatuses.Approved => "text-bg-success", UploadRowStatuses.Rejected => "text-bg-danger", _ => "text-bg-warning" };
+    string RowLabel(string s) => s switch { UploadRowStatuses.Approved => "Approved", UploadRowStatuses.Rejected => "Rejected", _ => "Waiting" };
+}
+
+@section PageActions {
+    <span class="badge fs-6 @UploadBatchStatuses.Badge(b.Status)">@UploadBatchStatuses.Label(b.Status)</span>
+}
+
+<form method="post" asp-route-id="@b.Id">
+    @if (Model.CanReview && pending > 0)
+    {
+        <div class="card card-body mb-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-lg">
+                    <label class="form-label" for="reason">Reason for rejected apartments (the company sees it)</label>
+                    <input class="form-control" id="reason" name="Reason" maxlength="1000" />
+                </div>
+                <div class="col-12 col-lg-auto d-flex flex-wrap gap-2">
+                    <button class="btn btn-success" asp-page-handler="ApproveAll" asp-route-id="@b.Id"
+                            data-confirm-title="@($"Approve all {pending} waiting apartments?")" data-confirm="They become listed for customers." data-confirm-ok="Approve all">Approve all waiting (@pending)</button>
+                    <button class="btn btn-outline-success" asp-page-handler="Approve" asp-route-id="@b.Id">Approve selected</button>
+                    <button class="btn btn-outline-danger" asp-page-handler="Reject" asp-route-id="@b.Id">Reject selected</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        @if (Model.CanReview && pending > 0) { <th scope="col"><span class="visually-hidden">Select</span></th> }
+                        <th scope="col">Row</th><th scope="col">Apartment</th><th scope="col">Floor / rooms</th><th scope="col">Price</th><th scope="col">Decision</th>
+                        @if (Model.CanResubmit) { <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in b.Rows.OrderBy(r => r.RowNumber))
+                    {
+                        var a = r.ApartmentHouse;
+                        <tr>
+                            @if (Model.CanReview && pending > 0)
+                            {
+                                <td>@if (r.Status == UploadRowStatuses.Pending) { <input class="form-check-input" type="checkbox" name="RowIds" value="@r.Id" aria-label="Select @a.Title" /> }</td>
+                            }
+                            <td class="text-muted">@r.RowNumber</td>
+                            <td><a asp-page="/ApartmentHouses/Details" asp-route-id="@a.Id" class="fw-semibold">@a.Title</a><div class="small text-muted">No. @a.HouseNumber</div></td>
+                            <td class="small">Floor @a.FloorNumber · @a.Bedrooms bed · @a.Bathrooms bath</td>
+                            <td class="text-nowrap">@ApartmentHouseForm.Price(a.SalePrice, a.Currency)</td>
+                            <td>
+                                <span class="badge @RowBadge(r.Status)">@RowLabel(r.Status)</span>
+                                @if (r.Resubmissions > 0) { <span class="small text-muted">resubmitted @r.Resubmissions×</span> }
+                                @if (!string.IsNullOrWhiteSpace(r.RejectReason)) { <div class="small text-danger">@r.RejectReason</div> }
+                                @if (r.DecidedByName is not null) { <div class="small text-muted">@r.DecidedByName · @r.DecidedOn?.ToLocalTime().ToString("d MMM HH:mm")</div> }
+                            </td>
+                            @if (Model.CanResubmit)
+                            {
+                                <td class="text-end">
+                                    @if (r.Status == UploadRowStatuses.Rejected)
+                                    {
+                                        <div class="d-inline-flex flex-wrap gap-1 justify-content-end">
+                                            <a class="btn btn-sm btn-outline-secondary" asp-page="/ApartmentHouses/Edit" asp-route-id="@a.Id"><i class="bi bi-pencil" aria-hidden="true"></i> Correct</a>
+                                            <button class="btn btn-sm btn-primary" asp-page-handler="Resubmit" asp-route-id="@b.Id" asp-route-rowId="@r.Id"><i class="bi bi-send" aria-hidden="true"></i> Send back</button>
+                                        </div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>

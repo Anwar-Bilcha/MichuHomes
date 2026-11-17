@@ -19,6 +19,16 @@ dotnet test tests/RadiantHomes.Tests/RadiantHomes.Tests.csproj
     - you can't change your own roles, and the last super admin is protected
     - role deletion rules
     - the company status guard, and approval decisions with history, notifications and audit
+  - `Foundation2Tests`:
+    - two customers reserving the same home at once: exactly one wins (database index)
+    - references, answer times and status history
+    - declining needs a reason and relists the home
+    - expiry, where a hidden home stays hidden
+    - the platform setting for the answer time
+    - double sales and lost updates refused by the database
+    - KYC: submission checks (age, document expiry, real file content), reviewer-only decisions with reasons, only the newest application counts, revocation, audited document access
+    - bulk upload: every invalid row reported and nothing saved; batch review per row with reasons; resubmission
+    - pages: unlisted apartments hidden from the public; the KYC gate on video calls
   - `AuthorizationHttpTests`: the real app (`WebApplicationFactory`), signed in through a test scheme as accounts seeded in the test database. It checks direct URL access by anonymous visitors, permission holders, company staff, staff of pending companies and customers.
 
 CI (`.github/workflows/ci.yml`) runs these on every push and pull request, against a SQL Server container.

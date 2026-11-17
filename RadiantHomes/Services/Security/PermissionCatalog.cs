@@ -19,6 +19,10 @@ namespace RadiantHomes.Services.Security
         public const string ReportsView = "reports.view";
         public const string HousesApprove = "houses.approve";
         public const string OwnerHousesManage = "owner_houses.manage";
+        public const string KycView = "kyc.view";
+        public const string KycReview = "kyc.review";
+        public const string KycRevoke = "kyc.revoke";
+        public const string SettingsManage = "settings.manage";
 
         // Own company (company roles only)
         public const string CompanyProfileView = "company.profile.view";
@@ -81,6 +85,10 @@ namespace RadiantHomes.Services.Security
             new(Perm.ReportsView, "Platform administration", "View platform reports", "Open and export the platform reports.", PermissionScope.Platform),
             new(Perm.HousesApprove, "Platform administration", "Approve listings", "Approve uploaded apartments and change their approval status.", PermissionScope.Platform),
             new(Perm.OwnerHousesManage, "Platform administration", "Manage owners' houses", "List houses for any individual owner and manage every rent, sale, payment and complaint record.", PermissionScope.Platform),
+            new(Perm.KycView, "Customer verification", "View KYC applications", "See customers' identity verification applications and open their documents (each opening is audited).", PermissionScope.Platform),
+            new(Perm.KycReview, "Customer verification", "Review KYC applications", "Approve or reject identity verification, or ask the customer to resubmit.", PermissionScope.Platform),
+            new(Perm.KycRevoke, "Customer verification", "Revoke verification", "Withdraw an approved verification (the customer loses access to verified-only features).", PermissionScope.Platform),
+            new(Perm.SettingsManage, "Platform administration", "Manage platform settings", "Change platform-wide settings such as how long reservations wait for a company.", PermissionScope.Platform),
 
             new(Perm.CompanyProfileView, "Company profile", "View company profile", "See your company's profile and approval status.", PermissionScope.Company),
             new(Perm.CompanyProfileUpdate, "Company profile", "Edit company profile", "Change your company's details (not its approval status).", PermissionScope.Company),

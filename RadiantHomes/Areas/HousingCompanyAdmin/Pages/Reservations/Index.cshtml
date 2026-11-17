@@ -2,15 +2,18 @@
 @model RadiantHomes.Areas.HousingCompanyAdmin.Pages.Reservations.IndexModel
 @using RadiantHomes.Models.HousingCompanies
 @using RadiantHomes.Pages.ApartmentHouses
+@using RadiantHomes.Services.CustomerPortal
 @{
     ViewData["Title"] = "Reservations";
-    ViewData["Subtitle"] = "Customers who reserved your apartments. Approve a reservation, mark the apartment as sold, or cancel it — the customer is notified each time.";
+    ViewData["Subtitle"] = "Customers who reserved your apartments. Approve or decline a reservation, mark the apartment as sold, or cancel an approved one. The customer is notified each time.";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
-    var tabs = new (string? Key, string Label, int? Count)[]
+    var tabs = new (string Key, string Label, int? Count)[]
     {
         ("pending", "Waiting", Model.Count(HouseReserveStatuses.Pending)),
         ("approved", "Approved", Model.Count(HouseReserveStatuses.Approved)),
         ("completed", "Sold", Model.Count(HouseReserveStatuses.Completed)),
+        ("declined", "Declined", Model.Count(HouseReserveStatuses.Rejected)),
+        ("expired", "Expired", Model.Count(HouseReserveStatuses.Expired)),
         ("cancelled", "Cancelled", Model.Count(HouseReserveStatuses.Cancelled)),
         ("all", "All", null),
     };
@@ -18,6 +21,8 @@
     {
         HouseReserveStatuses.Approved => "approved",
         HouseReserveStatuses.Completed => "completed",
+        HouseReserveStatuses.Rejected => "declined",
+        HouseReserveStatuses.Expired => "expired",
         HouseReserveStatuses.Cancelled => "cancelled",
         null => "all",
         _ => "pending",
@@ -50,9 +55,9 @@ else
             <table class="table align-middle mb-0">
                 <thead>
                     <tr>
+                        <th scope="col">Reservation</th>
                         <th scope="col">Apartment</th>
                         <th scope="col">Customer</th>
-                        <th scope="col">Reserved on</th>
                         <th scope="col">Status</th>
                         <th scope="col" class="text-end">Actions</th>
                     </tr>
@@ -63,7 +68,16 @@ else
                         var a = t.ApartmentHouse;
                         var customer = t.Receiver;
                         var title = a?.Title ?? string.Empty;
+                        var lastReason = t.History.OrderByDescending(h => h.ChangedOn).FirstOrDefault(h => !string.IsNullOrWhiteSpace(h.Reason))?.Reason;
                         <tr>
+                            <td>
+                                <div class="fw-semibold" translate="no">@t.Reference</div>
+                                <div class="small text-muted">@t.TransactionDate.ToString("d MMM yyyy HH:mm")</div>
+                                @if (t.Status == HouseReserveStatuses.Pending && t.ExpiresAt is DateTime exp)
+                                {
+                                    <div class="small @(exp < DateTime.UtcNow.AddHours(12) ? "text-danger" : "text-warning-emphasis")"><i class="bi bi-alarm" aria-hidden="true"></i> Answer by @exp.ToLocalTime().ToString("d MMM HH:mm")</div>
+                                }
+                            </td>
                             <td>
                                 <a asp-area="" asp-page="/ApartmentHouses/Details" asp-route-id="@t.ApartmentHouseId" class="fw-semibold">@title</a>
                                 <div class="small text-muted">@(string.Join(" · ", new[] { a?.Building?.Project?.ProjectName, a?.Building?.Project?.Company?.Name }.Where(s => !string.IsNullOrWhiteSpace(s))))</div>
@@ -71,42 +85,44 @@ else
                             </td>
                             <td>
                                 <div class="fw-semibold">@($"{customer?.FirstName} {customer?.LastName}".Trim())</div>
-                                @if (!string.IsNullOrWhiteSpace(customer?.PhoneNumber))
+                                @if (!string.IsNullOrWhiteSpace(customer?.PhoneNumber)) { <a class="small d-block" href="tel:@customer.PhoneNumber">@customer.PhoneNumber</a> }
+                                @if (!string.IsNullOrWhiteSpace(customer?.Email)) { <a class="small d-block" href="mailto:@customer.Email">@customer.Email</a> }
+                                @if (!string.IsNullOrWhiteSpace(t.Notes)) { <div class="small text-muted mt-1"><i class="bi bi-chat-left-quote" aria-hidden="true"></i> @t.Notes</div> }
+                            </td>
+                            <td>
+                                <span class="badge @ReservationService.Badge(t.Status)">@ReservationService.Label(t.Status)</span>
+                                @if (lastReason is not null && t.Status is HouseReserveStatuses.Rejected or HouseReserveStatuses.Cancelled or HouseReserveStatuses.Expired) { <div class="small text-muted mt-1">@lastReason</div> }
+                                @if (t.History.Count > 0)
                                 {
-                                    <a class="small d-block" href="tel:@customer.PhoneNumber">@customer.PhoneNumber</a>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(customer?.Email))
-                                {
-                                    <a class="small d-block" href="mailto:@customer.Email">@customer.Email</a>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(t.Notes))
-                                {
-                                    <div class="small text-muted mt-1"><i class="bi bi-chat-left-quote" aria-hidden="true"></i> @t.Notes</div>
+                                    <details class="small mt-1"><summary class="text-muted">History</summary>
+                                        <ol class="list-unstyled mb-0 mt-1">
+                                            @foreach (var h in t.History.OrderBy(h => h.ChangedOn))
+                                            {
+                                                <li>@h.ChangedOn.ToLocalTime().ToString("d MMM HH:mm") · @ReservationService.Label(h.ToStatus) · @(h.ChangedByName ?? "—")</li>
+                                            }
+                                        </ol>
+                                    </details>
                                 }
                             </td>
-                            <td class="text-nowrap">@t.TransactionDate.ToString("d MMM yyyy")</td>
-                            <td><span class="badge @(t.Status switch { HouseReserveStatuses.Pending => "text-bg-warning", HouseReserveStatuses.Approved => "text-bg-info", HouseReserveStatuses.Completed => "text-bg-success", _ => "text-bg-secondary" })">@(t.Status switch { HouseReserveStatuses.Pending => "Waiting", HouseReserveStatuses.Completed => "Sold", _ => t.Status.ToString() })</span></td>
                             <td class="text-end">
-                                <div class="d-inline-flex flex-wrap justify-content-end gap-1">
-                                    @if (t.Status == HouseReserveStatuses.Pending)
-                                    {
-                                        <form mh-permission="reservations.manage" method="post" asp-page-handler="Approve" asp-route-id="@t.Id" asp-route-status="@current"
-                                              data-confirm-title="@($"Approve the reservation of \"{title}\"?")" data-confirm="The customer is notified that you approved it." data-confirm-ok="Approve">
-                                            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check2" aria-hidden="true"></i> Approve</button>
-                                        </form>
-                                    }
-                                    @if (t.Status is HouseReserveStatuses.Pending or HouseReserveStatuses.Approved)
-                                    {
-                                        <form mh-permission="reservations.manage" method="post" asp-page-handler="Sold" asp-route-id="@t.Id" asp-route-status="@current"
-                                              data-confirm-title="@($"Mark \"{title}\" as sold?")" data-confirm="The apartment stays off the market and appears under the customer's houses bought." data-confirm-ok="Mark as sold" data-confirm-variant="accent">
-                                            <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-key" aria-hidden="true"></i> Mark as sold</button>
-                                        </form>
-                                        <form mh-permission="reservations.manage" method="post" asp-page-handler="Cancel" asp-route-id="@t.Id" asp-route-status="@current"
-                                              data-confirm-title="@($"Cancel the reservation of \"{title}\"?")" data-confirm="The apartment is listed again and the customer is notified." data-confirm-ok="Cancel reservation" data-confirm-variant="danger">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel</button>
-                                        </form>
-                                    }
-                                </div>
+                                @if (t.Status is HouseReserveStatuses.Pending or HouseReserveStatuses.Approved)
+                                {
+                                    <form mh-permission="reservations.manage" method="post" asp-route-id="@t.Id" asp-route-status="@current" class="d-inline-flex flex-column align-items-end gap-1">
+                                        <input class="form-control form-control-sm" style="min-width:12rem" name="Reason" maxlength="1000" placeholder="Reason (to decline or cancel)" aria-label="Reason for @t.Reference" />
+                                        <div class="d-inline-flex flex-wrap justify-content-end gap-1">
+                                            @if (t.Status == HouseReserveStatuses.Pending)
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-primary" asp-page-handler="Approve" asp-route-id="@t.Id" asp-route-status="@current"><i class="bi bi-check2" aria-hidden="true"></i> Approve</button>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" asp-page-handler="Reject" asp-route-id="@t.Id" asp-route-status="@current"><i class="bi bi-x-circle" aria-hidden="true"></i> Decline</button>
+                                            }
+                                            <button type="submit" class="btn btn-sm btn-success" asp-page-handler="Sold" asp-route-id="@t.Id" asp-route-status="@current"><i class="bi bi-key" aria-hidden="true"></i> Mark as sold</button>
+                                            @if (t.Status == HouseReserveStatuses.Approved)
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" asp-page-handler="Cancel" asp-route-id="@t.Id" asp-route-status="@current"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel</button>
+                                            }
+                                        </div>
+                                    </form>
+                                }
                             </td>
                         </tr>
                     }

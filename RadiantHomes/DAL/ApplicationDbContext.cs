@@ -54,6 +54,15 @@ namespace RadiantHomes.DAL
         public DbSet<Models.Security.AuditLog> AuditLogs { get; set; }
         public DbSet<Models.Security.CompanyStatusChange> CompanyStatusChanges { get; set; }
 
+        // Foundation 2: KYC, reservation history, upload batches, platform settings
+        public DbSet<Models.Kyc.KycApplication> KycApplications { get; set; }
+        public DbSet<Models.Kyc.KycDocument> KycDocuments { get; set; }
+        public DbSet<Models.Kyc.KycStatusChange> KycStatusChanges { get; set; }
+        public DbSet<ReservationStatusChange> ReservationStatusChanges { get; set; }
+        public DbSet<UploadBatch> UploadBatches { get; set; }
+        public DbSet<UploadBatchRow> UploadBatchRows { get; set; }
+        public DbSet<Models.Shared.PlatformSetting> PlatformSettings { get; set; }
+
         // Guid keys have no database default (migration 20251227201651_GUIDCleanUpForRealEstate removed the
         // NEWID() defaults), so EF generates them on the client. Rows added with an explicit Guid.Empty key
         // (some pages build entities that way) get a fresh Guid here as well.
@@ -165,6 +174,70 @@ namespace RadiantHomes.DAL
         }
 
 
+        private static void ConfigureFoundation2(ModelBuilder builder)
+        {
+            // KYC
+            builder.Entity<Customer>().Property(c => c.KycStatus).HasDefaultValue(Models.Kyc.KycStatuses.NotSubmitted);
+            builder.Entity<Models.Kyc.KycApplication>(e =>
+            {
+                e.ToTable("KycApplications");
+                e.HasIndex(a => new { a.CustomerId, a.SubmittedOn });
+                e.HasIndex(a => new { a.Status, a.SubmittedOn });
+                // Profiles are deleted with their company; applications go with the profile.
+                e.HasOne(a => a.Customer).WithMany().HasForeignKey(a => a.CustomerId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<Models.Kyc.KycDocument>(e =>
+            {
+                e.ToTable("KycDocuments");
+                e.HasOne(d => d.Application).WithMany(a => a.Documents).HasForeignKey(d => d.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<Models.Kyc.KycStatusChange>(e =>
+            {
+                e.ToTable("KycStatusChanges");
+                e.HasOne(h => h.Application).WithMany(a => a.History).HasForeignKey(h => h.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Reservations: a reference, at most ONE active (pending/approved) reservation and ONE sale per apartment,
+            // enforced by the database so two simultaneous requests can't both succeed.
+            builder.Entity<ApartmentHouseSaleTransaction>(e =>
+            {
+                e.HasIndex(t => t.ApartmentHouseId); // every reservation of an apartment (the filtered ones below cover only some rows)
+                e.HasIndex(t => t.Reference).IsUnique().HasFilter("[Reference] <> N''");
+                e.HasIndex(t => t.ApartmentHouseId, "IX_ApartmentHouseSaleTransactions_OneActivePerApartment")
+                    .IsUnique().HasFilter("[Status] IN (0, 1)");
+                e.HasIndex(t => t.ApartmentHouseId, "IX_ApartmentHouseSaleTransactions_OneSalePerApartment")
+                    .IsUnique().HasFilter("[Status] = 2");
+                e.HasIndex(t => new { t.Status, t.ExpiresAt });
+                e.HasIndex(t => t.CompanyId);
+            });
+            builder.Entity<ReservationStatusChange>(e =>
+            {
+                e.ToTable("ReservationStatusChanges");
+                e.HasIndex(h => new { h.TransactionId, h.ChangedOn });
+                e.HasOne(h => h.Transaction).WithMany(t => t.History).HasForeignKey(h => h.TransactionId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Upload batches
+            builder.Entity<UploadBatch>(e =>
+            {
+                e.ToTable("UploadBatches");
+                e.HasIndex(b => b.Reference).IsUnique();
+                e.HasIndex(b => new { b.Status, b.UploadedOn });
+                e.HasIndex(b => b.CompanyId);
+                e.HasOne(b => b.Company).WithMany().HasForeignKey(b => b.CompanyId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(b => b.Building).WithMany().HasForeignKey(b => b.BuildingId).OnDelete(DeleteBehavior.Restrict);
+            });
+            builder.Entity<UploadBatchRow>(e =>
+            {
+                e.ToTable("UploadBatchRows");
+                e.HasIndex(r => r.ApartmentHouseId);
+                e.HasOne(r => r.Batch).WithMany(b => b.Rows).HasForeignKey(r => r.BatchId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(r => r.ApartmentHouse).WithMany().HasForeignKey(r => r.ApartmentHouseId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<Models.Shared.PlatformSetting>().ToTable("PlatformSettings");
+        }
+
         private static void ConfigureAccessControl(ModelBuilder builder)
         {
             // AccountType is always written by the app; the migration sets it for existing accounts.
@@ -232,6 +305,7 @@ namespace RadiantHomes.DAL
                 .OnDelete(DeleteBehavior.Cascade);
 
             ConfigureAccessControl(builder);
+            ConfigureFoundation2(builder);
 
             builder.Entity<ApartmentHouseSaleTransaction>()
     .ToTable("ApartmentHouseSaleTransactions");

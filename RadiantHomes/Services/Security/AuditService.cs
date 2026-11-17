@@ -11,6 +11,10 @@ namespace RadiantHomes.Services.Security
         public const string Roles = "Roles";
         public const string Companies = "Companies";
         public const string Security = "Security";
+        public const string Kyc = "KYC";
+        public const string Reservations = "Reservations";
+        public const string Uploads = "Uploads";
+        public const string Settings = "Settings";
     }
 
     /// <summary>

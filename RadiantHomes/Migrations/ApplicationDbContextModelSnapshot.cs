@@ -322,6 +322,13 @@ namespace RadiantHomes.Migrations
                     b.Property<string>("IdCardFileUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("KycStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("NotSubmitted");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -941,6 +948,9 @@ namespace RadiantHomes.Migrations
                     b.Property<Guid>("ApartmentHouseId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -950,12 +960,26 @@ namespace RadiantHomes.Migrations
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -973,9 +997,25 @@ namespace RadiantHomes.Migrations
 
                     b.HasIndex("ApartmentHouseId");
 
+                    b.HasIndex("CompanyId");
+
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("OwnerId");
+
+                    b.HasIndex("Reference")
+                        .IsUnique()
+                        .HasFilter("[Reference] <> N''");
+
+                    b.HasIndex("Status", "ExpiresAt");
+
+                    b.HasIndex(new[] { "ApartmentHouseId" }, "IX_ApartmentHouseSaleTransactions_OneActivePerApartment")
+                        .IsUnique()
+                        .HasFilter("[Status] IN (0, 1)");
+
+                    b.HasIndex(new[] { "ApartmentHouseId" }, "IX_ApartmentHouseSaleTransactions_OneSalePerApartment")
+                        .IsUnique()
+                        .HasFilter("[Status] = 2");
 
                     b.ToTable("ApartmentHouseSaleTransactions", (string)null);
                 });
@@ -1335,6 +1375,151 @@ namespace RadiantHomes.Migrations
                     b.ToTable("HousingCompanies");
                 });
 
+            modelBuilder.Entity("RadiantHomes.Models.HousingCompanies.ReservationStatusChange", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ChangedByName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ChangedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ChangedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FromStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("ToStatus")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TransactionId", "ChangedOn");
+
+                    b.ToTable("ReservationStatusChanges", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.HousingCompanies.UploadBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BuildingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ReviewedByName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ReviewedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ReviewedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("UploadedByName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("UploadedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("UploadedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuildingId");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("Reference")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "UploadedOn");
+
+                    b.ToTable("UploadBatches", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.HousingCompanies.UploadBatchRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ApartmentHouseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DecidedByName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("DecidedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("Resubmissions")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentHouseId");
+
+                    b.HasIndex("BatchId");
+
+                    b.ToTable("UploadBatchRows", (string)null);
+                });
+
             modelBuilder.Entity("RadiantHomes.Models.IssueOrCompliant", b =>
                 {
                     b.Property<Guid>("IssueId")
@@ -1391,6 +1576,152 @@ namespace RadiantHomes.Migrations
                     b.HasIndex("HouseOwnerId");
 
                     b.ToTable("IssuesOrCompliants");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Kyc.KycApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DecisionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("DocumentExpiresOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DocumentNumber")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("FullNameOnDocument")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ReviewedByName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ReviewedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("ReviewedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("SubmittedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId", "SubmittedOn");
+
+                    b.HasIndex("Status", "SubmittedOn");
+
+                    b.ToTable("KycApplications", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Kyc.KycDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime>("UploadedOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.ToTable("KycDocuments", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Kyc.KycStatusChange", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChangedByName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ChangedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ChangedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FromStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.ToTable("KycStatusChanges", (string)null);
                 });
 
             modelBuilder.Entity("RadiantHomes.Models.Notification", b =>
@@ -1831,6 +2162,29 @@ namespace RadiantHomes.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("UserAccessRoles", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Shared.PlatformSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("UpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("PlatformSettings", (string)null);
                 });
 
             modelBuilder.Entity("RadiantHomes.Models.Subscriber", b =>
@@ -2366,6 +2720,55 @@ namespace RadiantHomes.Migrations
                     b.Navigation("Address");
                 });
 
+            modelBuilder.Entity("RadiantHomes.Models.HousingCompanies.ReservationStatusChange", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.ApartmentHouseSaleTransaction", "Transaction")
+                        .WithMany("History")
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Transaction");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.HousingCompanies.UploadBatch", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.Building", "Building")
+                        .WithMany()
+                        .HasForeignKey("BuildingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.HousingCompany", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Building");
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.HousingCompanies.UploadBatchRow", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.ApartmentHouse", "ApartmentHouse")
+                        .WithMany()
+                        .HasForeignKey("ApartmentHouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.UploadBatch", "Batch")
+                        .WithMany("Rows")
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApartmentHouse");
+
+                    b.Navigation("Batch");
+                });
+
             modelBuilder.Entity("RadiantHomes.Models.IssueOrCompliant", b =>
                 {
                     b.HasOne("RadiantHomes.Models.HousingCompanies.ApartmentHouse", null)
@@ -2387,6 +2790,39 @@ namespace RadiantHomes.Migrations
                     b.Navigation("House");
 
                     b.Navigation("HouseOwner");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Kyc.KycApplication", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Kyc.KycDocument", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.Kyc.KycApplication", "Application")
+                        .WithMany("Documents")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Kyc.KycStatusChange", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.Kyc.KycApplication", "Application")
+                        .WithMany("History")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
                 });
 
             modelBuilder.Entity("RadiantHomes.Models.Notification", b =>
@@ -2594,6 +3030,11 @@ namespace RadiantHomes.Migrations
                     b.Navigation("SaleTransactions");
                 });
 
+            modelBuilder.Entity("RadiantHomes.Models.HousingCompanies.ApartmentHouseSaleTransaction", b =>
+                {
+                    b.Navigation("History");
+                });
+
             modelBuilder.Entity("RadiantHomes.Models.HousingCompanies.Building", b =>
                 {
                     b.Navigation("Houses");
@@ -2621,6 +3062,18 @@ namespace RadiantHomes.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("Projects");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.HousingCompanies.UploadBatch", b =>
+                {
+                    b.Navigation("Rows");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Kyc.KycApplication", b =>
+                {
+                    b.Navigation("Documents");
+
+                    b.Navigation("History");
                 });
 
             modelBuilder.Entity("RadiantHomes.Models.PartyAddress", b =>

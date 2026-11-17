@@ -1,0 +1,28 @@
+@page
+@model RadiantHomes.Pages.Admin.Settings.IndexModel
+@using RadiantHomes.Services.Settings
+@{
+    ViewData["Title"] = "Platform settings";
+    ViewData["Subtitle"] = "Settings that apply to the whole platform. Every change is recorded in the audit log.";
+    ViewData["PageWidth"] = "narrow";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+<form method="post" class="card">
+    <div class="card-body">
+        @foreach (var d in SettingKeys.All)
+        {
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="@d.Key">@d.Label</label>
+                <div class="input-group" style="max-width:16rem">
+                    <input class="form-control" type="number" id="@d.Key" name="Values[@d.Key]" value="@Model.Values[d.Key]" min="@d.Min" max="@d.Max" step="1" required />
+                    <span class="input-group-text">@d.Unit</span>
+                </div>
+                <div class="form-text">@d.Help Default: @d.Default @d.Unit. Changes apply to reservations made from now on.</div>
+            </div>
+        }
+    </div>
+    <div class="card-footer text-end">
+        <button class="btn btn-primary" type="submit"><i class="bi bi-check2" aria-hidden="true"></i> Save settings</button>
+    </div>
+</form>

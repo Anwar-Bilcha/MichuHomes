@@ -1,0 +1,85 @@
+@page
+@model RadiantHomes.Pages.Staff.Uploads.IndexModel
+@using RadiantHomes.Models.HousingCompanies
+@using RadiantHomes.Pages.ApartmentHouses
+@{
+    ViewData["Title"] = Model.CanReview ? "Apartment approvals" : "Apartment uploads";
+    ViewData["Subtitle"] = Model.CanReview
+        ? "Uploaded and newly created apartments wait here until you approve them. Only approved apartments are listed."
+        : "Your Excel uploads and what Michu Homes decided for each apartment.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var tabs = new[] { UploadBatchStatuses.PendingReview, UploadBatchStatuses.PartlyApproved, UploadBatchStatuses.Approved, UploadBatchStatuses.Rejected };
+}
+
+@section PageActions {
+    <a mh-permission="houses.create" class="btn btn-primary" asp-page="/ApartmentHouses/Create"><i class="bi bi-upload" aria-hidden="true"></i> Upload apartments</a>
+}
+
+@if (Model.CanReview && Model.Singles.Any())
+{
+    <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-house-add" aria-hidden="true"></i> Apartments created one at a time (@Model.Singles.Count)</div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th scope="col">Apartment</th><th scope="col">Company</th><th scope="col">Price</th><th scope="col" class="text-end">Decision</th></tr></thead>
+                <tbody>
+                    @foreach (var s in Model.Singles)
+                    {
+                        <tr>
+                            <td><a asp-page="/ApartmentHouses/Details" asp-route-id="@s.Id" class="fw-semibold">@s.Title</a><div class="small text-muted">No. @(s.Number ?? "—") · @s.Building</div></td>
+                            <td>@s.Company</td>
+                            <td class="text-nowrap">@ApartmentHouseForm.Price(s.Price, s.Currency)</td>
+                            <td class="text-end">
+                                <form method="post" class="d-inline-flex flex-wrap gap-1 justify-content-end">
+                                    <input class="form-control form-control-sm" style="max-width:14rem" name="Reason" placeholder="Reason (to reject)" aria-label="Reason for rejecting @s.Title" />
+                                    <button class="btn btn-sm btn-success" asp-page-handler="ApproveSingle" asp-route-id="@s.Id" asp-route-status="@Model.Status">Approve</button>
+                                    <button class="btn btn-sm btn-outline-danger" asp-page-handler="RejectSingle" asp-route-id="@s.Id" asp-route-status="@Model.Status">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<h2 class="h5 mb-2">Excel uploads</h2>
+<nav class="mh-segmented mb-3" aria-label="Upload status">
+    @foreach (var s in tabs)
+    {
+        <a class="@(Model.Current == s ? "active" : null)" asp-page="./Index" asp-route-status="@s" aria-current="@(Model.Current == s ? "page" : null)">
+            @UploadBatchStatuses.Label(s) <span class="badge rounded-pill text-bg-light ms-1">@Model.Count(s)</span>
+        </a>
+    }
+    <a class="@(Model.Current == "all" ? "active" : null)" asp-page="./Index" asp-route-status="all">All</a>
+</nav>
+
+@if (!Model.Batches.Any())
+{
+    <div class="card"><div class="mh-empty"><span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-upload"></i></span><h2>No uploads here</h2><p>Excel uploads appear here with their review status.</p></div></div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr><th scope="col">Upload</th>@if (Model.Access.IsPlatform) { <th scope="col">Company</th> }<th scope="col" class="text-center">Apartments</th><th scope="col">Status</th><th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.Batches)
+                    {
+                        <tr>
+                            <td><div class="fw-semibold" translate="no">@b.Reference</div><div class="small text-muted">@b.Building · @b.UploadedOn.ToLocalTime().ToString("d MMM yyyy HH:mm") · @b.UploadedBy</div></td>
+                            @if (Model.Access.IsPlatform) { <td>@b.Company</td> }
+                            <td class="text-center">@b.Rows @if (b.Pending > 0) { <div class="small text-warning-emphasis">@b.Pending waiting</div> } @if (b.Rejected > 0) { <div class="small text-danger">@b.Rejected rejected</div> }</td>
+                            <td><span class="badge @UploadBatchStatuses.Badge(b.Status)">@UploadBatchStatuses.Label(b.Status)</span></td>
+                            <td class="text-end"><a class="btn btn-sm btn-primary" asp-page="./Details" asp-route-id="@b.Id"><i class="bi bi-list-check" aria-hidden="true"></i> Open</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

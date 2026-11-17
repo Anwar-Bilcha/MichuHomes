@@ -27,7 +27,7 @@ namespace RadiantHomes.Services.VideoCalls
         public Guid? ApartmentId { get; set; }
     }
 
-    public enum CallRequestOutcome { Started, NotConfigured, TooMany }
+    public enum CallRequestOutcome { Started, NotConfigured, TooMany, NotVerified }
 
     public sealed record CallRequestResult(CallRequestOutcome Outcome, string? Token = null);
 
@@ -100,9 +100,18 @@ namespace RadiantHomes.Services.VideoCalls
         // ---------- customer: ask for a call ----------
 
         /// <summary>Opens a private room and tells the agents. <paramref name="visitorKey"/> identifies the visitor for the rate limit.</summary>
+        /// <summary>The account is a customer with an approved identity verification (Models/Kyc).</summary>
+        public async Task<bool> IsVerifiedCustomerAsync(string? userId) =>
+            userId is not null && await _context.AppUsers.AnyAsync(u => u.Id == userId
+                && u.AccountType == RadiantHomes.Models.Security.AccountType.Customer
+                && u.Customer != null && u.Customer.KycStatus == RadiantHomes.Models.Kyc.KycStatuses.Approved);
+
         public async Task<CallRequestResult> RequestAsync(CallRequestInput input, string? userId, string visitorKey)
         {
             if (!IsAvailable) return new(CallRequestOutcome.NotConfigured);
+
+            // Only signed-in customers whose identity is verified (KYC approved) may call an agent.
+            if (!await IsVerifiedCustomerAsync(userId)) return new(CallRequestOutcome.NotVerified);
 
             var rateKey = $"videocall-requests:{visitorKey}";
             var count = _cache.GetOrCreate(rateKey, e => { e.AbsoluteExpirationRelativeToNow = RateWindow; return new RequestCounter(); })!;

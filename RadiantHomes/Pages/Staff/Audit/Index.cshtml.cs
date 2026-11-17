@@ -26,7 +26,7 @@ namespace RadiantHomes.Pages.Staff.Audit
         public Dictionary<Guid, string> Companies { get; private set; } = new();
         public int Total { get; private set; }
         public int Pages => Math.Max(1, (int)Math.Ceiling(Total / (double)PageSize));
-        public static readonly string[] Categories = { AuditCategories.Users, AuditCategories.Roles, AuditCategories.Companies, AuditCategories.Security };
+        public static readonly string[] Categories = { AuditCategories.Users, AuditCategories.Roles, AuditCategories.Companies, AuditCategories.Kyc, AuditCategories.Uploads, AuditCategories.Reservations, AuditCategories.Settings, AuditCategories.Security };
 
         public async Task OnGetAsync()
         {

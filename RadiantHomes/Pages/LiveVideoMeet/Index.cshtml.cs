@@ -42,6 +42,19 @@ namespace RadiantHomes.Pages.LiveVideoMeet
         public bool VideoAvailable => _calls.IsAvailable;
         public bool LinkExpired { get; private set; }
 
+        /// <summary>What the visitor still needs before calling: "signin", "profile", "verify", or "ok" (KYC approved).</summary>
+        public string Eligibility { get; private set; } = "signin";
+        public string? KycStatus { get; private set; }
+
+        private async Task LoadEligibilityAsync()
+        {
+            if (User.Identity?.IsAuthenticated != true) { Eligibility = "signin"; return; }
+            var me = await _users.GetAsync(User);
+            if (me?.Profile is null) { Eligibility = "profile"; return; }
+            KycStatus = me.Profile.KycStatus;
+            Eligibility = await _calls.IsVerifiedCustomerAsync(me.Account.Id) ? "ok" : "verify";
+        }
+
         public sealed class CallInput
         {
             [Required(ErrorMessage = "Please enter your name.")]
@@ -83,6 +96,7 @@ namespace RadiantHomes.Pages.LiveVideoMeet
             }
 
             await LoadAboutAsync();
+            await LoadEligibilityAsync();
             await PrefillAsync();
             return Page();
         }
@@ -90,6 +104,12 @@ namespace RadiantHomes.Pages.LiveVideoMeet
         public async Task<IActionResult> OnPostAsync()
         {
             await LoadAboutAsync();
+            await LoadEligibilityAsync();
+            if (Eligibility != "ok")
+            {
+                ModelState.AddModelError(string.Empty, "Only signed-in customers with a verified identity can video call agents.");
+                return Page();
+            }
             if (!ModelState.IsValid) return Page();
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -108,6 +128,9 @@ namespace RadiantHomes.Pages.LiveVideoMeet
                     return Redirect(VideoCallService.CustomerPath(result.Token!));
                 case CallRequestOutcome.TooMany:
                     ModelState.AddModelError(string.Empty, "You have asked for several calls in a short time. Please wait a few minutes and try again, or call us.");
+                    return Page();
+                case CallRequestOutcome.NotVerified:
+                    ModelState.AddModelError(string.Empty, "Only signed-in customers with a verified identity can video call agents.");
                     return Page();
                 default:
                     ModelState.AddModelError(string.Empty, "Video calls are not available at the moment. Please call us or use the chat.");

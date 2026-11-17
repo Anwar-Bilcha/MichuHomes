@@ -98,7 +98,7 @@
                     </a>
 
                     <nav class="mh-sidenav" aria-label="Admin">
-                        @if (Can(Perm.PlatformDashboardView, Perm.ReportsView, Perm.CompaniesView))
+                        @if (Can(Perm.PlatformDashboardView, Perm.ReportsView, Perm.CompaniesView, Perm.KycView, Perm.SettingsManage) || (access.IsPlatform && Can(Perm.HousesApprove)))
                         {
                             <div class="mh-sidenav-label">Overview</div>
                             <ul>
@@ -109,6 +109,18 @@
                                 @if (Can(Perm.CompaniesView))
                                 {
                                     <li><a class="nav-link @Section("/Admin/Companies")" aria-current="@Current(Section("/Admin/Companies"))" asp-area="" asp-page="/Admin/Companies/Index"><i class="bi bi-patch-check" aria-hidden="true"></i>Company approvals</a></li>
+                                }
+                                @if (Can(Perm.KycView))
+                                {
+                                    <li><a class="nav-link @Section("/Admin/Kyc")" aria-current="@Current(Section("/Admin/Kyc"))" asp-area="" asp-page="/Admin/Kyc/Index"><i class="bi bi-shield-check" aria-hidden="true"></i>Customer verification</a></li>
+                                }
+                                @if (access.IsPlatform && Can(Perm.HousesApprove))
+                                {
+                                    <li><a class="nav-link @Section("/Staff/Uploads")" aria-current="@Current(Section("/Staff/Uploads"))" asp-area="" asp-page="/Staff/Uploads/Index"><i class="bi bi-house-check" aria-hidden="true"></i>Apartment approvals</a></li>
+                                }
+                                @if (Can(Perm.SettingsManage))
+                                {
+                                    <li><a class="nav-link @Section("/Admin/Settings")" aria-current="@Current(Section("/Admin/Settings"))" asp-area="" asp-page="/Admin/Settings/Index"><i class="bi bi-sliders" aria-hidden="true"></i>Platform settings</a></li>
                                 }
                                 @if (Can(Perm.ReportsView))
                                 {
@@ -175,6 +187,10 @@
                                 @if (Can(Perm.HousesCreate))
                                 {
                                     <li><a class="nav-link @Exact("/ApartmentHouses/Create")" aria-current="@Current(Exact("/ApartmentHouses/Create"))" asp-page="/ApartmentHouses/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New apartment</a></li>
+                                }
+                                @if (access.IsCompanyStaff && Can(Perm.HousesCreate, Perm.HousesUpdate))
+                                {
+                                    <li><a class="nav-link @Section("/Staff/Uploads")" aria-current="@Current(Section("/Staff/Uploads"))" asp-area="" asp-page="/Staff/Uploads/Index"><i class="bi bi-upload" aria-hidden="true"></i>Uploads &amp; approvals</a></li>
                                 }
                                 @if (Can(Perm.ReservationsView))
                                 {

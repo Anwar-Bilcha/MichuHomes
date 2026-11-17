@@ -44,6 +44,15 @@
                     @(a is { SalePrice: > 0 } ? ApartmentHouseForm.Price(a.SalePrice, a.Currency) : "Price not listed") ·
                     @($"Reserved on {t.TransactionDate:d MMM yyyy}")
                 </span>
+                <span class="mh-rcard-meta" translate="no"><i class="bi bi-hash" aria-hidden="true"></i> @t.Reference</span>
+                @if (t.Status == HouseReserveStatuses.Pending && t.ExpiresAt is DateTime exp)
+                {
+                    <span class="mh-rcard-meta"><i class="bi bi-alarm" aria-hidden="true"></i> The company has until @exp.ToLocalTime().ToString("d MMM HH:mm") to answer</span>
+                }
+                @if (t.Status is HouseReserveStatuses.Rejected or HouseReserveStatuses.Cancelled or HouseReserveStatuses.Expired && t.History.OrderByDescending(h => h.ChangedOn).FirstOrDefault(h => !string.IsNullOrWhiteSpace(h.Reason))?.Reason is string why)
+                {
+                    <span class="mh-rcard-note"><i class="bi bi-info-circle" aria-hidden="true"></i> @why</span>
+                }
                 @if (!string.IsNullOrWhiteSpace(t.Notes))
                 {
                     <span class="mh-rcard-note"><i class="bi bi-chat-left-quote" aria-hidden="true"></i> @t.Notes</span>

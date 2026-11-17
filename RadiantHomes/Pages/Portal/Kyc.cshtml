@@ -1,0 +1,127 @@
+@page
+@model RadiantHomes.Pages.Portal.KycModel
+@using RadiantHomes.Models.Kyc
+@{
+    ViewData["Title"] = "Identity verification";
+    ViewData["Subtitle"] = "Verify your identity once to video call agents. Your documents are only seen by Michu Homes reviewers.";
+    var latest = Model.Latest;
+}
+
+<div class="card mb-3">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+        <span class="badge fs-6 @KycStatuses.Badge(Model.Status)">@KycStatuses.Label(Model.Status)</span>
+        <div class="flex-grow-1 small text-muted">
+            @switch (Model.Status)
+            {
+                case KycStatuses.Approved:
+                    @:Your identity is verified. You can video call agents from any home page.
+                    break;
+                case KycStatuses.Pending:
+                case KycStatuses.UnderReview:
+                    @:We are checking your documents. You'll get a notification when it's done.
+                    break;
+                case KycStatuses.ResubmissionRequired:
+                    @:Please send new documents (see the message below).
+                    break;
+                case KycStatuses.Rejected:
+                    @:Your verification wasn't approved. You can submit new documents.
+                    break;
+                case KycStatuses.Revoked:
+                    @:Your verification was withdrawn. Contact Michu Homes if you think this is a mistake.
+                    break;
+                default:
+                    @:You haven't verified your identity yet.
+                    break;
+            }
+        </div>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(latest?.DecisionReason) && Model.Status is KycStatuses.Rejected or KycStatuses.ResubmissionRequired or KycStatuses.Revoked)
+    {
+        <div class="card-footer small"><strong>Message from Michu Homes:</strong> @latest!.DecisionReason</div>
+    }
+</div>
+
+@if (Model.CanSubmit)
+{
+    <form method="post" enctype="multipart/form-data" class="card mh-profile-form mb-3" novalidate>
+        <div class="card-body">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="mh-fieldset">
+                <h2 class="mh-fieldset-title">Your document</h2>
+                <div class="row g-3">
+                    <div class="col-sm-6 col-xl-4">
+                        <label asp-for="Input.DocumentType" class="form-label"></label>
+                        <select asp-for="Input.DocumentType" class="form-select">
+                            @foreach (var (value, text) in KycDocumentTypes.All)
+                            {
+                                <option value="@value">@text</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label asp-for="Input.DocumentNumber" class="form-label"></label>
+                        <input asp-for="Input.DocumentNumber" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="col-sm-12 col-xl-4">
+                        <label asp-for="Input.FullNameOnDocument" class="form-label"></label>
+                        <input asp-for="Input.FullNameOnDocument" class="form-control" autocomplete="name" />
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label asp-for="Input.DateOfBirth" class="form-label"></label>
+                        <input asp-for="Input.DateOfBirth" class="form-control" type="date" />
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label asp-for="Input.DocumentExpiresOn" class="form-label"></label>
+                        <input asp-for="Input.DocumentExpiresOn" class="form-control" type="date" />
+                    </div>
+                </div>
+            </div>
+            <div class="mh-fieldset">
+                <h2 class="mh-fieldset-title">Photos or scans</h2>
+                <p class="small text-muted">JPG, PNG or PDF, up to 10 MB each. Make sure all text is readable and nothing is cut off.</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label asp-for="Input.Front" class="form-label"></label>
+                        <input asp-for="Input.Front" class="form-control" type="file" accept=".jpg,.jpeg,.png,.pdf" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Input.Back" class="form-label"></label>
+                        <input asp-for="Input.Back" class="form-control" type="file" accept=".jpg,.jpeg,.png,.pdf" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Input.Selfie" class="form-label"></label>
+                        <input asp-for="Input.Selfie" class="form-control" type="file" accept=".jpg,.jpeg,.png" required />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-end">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-shield-check" aria-hidden="true"></i> Send for verification</button>
+        </div>
+    </form>
+}
+
+@if (latest is not null)
+{
+    <div class="card">
+        <div class="card-header fw-semibold">Your latest application</div>
+        <div class="card-body small">
+            <dl class="row mb-2">
+                <dt class="col-sm-4">Submitted</dt><dd class="col-sm-8">@latest.SubmittedOn.ToLocalTime().ToString("d MMM yyyy HH:mm")</dd>
+                <dt class="col-sm-4">Document</dt><dd class="col-sm-8">@KycDocumentTypes.Label(latest.DocumentType) · @latest.DocumentNumber</dd>
+            </dl>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                @foreach (var d in latest.Documents.OrderBy(d => d.Kind))
+                {
+                    <a class="btn btn-sm btn-outline-secondary" asp-page-handler="Document" asp-route-id="@d.Id" target="_blank" rel="noopener"><i class="bi bi-file-earmark-lock" aria-hidden="true"></i> @KycDocumentKinds.Label(d.Kind)</a>
+                }
+            </div>
+            <ol class="list-unstyled mb-0">
+                @foreach (var h in latest.History.OrderByDescending(h => h.ChangedOn))
+                {
+                    <li class="mb-2"><span class="badge @KycStatuses.Badge(h.ToStatus)">@KycStatuses.Label(h.ToStatus)</span> <span class="text-muted">@h.ChangedOn.ToLocalTime().ToString("d MMM yyyy HH:mm")</span>@if (!string.IsNullOrWhiteSpace(h.Reason)) { <div>@h.Reason</div> }</li>
+                }
+            </ol>
+        </div>
+    </div>
+}

@@ -71,6 +71,61 @@ namespace RadiantHomes.Tests.Infrastructure
             return role;
         }
 
+        public sealed record Listing(HousingCompany Company, Building Building, ApartmentHouse House, Customer ContactPerson);
+
+        /// <summary>An approved company with a contact person, a project, a 10-floor building and one listed apartment.</summary>
+        public static async Task<Listing> ListingAsync(ApplicationDbContext db)
+        {
+            var company = await CompanyAsync(db);
+            var contact = await CustomerAsync(db, company.CompanyId);
+            var project = new HouseProject { ProjectId = Guid.NewGuid(), ProjectName = "Test site", AddressId = company.AddressId, StartDate = DateTime.Today, TotalArea = 1000, HousingCompanyId = company.CompanyId };
+            var building = new Building { Id = Guid.NewGuid(), BuildingName = "Block A", BuildingType = "Residential", ConstructionStatus = "Completed", NumberOfFloors = 10, ProjectId = project.ProjectId, AddressId = company.AddressId };
+            var category = await db.HouseCategories.FirstOrDefaultAsync() ?? new HouseCategory { Id = Guid.NewGuid(), Name = "Serviced apartment" };
+            if (db.Entry(category).State == EntityState.Detached) db.HouseCategories.Add(category);
+            db.Projects.Add(project);
+            db.Buildings.Add(building);
+            await db.SaveChangesAsync();
+            var house = await ApartmentAsync(db, building, company.AddressId, category.Id, "A-" + Guid.NewGuid().ToString("N")[..4]);
+            return new Listing(company, building, house, contact);
+        }
+
+        public static async Task<ApartmentHouse> ApartmentAsync(ApplicationDbContext db, Building building, Guid addressId, Guid categoryId, string number, string status = "Approved")
+        {
+            var house = new ApartmentHouse
+            {
+                Id = Guid.NewGuid(), Title = "Test apartment " + number, HouseNumber = number, BuildingId = building.Id, AddressId = addressId, HouseCategoryId = categoryId,
+                Currency = "ETB", SalePrice = 5_000_000, FloorNumber = 2, Bedrooms = 2, TotalRooms = 4, Bathrooms = 1, LivingRooms = 1, Area = 90,
+                HouseType = "Residential", SalesStatus = "None", Status = status, IsAvailable = true, Description = "Test",
+            };
+            db.ApartmentHouses.Add(house);
+            await db.SaveChangesAsync();
+            return house;
+        }
+
+        /// <summary>A customer profile (with a sign-in account when <paramref name="withAccount"/>), optionally a company's contact person.</summary>
+        public static async Task<Customer> CustomerAsync(ApplicationDbContext db, Guid? companyId = null, string kycStatus = Models.Kyc.KycStatuses.NotSubmitted)
+        {
+            var ranking = await db.HomeOwnerRankings.FirstOrDefaultAsync() ?? new HomeOwnerRanking { RankingId = Guid.NewGuid(), RankName = "Standard" };
+            if (db.Entry(ranking).State == EntityState.Detached) db.HomeOwnerRankings.Add(ranking);
+            var address = new PartyAddress { AddressID = Guid.NewGuid(), City = "Addis Ababa", Country = "Ethiopia", Street = "Customer street" };
+            var customer = new Customer
+            {
+                Id = Guid.NewGuid(), FirstName = "Test", LastName = "Customer " + Guid.NewGuid().ToString("N")[..4], RankingId = ranking.RankingId,
+                AddressId = address.AddressID, Address = address, CompanyId = companyId, Email = $"c.{Guid.NewGuid():N}@test.example", KycStatus = kycStatus,
+            };
+            db.UserProfiles.Add(customer);
+            await db.SaveChangesAsync();
+            return customer;
+        }
+
+        public static async Task<AppUser> CustomerAccountAsync(ApplicationDbContext db, Customer customer)
+        {
+            var user = await StaffAsync(db, AccountType.Customer, null);
+            user.CustomerId = customer.Id;
+            await db.SaveChangesAsync();
+            return user;
+        }
+
         public static Task<AccessRole> CompanySuperAdminAsync(ApplicationDbContext db, Guid companyId) =>
             db.AccessRoles.SingleAsync(r => r.CompanyId == companyId && r.IsSystem && r.Name == PermissionCatalog.CompanySuperAdminRoleName);
 

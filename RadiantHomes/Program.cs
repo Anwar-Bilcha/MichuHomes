@@ -67,6 +67,11 @@ builder.Services.AddScoped<RadiantHomes.Services.Security.AccessControlService>(
 builder.Services.AddScoped<RadiantHomes.Services.Security.AuditService>();
 builder.Services.AddScoped<RadiantHomes.Services.Security.AccessManagementService>();
 builder.Services.AddScoped<RadiantHomes.Services.Security.CompanyLifecycleService>();
+// Foundation 2: platform settings, customer identity verification (KYC), bulk upload review, reservation expiry
+builder.Services.AddScoped<RadiantHomes.Services.Settings.PlatformSettings>();
+builder.Services.AddScoped<RadiantHomes.Services.Kyc.KycService>();
+builder.Services.AddScoped<RadiantHomes.Services.Properties.BulkUploadService>();
+builder.Services.AddHostedService<RadiantHomes.Services.CustomerPortal.ReservationExpiryJob>();
 builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationPolicyProvider, RadiantHomes.Services.Security.PermissionPolicyProvider>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, RadiantHomes.Services.Security.PermissionHandler>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authentication.IClaimsTransformation, RadiantHomes.Services.Security.PermissionClaimsTransformation>();
@@ -88,6 +93,8 @@ builder.Services.AddRazorPages(options =>
     c.AuthorizeFolder("/Admin/Reports", P(Perm.ReportsView));
     c.AuthorizeFolder("/Admin/Notifications", P(Perm.NotificationsView));
     c.AuthorizeFolder("/Admin/Companies", P(Perm.CompaniesView));
+    c.AuthorizeFolder("/Admin/Kyc", P(Perm.KycView));
+    c.AuthorizeFolder("/Admin/Settings", P(Perm.SettingsManage));
 
     // Users, roles and audit log (each domain manages its own; platform staff also oversee companies')
     c.AuthorizeFolder("/Staff", staff);
@@ -96,6 +103,7 @@ builder.Services.AddRazorPages(options =>
     c.AuthorizeFolder("/Staff/Roles", P(Perm.RolesView));
     c.AuthorizePage("/Staff/Roles/Create", P(Perm.RolesManage));
     c.AuthorizeFolder("/Staff/Audit", P(Perm.AuditView));
+    c.AuthorizeFolder("/Staff/Uploads", P(Perm.HousesApprove, Perm.HousesCreate, Perm.HousesUpdate)); // platform reviews, companies follow up
 
     // Company administration area (every page needs a staff permission; each page then its own)
     c.AuthorizeAreaFolder("HousingCompanyAdmin", "/", staff);

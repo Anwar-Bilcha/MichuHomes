@@ -34,9 +34,27 @@ namespace RadiantHomes.Models.HousingCompanies
 
         // Optional remarks
         public string Notes { get; set; }
+
+        /// <summary>Short reference shown to customers and staff (e.g. R-2611-7K3QP).</summary>
+        [MaxLength(20)]
+        [Display(Name = "Reference")]
+        public string Reference { get; set; } = string.Empty;
+        /// <summary>The selling company (copied from the apartment's project when reserved).</summary>
+        public Guid? CompanyId { get; set; }
+        /// <summary>A pending reservation expires at this time unless the company answers (Admin/Settings). Null: never.</summary>
+        [Display(Name = "Expires")]
+        public DateTime? ExpiresAt { get; set; }
+        /// <summary>Concurrency token: two people changing the same reservation at once can't both win.</summary>
+        [Timestamp]
+        public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+        public List<ReservationStatusChange> History { get; set; } = new();
     }
     public enum HouseReserveStatuses
     {
-        Pending, Approved, Completed, Cancelled, Closed
+        Pending, Approved, Completed, Cancelled, Closed,
+        /// <summary>Not answered by the company in time (pending reservations only).</summary>
+        Expired,
+        /// <summary>Declined by the company, with a reason.</summary>
+        Rejected
     }
 }

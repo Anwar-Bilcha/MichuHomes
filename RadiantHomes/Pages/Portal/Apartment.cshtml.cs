@@ -34,6 +34,8 @@ namespace RadiantHomes.Pages.Portal
             if (await LoadMeAsync() is { } problem) return problem;
             var apartment = await Service<ApartmentCatalog>().FindAsync(Id);
             if (apartment is null) return NotFound();
+            if (!await RadiantHomes.Services.Properties.ApartmentVisibility.CanViewAsync(Service<RadiantHomes.DAL.ApplicationDbContext>(), await RadiantHomes.Services.Security.AccessExtensions.AccessAsync(HttpContext), apartment, Me.CustomerId))
+                return NotFound(); // not listed, and not one of the customer's own reservations or purchases
             Apartment = apartment;
 
             var catalog = Service<ApartmentCatalog>();
