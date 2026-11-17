@@ -1,0 +1,93 @@
+@page
+@model RadiantHomes.Pages.Staff.Users.IndexModel
+@using RadiantHomes.Models.Security
+@{
+    ViewData["Title"] = "Users";
+    ViewData["Subtitle"] = Model.Access.IsPlatform
+        ? "Staff accounts: Michu Homes staff, and each company's staff. Customers are not listed here."
+        : $"Staff accounts of {Model.CompanyName ?? "your company"}. Their roles decide what each person can do.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+@section PageActions {
+    <a mh-permission="users.manage" class="btn btn-primary" asp-page="./Create" asp-route-company="@(Guid.TryParse(Model.Scope, out var sc) ? sc : (Guid?)null)">
+        <i class="bi bi-person-plus" aria-hidden="true"></i> New user
+    </a>
+}
+
+<form method="get" class="card card-body mb-3" role="search">
+    <div class="row g-2 align-items-end">
+        <div class="col-12 col-md">
+            <label class="form-label" for="q">Search</label>
+            <input class="form-control" id="q" name="q" value="@Model.Q" placeholder="Name or email" />
+        </div>
+        @if (Model.Access.IsPlatform)
+        {
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="scope">Show</label>
+                <select class="form-select" id="scope" name="scope" asp-items="@(new SelectList(Model.ScopeOptions, "Value", "Text", Model.Scope ?? ""))" onchange="this.form.submit()"></select>
+            </div>
+        }
+        <div class="col-12 col-md-auto">
+            <button class="btn btn-outline-primary w-100" type="submit"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+        </div>
+    </div>
+</form>
+
+@if (!Model.Rows.Any())
+{
+    <div class="card">
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
+            <h2>No users found</h2>
+            <p>Change the search, or add a new user.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        @if (Model.Access.IsPlatform) { <th scope="col">Belongs to</th> }
+                        <th scope="col">Roles</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model.Rows)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@u.Name @if (u.IsYou) { <span class="badge text-bg-light ms-1">You</span> }</div>
+                                <div class="small text-muted">@u.Email</div>
+                            </td>
+                            @if (Model.Access.IsPlatform)
+                            {
+                                <td>@(u.Type == AccountType.PlatformStaff ? "Michu Homes" : u.Company ?? "—")</td>
+                            }
+                            <td>
+                                @if (u.Roles.Count == 0)
+                                {
+                                    <span class="text-muted small">No role: no access</span>
+                                }
+                                @foreach (var r in u.Roles)
+                                {
+                                    <span class="badge text-bg-light border me-1 mb-1">@r</span>
+                                }
+                            </td>
+                            <td><span class="badge @(u.Active ? "text-bg-success" : "text-bg-secondary")">@(u.Active ? "Active" : "Deactivated")</span></td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" asp-page="./Edit" asp-route-id="@u.Id" aria-label="Open @u.Name"><i class="bi bi-pencil" aria-hidden="true"></i> Open</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

@@ -6,17 +6,17 @@
     ViewData["Title"] = "Real estate companies";
     ViewData["Subtitle"] = "Housing companies registered on Michu Homes.";
     Layout = "~/Pages/Shared/_Layout.cshtml";
-    var canManage = User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin);
+    var access = await HttpContext.AccessAsync();
+    var canManage = access.Has(Perm.CompaniesCreate);
+    // Edit: platform staff with companies.update edit any company; company staff edit their own profile.
+    bool CanEdit(Guid companyId) => access.Can(Perm.CompaniesUpdate, companyId) || access.Can(Perm.CompanyProfileUpdate, companyId);
 }
 
 @section PageActions {
-    @* The "New company" button is only for MichuAdmin/RealEstateAdmin *@
-    @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
-    {
-        <a asp-page="Create" class="btn btn-primary">
+    @* Onboarding companies is a platform permission *@
+        <a mh-permission="companies.create" asp-page="Create" class="btn btn-primary">
             <i class="bi bi-plus-lg" aria-hidden="true"></i> New company
         </a>
-    }
 }
 
 @if (Model.HousingCompany != null && Model.HousingCompany.Any())
@@ -74,13 +74,13 @@
                         <a asp-page="./Details" asp-route-id="@item.CompanyId" class="btn btn-primary btn-sm me-auto">
                             <i class="bi bi-eye" aria-hidden="true"></i> View details
                         </a>
-                        @* Conditional rendering for Edit and Delete buttons *@
-                        @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+                        @* Edit: per company; delete: platform permission *@
+                        @if (CanEdit(item.CompanyId) || access.Has(Perm.CompaniesDelete))
                         {
-                            <a asp-page="./Edit" asp-route-id="@item.CompanyId" class="btn btn-sm btn-outline-primary btn-icon" title="Edit Company" aria-label="Edit @item.Name">
+                            if (CanEdit(item.CompanyId)) {<a asp-page="./Edit" asp-route-id="@item.CompanyId" class="btn btn-sm btn-outline-primary btn-icon" title="Edit Company" aria-label="Edit @item.Name">
                                 <i class="bi bi-pencil" aria-hidden="true"></i>
-                            </a>
-                            <a asp-page="./Delete" asp-route-id="@item.CompanyId" class="btn btn-sm btn-outline-danger btn-icon" title="Delete Company" aria-label="Delete @item.Name">
+                            </a>}
+                            <a mh-permission="companies.delete" asp-page="./Delete" asp-route-id="@item.CompanyId" class="btn btn-sm btn-outline-danger btn-icon" title="Delete Company" aria-label="Delete @item.Name">
                                 <i class="bi bi-trash" aria-hidden="true"></i>
                             </a>
                         }
@@ -99,7 +99,7 @@ else
             <p>It looks like there are no housing companies registered yet. Be the first to add one!</p>
             @if (canManage)
             {
-                <a asp-page="Create" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> New company</a>
+                <a mh-permission="companies.create" asp-page="Create" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> New company</a>
             }
             else
             {

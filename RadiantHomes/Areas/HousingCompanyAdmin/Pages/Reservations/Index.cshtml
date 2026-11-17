@@ -90,18 +90,18 @@ else
                                 <div class="d-inline-flex flex-wrap justify-content-end gap-1">
                                     @if (t.Status == HouseReserveStatuses.Pending)
                                     {
-                                        <form method="post" asp-page-handler="Approve" asp-route-id="@t.Id" asp-route-status="@current"
+                                        <form mh-permission="reservations.manage" method="post" asp-page-handler="Approve" asp-route-id="@t.Id" asp-route-status="@current"
                                               data-confirm-title="@($"Approve the reservation of \"{title}\"?")" data-confirm="The customer is notified that you approved it." data-confirm-ok="Approve">
                                             <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check2" aria-hidden="true"></i> Approve</button>
                                         </form>
                                     }
                                     @if (t.Status is HouseReserveStatuses.Pending or HouseReserveStatuses.Approved)
                                     {
-                                        <form method="post" asp-page-handler="Sold" asp-route-id="@t.Id" asp-route-status="@current"
+                                        <form mh-permission="reservations.manage" method="post" asp-page-handler="Sold" asp-route-id="@t.Id" asp-route-status="@current"
                                               data-confirm-title="@($"Mark \"{title}\" as sold?")" data-confirm="The apartment stays off the market and appears under the customer's houses bought." data-confirm-ok="Mark as sold" data-confirm-variant="accent">
                                             <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-key" aria-hidden="true"></i> Mark as sold</button>
                                         </form>
-                                        <form method="post" asp-page-handler="Cancel" asp-route-id="@t.Id" asp-route-status="@current"
+                                        <form mh-permission="reservations.manage" method="post" asp-page-handler="Cancel" asp-route-id="@t.Id" asp-route-status="@current"
                                               data-confirm-title="@($"Cancel the reservation of \"{title}\"?")" data-confirm="The apartment is listed again and the customer is notified." data-confirm-ok="Cancel reservation" data-confirm-variant="danger">
                                             <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel</button>
                                         </form>

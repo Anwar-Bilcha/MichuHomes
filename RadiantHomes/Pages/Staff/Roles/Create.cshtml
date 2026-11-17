@@ -1,0 +1,41 @@
+@page
+@model RadiantHomes.Pages.Staff.Roles.CreateModel
+@{
+    ViewData["Title"] = "New role";
+    ViewData["Subtitle"] = Model.ScopeLabel;
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+<form method="post" class="card">
+    <div class="card-body">
+        <input type="hidden" asp-for="Company" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-5">
+                <label asp-for="Input.Name" class="form-label"></label>
+                <input asp-for="Input.Name" class="form-control" placeholder="e.g. Sales agent" />
+                <span asp-validation-for="Input.Name" class="text-danger"></span>
+            </div>
+            <div class="col-md-7">
+                <label asp-for="Input.Description" class="form-label"></label>
+                <input asp-for="Input.Description" class="form-control" placeholder="What people with this role do" />
+                <span asp-validation-for="Input.Description" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" asp-for="Input.IsActive" />
+            <label class="form-check-label" asp-for="Input.IsActive">Active (its permissions count for the people who hold it)</label>
+        </div>
+        <h2 class="h6">Permissions</h2>
+        <p class="small text-muted">You can only add permissions you have yourself.</p>
+        <partial name="_PermissionPicker" model="Model.Picker" />
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-secondary" asp-page="./Index" asp-route-company="@Model.Company">Cancel</a>
+        <button class="btn btn-primary" type="submit"><i class="bi bi-check2" aria-hidden="true"></i> Create role</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -9,9 +9,9 @@
 
 @section PageActions {
     <a class="btn btn-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to list</a>
-    @if (User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.MichuAdmin) || User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.RealEstateAdmin))
+    @if ((await HttpContext.AccessAsync()).Has(Perm.TestimonialsManage))
     {
-        <a class="btn btn-primary" asp-page="./Edit" asp-route-id="@Model.CustomerTestimonial.Id"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
+        <a mh-permission="testimonials.manage" class="btn btn-primary" asp-page="./Edit" asp-route-id="@Model.CustomerTestimonial.Id"><i class="bi bi-pencil" aria-hidden="true"></i> Edit</a>
     }
 }
 

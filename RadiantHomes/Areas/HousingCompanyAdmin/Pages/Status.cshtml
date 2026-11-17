@@ -1,0 +1,66 @@
+@page
+@model RadiantHomes.Areas.HousingCompanyAdmin.Pages.StatusModel
+@using RadiantHomes.Models.Security
+@{
+    ViewData["Title"] = "Approval status";
+    ViewData["Subtitle"] = Model.Company?.Name;
+    ViewData["PageWidth"] = "narrow";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var status = Model.Company?.Status;
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge fs-6 @CompanyStatuses.Badge(status)">@CompanyStatuses.Label(status)</span>
+        </div>
+        <p class="mb-2">
+            @switch (status)
+            {
+                case CompanyStatuses.Approved:
+                    @:Your company is approved. Your team can manage projects, apartments and reservations, and customers can see your listings.
+                    break;
+                case CompanyStatuses.Pending:
+                    @:Michu Homes is reviewing your company. You'll get a notification when it's decided. Meanwhile you can complete your company profile.
+                    break;
+                case CompanyStatuses.InfoRequested:
+                    @:Michu Homes needs more information. Update your company profile, then send it for approval again.
+                    break;
+                case CompanyStatuses.Rejected:
+                    @:Your company wasn't approved. You can correct your company profile and send it for approval again.
+                    break;
+                case CompanyStatuses.Suspended:
+                    @:Your company is suspended: your listings are hidden and company administration is closed. Contact Michu Homes.
+                    break;
+            }
+        </p>
+        @if (!string.IsNullOrWhiteSpace(Model.LatestReason) && status != CompanyStatuses.Approved)
+        {
+            <div class="alert alert-light border small mb-0"><strong>Message from Michu Homes:</strong> @Model.LatestReason</div>
+        }
+    </div>
+    @if (Model.Company is not null)
+    {
+        <div class="card-footer d-flex flex-wrap gap-2">
+            <a mh-permission="company.profile.update" class="btn btn-sm btn-outline-primary" asp-area="" asp-page="/RealEstates/Edit" asp-route-id="@Model.Company.CompanyId"><i class="bi bi-pencil" aria-hidden="true"></i> Edit company profile</a>
+        </div>
+    }
+</div>
+
+@if (Model.CanResubmit)
+{
+    <form method="post" asp-page-handler="Resubmit" class="card mb-3">
+        <div class="card-body">
+            <label class="form-label" for="note">Note for Michu Homes (optional)</label>
+            <textarea class="form-control" id="note" name="Note" rows="3" maxlength="1000" placeholder="What did you change?"></textarea>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-send" aria-hidden="true"></i> Send for approval again</button>
+        </div>
+    </form>
+}
+
+<div class="card">
+    <div class="card-header fw-semibold"><i class="bi bi-clock-history" aria-hidden="true"></i> History</div>
+    <div class="card-body"><partial name="_CompanyStatusHistory" model="Model.History" /></div>
+</div>

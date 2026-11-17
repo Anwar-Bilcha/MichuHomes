@@ -3,31 +3,34 @@ using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
 using RadiantHomes.Models;
 using RadiantHomes.Models.HousingCompanies;
+using RadiantHomes.Models.Security;
 
 namespace RadiantHomes.Services.AdminServices
 {
     /// <summary>
-    /// Which housing company's data the signed-in user may see and change (tenant scoping).
-    /// A Michu Admin sees everything. A Real Estate Admin only sees their own company: AppUser.HousingCompanyId,
-    /// falling back to their Customer profile's CompanyId; without a company they see nothing.
+    /// Which housing company's data the signed-in user may see and change (tenant scoping). What they may DO is decided
+    /// by permissions (Services/Security); this only decides WHERE.
+    /// Platform staff see every company. Company staff only see their own company (AppUser.HousingCompanyId, taken
+    /// from the signed-in account, never from a submitted value); without a company they see nothing.
     /// Anyone else (visitors on public pages) is not restricted here: public listings stay public, and the
-    /// management pages are closed to them by the authorization policies in Program.cs.
+    /// management pages are closed to them by the permission policies in Program.cs.
     /// </summary>
     public sealed class CompanyScope
     {
         public const string NoCompanyMessage =
             "Your account isn't linked to a housing company yet, so there is nothing to show here. Please contact a Michu Homes administrator.";
 
-        private CompanyScope(bool isMichuAdmin, bool isRealEstateAdmin, Guid? companyId)
+        private CompanyScope(bool isPlatform, bool isCompanyStaff, Guid? companyId)
         {
-            IsMichuAdmin = isMichuAdmin;
-            IsRestricted = !isMichuAdmin && isRealEstateAdmin;
+            IsMichuAdmin = isPlatform;
+            IsRestricted = !isPlatform && isCompanyStaff;
             CompanyId = companyId;
         }
 
+        /// <summary>Platform (Michu Homes) staff: not limited to one company.</summary>
         public bool IsMichuAdmin { get; }
 
-        /// <summary>True for a Real Estate Admin (who isn't also a Michu Admin): limited to <see cref="CompanyId"/>.</summary>
+        /// <summary>True for company staff: limited to <see cref="CompanyId"/>.</summary>
         public bool IsRestricted { get; }
 
         /// <summary>The user's own housing company, if any.</summary>
@@ -41,29 +44,17 @@ namespace RadiantHomes.Services.AdminServices
 
         public static async Task<CompanyScope> ForAsync(ClaimsPrincipal user, ApplicationDbContext context)
         {
-            var isMichuAdmin = user.IsInRole(MichuHomesRoles.MichuAdmin);
-            var isRealEstateAdmin = user.IsInRole(MichuHomesRoles.RealEstateAdmin);
-            Guid? companyId = null;
+            var userId = user.Identity?.IsAuthenticated == true ? user.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+            if (userId is null) return new CompanyScope(false, false, null);
 
-            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId != null && (isMichuAdmin || isRealEstateAdmin))
-            {
-                var account = await context.AppUsers
-                    .Where(u => u.Id == userId)
-                    .Select(u => new { u.HousingCompanyId, u.CustomerId })
-                    .FirstOrDefaultAsync();
-                companyId = account?.HousingCompanyId is Guid own && own != Guid.Empty ? own : null;
-                if (companyId == null && account?.CustomerId is Guid customerId)
-                {
-                    var profileCompanyId = await context.UserProfiles
-                        .Where(p => p.Id == customerId)
-                        .Select(p => p.CompanyId)
-                        .FirstOrDefaultAsync();
-                    companyId = profileCompanyId is Guid fromProfile && fromProfile != Guid.Empty ? fromProfile : null;
-                }
-            }
-
-            return new CompanyScope(isMichuAdmin, isRealEstateAdmin, companyId);
+            var account = await context.AppUsers.AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new { u.AccountType, u.HousingCompanyId })
+                .FirstOrDefaultAsync();
+            var isPlatform = account?.AccountType == AccountType.PlatformStaff;
+            var isCompanyStaff = account?.AccountType == AccountType.CompanyStaff;
+            var companyId = isCompanyStaff && account!.HousingCompanyId is Guid own && own != Guid.Empty ? own : (Guid?)null;
+            return new CompanyScope(isPlatform, isCompanyStaff, companyId);
         }
 
         /// <summary>Whether the user may see/change a record of this company.</summary>

@@ -66,11 +66,7 @@
                     <span asp-validation-for="HousingCompany.CompanyCategory" class="text-danger"></span>
                 </div>
 
-                <div class="col-md-4">
-                    <label asp-for="HousingCompany.Status" class="form-label">Status</label>
-                    <select asp-for="HousingCompany.Status" class="form-select" asp-items="CompanyForm.StatusItems(Model.HousingCompany?.Status)"></select>
-                    <span asp-validation-for="HousingCompany.Status" class="text-danger"></span>
-                </div>
+                <div class="col-md-4">\n                    <span class="form-label d-block">Approval status</span>\n                    <div class="form-text mt-0">New companies wait for Michu Homes approval before their administrators can manage listings.</div>\n                </div>
             </div>
         </div>
 

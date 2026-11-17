@@ -13,9 +13,9 @@
     <a asp-page="./Index" class="btn btn-secondary">
         <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to projects
     </a>
-    @if (User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+    @if ((await HttpContext.AccessAsync()).Has(Perm.ProjectsUpdate))
     {
-        <a asp-page="./Edit" asp-route-id="@Model.HouseProject?.ProjectId" class="btn btn-primary">
+        <a mh-permission="projects.update" asp-page="./Edit" asp-route-id="@Model.HouseProject?.ProjectId" class="btn btn-primary">
             <i class="bi bi-pencil" aria-hidden="true"></i> Edit project
         </a>
     }

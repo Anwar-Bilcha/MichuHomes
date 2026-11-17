@@ -27,11 +27,15 @@ namespace RadiantHomes.Pages.Projects
 
         public async Task OnGetAsync()
         {
-            // Visitors see every project (public list); a Real Estate Admin only their own company's.
+            // Visitors see the projects of approved companies; company staff their own company's; platform staff all.
             var scope = await CompanyScope.ForAsync(User, _context);
             NoCompany = scope.HasNoCompany;
-            HouseProject = await scope.Projects(_context.Projects)
-                .Include(h => h.Company).ToListAsync();
+            var query = scope.Projects(_context.Projects);
+            if (!scope.IsMichuAdmin && !scope.IsRestricted)
+            {
+                query = query.Where(p => p.Company != null && p.Company.Status == RadiantHomes.Models.Security.CompanyStatuses.Approved);
+            }
+            HouseProject = await query.Include(h => h.Company).ToListAsync();
         }
     }
 }

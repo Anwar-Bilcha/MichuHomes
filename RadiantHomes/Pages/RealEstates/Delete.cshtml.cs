@@ -75,6 +75,11 @@ namespace RadiantHomes.Pages.RealEstates
                     return Forbid();
                 }
                 HousingCompany = housingcompany;
+                // The company's access roles don't cascade from it (one cascade path into user role assignments): remove them first.
+                var companyRoles = await _context.AccessRoles.Where(r => r.CompanyId == HousingCompany.CompanyId).ToListAsync();
+                _context.UserAccessRoles.RemoveRange(_context.UserAccessRoles.Where(ur => ur.Role.CompanyId == HousingCompany.CompanyId));
+                _context.AccessRoles.RemoveRange(companyRoles);
+                HttpContext.RequestServices.GetRequiredService<RadiantHomes.Services.Security.AuditService>().Add(RadiantHomes.Services.Security.AuditCategories.Companies, "CompanyDeleted", $"Company {HousingCompany.Name} deleted.", null, "HousingCompany", HousingCompany.CompanyId.ToString());
                 _context.HousingCompanies.Remove(HousingCompany);
                 await _context.SaveChangesAsync();
             }

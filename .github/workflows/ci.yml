@@ -1,0 +1,58 @@
+# Build and test on every push and pull request. The tests build a throw-away SQL Server database from the
+# migrations (tests/RadiantHomes.Tests/Infrastructure/TestDatabase.cs), so they also prove the migration chain.
+name: CI
+
+on:
+  push:
+    branches: [dev, main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          # Only for this short-lived CI container, which is not reachable from outside the job.
+          MSSQL_SA_PASSWORD: "Ci_Only_Michu_9x!"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'Ci_Only_Michu_9x!' -Q 'SELECT 1' -b"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DOTNET_NOLOGO: "1"
+      MICHU_TEST_SQL: "Server=localhost,1433;User Id=sa;Password=Ci_Only_Michu_9x!;TrustServerCertificate=True;Encrypt=False"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore RadiantHomes.sln
+
+      - name: Build
+        run: dotnet build RadiantHomes.sln --no-restore -c Release
+
+      - name: Test
+        run: dotnet test tests/RadiantHomes.Tests/RadiantHomes.Tests.csproj --no-build -c Release --logger "trx;LogFileName=results.trx" --collect "XPlat Code Coverage"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: tests/RadiantHomes.Tests/TestResults

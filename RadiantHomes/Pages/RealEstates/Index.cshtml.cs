@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using RadiantHomes.Services.Security;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -23,8 +24,14 @@ namespace RadiantHomes.Pages.RealEstates
 
         public async Task OnGetAsync()
         {
-            HousingCompany = await _context.HousingCompanies
-                .Include(h => h.Address).ToListAsync();
+            var access = await HttpContext.AccessAsync();
+            var query = _context.HousingCompanies.Include(h => h.Address).AsQueryable();
+            if (!access.Has(Perm.CompaniesView))
+            {
+                var own = access.CompanyId;
+                query = query.Where(c => c.Status == RadiantHomes.Models.Security.CompanyStatuses.Approved || (own != null && c.CompanyId == own));
+            }
+            HousingCompany = await query.OrderBy(c => c.Name).ToListAsync();
         }
     }
 }

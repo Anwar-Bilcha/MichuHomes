@@ -10,6 +10,7 @@ using RadiantHomes.DAL;
 using RadiantHomes.Models.HousingCompanies;
 using RadiantHomes.Pages.ApartmentHouses;
 using RadiantHomes.Services.AdminServices;
+using RadiantHomes.Services.Security;
 
 namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses
 {
@@ -35,10 +36,12 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses
 
         // Status is also the approval gate (the public listing shows only "Approved" houses), and approving is a
         // platform decision: only a Michu Admin may change it here. Others see it read-only; a posted value is ignored.
-        public bool CanEditStatus => User.IsInRole(MichuHomesRoles.MichuAdmin);
+        // Only listing approvers (platform permission houses.approve) change the approval status.
+        public bool CanEditStatus { get; private set; }
 
         public async Task<IActionResult> OnGetAsync(Guid? id)
         {
+            CanEditStatus = (await HttpContext.AccessAsync()).Has(Perm.HousesApprove);
             if (id == null)
             {
                 return NotFound();
@@ -74,6 +77,7 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.ApartmentHouses
 
         public async Task<IActionResult> OnPostAsync()
         {
+            CanEditStatus = (await HttpContext.AccessAsync()).Has(Perm.HousesApprove);
             var existing = await _context.ApartmentHouses.FirstOrDefaultAsync(a => a.Id == ApartmentHouse.Id);
             if (existing == null)
             {

@@ -1,0 +1,174 @@
+@page
+@model RadiantHomes.Pages.Staff.Users.EditModel
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["Subtitle"] = $"{Model.Person.Email} · {Model.CompanyName}";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+@section PageActions {
+    <span class="badge fs-6 @(Model.Active ? "text-bg-success" : "text-bg-secondary")">@(Model.Active ? "Active" : "Deactivated")</span>
+}
+
+<div class="row g-3">
+    <div class="col-12 col-xl-7">
+        <form method="post" asp-page-handler="Roles" asp-route-id="@Model.Id" class="card mb-3">
+            <div class="card-header fw-semibold"><i class="bi bi-shield-lock" aria-hidden="true"></i> Roles</div>
+            <div class="card-body">
+                @if (Model.IsYou)
+                {
+                    <div class="alert alert-info small" role="status">You can't change your own roles. Ask another administrator.</div>
+                }
+                @if (!Model.Roles.Any())
+                {
+                    <p class="text-muted small mb-0">No roles exist for this @(Model.Person.AccountType == RadiantHomes.Models.Security.AccountType.PlatformStaff ? "platform" : "company") yet.</p>
+                }
+                @foreach (var r in Model.Roles)
+                {
+                    var held = Model.CurrentRoleIds.Contains(r.Id);
+                    var locked = Model.IsYou || !Model.Access.Has(RadiantHomes.Services.Security.Perm.RolesAssign) || (!r.CanGive && !held);
+                    <div class="form-check mb-1">
+                        <input class="form-check-input" type="checkbox" name="RoleIds" value="@r.Id" id="role-@r.Id" checked="@held" disabled="@locked" />
+                        @if (locked && held)
+                        {
+                            @* keep roles the user can't change in the posted list *@
+                            <input type="hidden" name="RoleIds" value="@r.Id" />
+                        }
+                        <label class="form-check-label" for="role-@r.Id">
+                            <span class="fw-semibold">@r.Name</span>
+                            @if (r.IsSystem) { <span class="badge text-bg-light border ms-1">Built-in</span> }
+                            @if (!r.Active) { <span class="badge text-bg-secondary ms-1">Inactive</span> }
+                            <span class="text-muted small">· @r.PermissionCount permissions</span>
+                            @if (!r.CanGive && !held) { <span class="text-muted small d-block">You can't give this role: it has permissions you don't have.</span> }
+                        </label>
+                    </div>
+                }
+            </div>
+            @if (!Model.IsYou)
+            {
+                <div class="card-footer text-end">
+                    <button mh-permission="roles.assign" type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check2" aria-hidden="true"></i> Save roles</button>
+                </div>
+            }
+        </form>
+
+        <div class="card mb-3">
+            <div class="card-header fw-semibold"><i class="bi bi-key" aria-hidden="true"></i> What @Model.Name can do</div>
+            <div class="card-body">
+                @if (!Model.Active)
+                {
+                    <p class="text-muted mb-0">Nothing: the account is deactivated.</p>
+                }
+                else if (!Model.Effective.Any())
+                {
+                    <p class="text-muted mb-0">Nothing yet: give the person a role.</p>
+                }
+                else
+                {
+                    @if (Model.EffectiveLimitedByApproval)
+                    {
+                        <div class="alert alert-warning small" role="status">The company isn't approved, so only its profile and inbox are open for now.</div>
+                    }
+                    <div class="row g-3">
+                        @foreach (var group in Model.Effective)
+                        {
+                            <div class="col-12 col-md-6">
+                                <div class="small text-uppercase text-muted fw-semibold mb-1">@group.Key</div>
+                                <ul class="list-unstyled small mb-0">
+                                    @foreach (var p in group)
+                                    {
+                                        <li><i class="bi bi-check2 text-success" aria-hidden="true"></i> @p.Name</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header fw-semibold"><i class="bi bi-journal-text" aria-hidden="true"></i> History</div>
+            @if (!Model.History.Any())
+            {
+                <div class="card-body text-muted small">No recorded changes yet.</div>
+            }
+            else
+            {
+                <ul class="list-group list-group-flush small">
+                    @foreach (var h in Model.History)
+                    {
+                        <li class="list-group-item">
+                            <div>@h.Summary</div>
+                            <div class="text-muted">@h.OccurredOn.ToLocalTime().ToString("d MMM yyyy HH:mm") · @(h.ActorName ?? "System")</div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <form method="post" asp-page-handler="Details" asp-route-id="@Model.Id" class="card mb-3">
+            <div class="card-header fw-semibold"><i class="bi bi-person" aria-hidden="true"></i> Details</div>
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                <div class="mb-3">
+                    <label asp-for="Details.FullName" class="form-label"></label>
+                    <input asp-for="Details.FullName" class="form-control" />
+                    <span asp-validation-for="Details.FullName" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="email">Email</label>
+                    <input class="form-control" id="email" value="@Model.Person.Email" readonly />
+                </div>
+                <div>
+                    <label asp-for="Details.PhoneNumber" class="form-label"></label>
+                    <input asp-for="Details.PhoneNumber" class="form-control" />
+                    <span asp-validation-for="Details.PhoneNumber" class="text-danger"></span>
+                </div>
+            </div>
+            <div mh-permission="users.manage" class="card-footer text-end">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check2" aria-hidden="true"></i> Save details</button>
+            </div>
+        </form>
+
+        <div class="card">
+            <div class="card-header fw-semibold"><i class="bi bi-shield-exclamation" aria-hidden="true"></i> Account</div>
+            <div class="card-body d-grid gap-2">
+                @if (!Model.IsYou)
+                {
+                    <form mh-permission="users.reset_password" method="post" asp-page-handler="PasswordLink" asp-route-id="@Model.Id"
+                          data-confirm-title="@($"Email {Model.Name} a password link?")" data-confirm="They choose a new password from the link; the current one keeps working until then." data-confirm-ok="Send link">
+                        <button type="submit" class="btn btn-outline-primary w-100" disabled="@(!Model.CanEmail || !Model.Active)"><i class="bi bi-envelope" aria-hidden="true"></i> Send password link</button>
+                    </form>
+                    @if (Model.Active)
+                    {
+                        <form mh-permission="users.deactivate" method="post" asp-page-handler="Deactivate" asp-route-id="@Model.Id"
+                              data-confirm-title="@($"Deactivate {Model.Name}?")" data-confirm="They are signed out within a minute and can't sign in until reactivated. Their roles are kept." data-confirm-ok="Deactivate" data-confirm-variant="danger">
+                            <button type="submit" class="btn btn-outline-danger w-100"><i class="bi bi-person-slash" aria-hidden="true"></i> Deactivate account</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form mh-permission="users.deactivate" method="post" asp-page-handler="Reactivate" asp-route-id="@Model.Id">
+                            <button type="submit" class="btn btn-outline-success w-100"><i class="bi bi-person-check" aria-hidden="true"></i> Reactivate account</button>
+                        </form>
+                    }
+                    @if (!Model.CanEmail)
+                    {
+                        <p class="small text-muted mb-0">Password links need email settings on the server (Email:Host, Email:FromAddress).</p>
+                    }
+                }
+                else
+                {
+                    <p class="small text-muted mb-0">This is your own account. Change your password under <a asp-area="Identity" asp-page="/Account/Manage/ChangePassword">Account settings</a>.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,22 @@
+@model List<RadiantHomes.Models.Security.CompanyStatusChange>
+@using RadiantHomes.Models.Security
+@* A company's approval history, newest first (Admin/Companies/Details and HousingCompanyAdmin/Status). *@
+@if (!Model.Any())
+{
+    <p class="text-muted small mb-0">No status changes recorded yet.</p>
+}
+else
+{
+    <ol class="list-unstyled mb-0">
+        @foreach (var h in Model)
+        {
+            <li class="d-flex gap-3 pb-3">
+                <span class="badge @CompanyStatuses.Badge(h.ToStatus) align-self-start mt-1">@CompanyStatuses.Label(h.ToStatus)</span>
+                <div class="small">
+                    @if (!string.IsNullOrWhiteSpace(h.Reason)) { <div>@h.Reason</div> }
+                    <div class="text-muted">@h.ChangedOn.ToLocalTime().ToString("d MMM yyyy HH:mm") · @(h.ChangedByName ?? "System")@(h.FromStatus is null ? "" : $" · was {CompanyStatuses.Label(h.FromStatus)}")</div>
+                </div>
+            </li>
+        }
+    </ol>
+}

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using RadiantHomes.Services.Security;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using RadiantHomes.DAL;
@@ -52,6 +53,11 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Reservations
 
         private async Task<IActionResult> Change(Guid id, HouseReserveStatuses to)
         {
+            if (!(await HttpContext.AccessAsync()).Has(RadiantHomes.Services.Security.Perm.ReservationsManage))
+            {
+                TempData["Error"] = "You don't have permission to change reservations.";
+                return RedirectToPage(new { status = Status });
+            }
             var scope = await CompanyScope.ForAsync(User, _context);
             var result = await _reservations.ChangeStatusAsync(id, to, scope);
             TempData[result.Succeeded ? "Success" : "Error"] = result.Message;

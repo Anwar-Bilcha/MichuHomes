@@ -46,22 +46,75 @@ namespace RadiantHomes.DAL
         public DbSet<ReferralCode> ReferralCodes { get; set; }
         public DbSet<Referral> Referrals { get; set; }
 
-        // The model below declares HasDefaultValueSql("NEWID()") for the Guid keys, but the database
-        // columns have no default (the live DB has a later migration that removed them). EF therefore
-        // leaves an unset key out of the INSERT and SQL Server rejects the NULL. Assigning the Guid here,
-        // for every newly added row whose Guid key isn't set yet, works with either schema.
+        // Access control (Models/Security/AccessControl.cs)
+        public DbSet<Models.Security.Permission> Permissions { get; set; }
+        public DbSet<Models.Security.AccessRole> AccessRoles { get; set; }
+        public DbSet<Models.Security.AccessRolePermission> AccessRolePermissions { get; set; }
+        public DbSet<Models.Security.UserAccessRole> UserAccessRoles { get; set; }
+        public DbSet<Models.Security.AuditLog> AuditLogs { get; set; }
+        public DbSet<Models.Security.CompanyStatusChange> CompanyStatusChanges { get; set; }
+
+        // Guid keys have no database default (migration 20251227201651_GUIDCleanUpForRealEstate removed the
+        // NEWID() defaults), so EF generates them on the client. Rows added with an explicit Guid.Empty key
+        // (some pages build entities that way) get a fresh Guid here as well.
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
             AssignMissingGuidKeys();
             StampAuditFields();
+            GuardCompanyStatusAsync(sync: true).GetAwaiter().GetResult();
             return base.SaveChanges(acceptAllChangesOnSuccess);
         }
 
-        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
             AssignMissingGuidKeys();
             StampAuditFields();
-            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            await GuardCompanyStatusAsync(sync: false, cancellationToken);
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        /// <summary>Set only by Services/Security/CompanyLifecycleService while it applies an approval decision.</summary>
+        internal bool CompanyStatusChangeAllowed { get; set; }
+
+        // A company's approval status changes only through the lifecycle service (with history, audit and notification).
+        // Any other save that changes it - a form that binds the whole company, an attached entity - keeps the stored
+        // value; a new company always starts as Pending, with a "registered" history entry.
+        private async Task GuardCompanyStatusAsync(bool sync, CancellationToken cancellationToken = default)
+        {
+            if (CompanyStatusChangeAllowed) return;
+            foreach (var entry in ChangeTracker.Entries<HousingCompany>().ToList())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    // Its built-in Company Super Admin role exists from the start, so the first administrator can be named
+                    // (and see the approval status) while the company waits for approval.
+                    var companyId = entry.Entity.CompanyId;
+                    if (!AccessRoles.Local.Any(r => r.CompanyId == companyId && r.IsSystem))
+                    {
+                        Services.Security.AccessControlSeeder.NewCompanySuperAdmin(this, companyId);
+                    }
+                    entry.Entity.Status = Models.Security.CompanyStatuses.Pending;
+                    CompanyStatusChanges.Add(new Models.Security.CompanyStatusChange
+                    {
+                        CompanyId = entry.Entity.CompanyId,
+                        ToStatus = Models.Security.CompanyStatuses.Pending,
+                        Reason = "Company registered; waiting for approval.",
+                        ChangedByName = _httpContextAccessor?.HttpContext?.User?.Identity?.Name ?? "System",
+                        ChangedOn = DateTime.UtcNow,
+                    });
+                }
+                else if (entry.State == EntityState.Modified && entry.Property(c => c.Status).IsModified)
+                {
+                    // Attached entities carry the posted value as their "original" too, so compare with the database.
+                    var stored = sync ? entry.GetDatabaseValues() : await entry.GetDatabaseValuesAsync(cancellationToken);
+                    var storedStatus = stored?.GetValue<string>(nameof(HousingCompany.Status));
+                    if (storedStatus is not null && storedStatus != entry.Entity.Status)
+                    {
+                        entry.Entity.Status = storedStatus;
+                    }
+                    entry.Property(c => c.Status).IsModified = false;
+                }
+            }
         }
 
         // Created/Updated by/on are maintained here for every BaseEntity, so pages don't have to
@@ -112,6 +165,56 @@ namespace RadiantHomes.DAL
         }
 
 
+        private static void ConfigureAccessControl(ModelBuilder builder)
+        {
+            // AccountType is always written by the app; the migration sets it for existing accounts.
+            builder.Entity<AppUser>().HasIndex(u => u.AccountType);
+
+            builder.Entity<Models.Security.Permission>().ToTable("Permissions");
+
+            builder.Entity<Models.Security.AccessRole>(e =>
+            {
+                e.ToTable("AccessRoles");
+                // One name per company; platform roles (CompanyId NULL) share one namespace.
+                e.HasIndex(r => new { r.CompanyId, r.Name }).IsUnique();
+                // Not cascaded from companies: company → profiles → accounts already cascades into UserAccessRoles,
+                // and SQL Server allows one cascade path. Deleting a company removes its roles explicitly.
+                e.HasOne(r => r.Company).WithMany().HasForeignKey(r => r.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<Models.Security.AccessRolePermission>(e =>
+            {
+                e.ToTable("AccessRolePermissions");
+                e.HasKey(p => new { p.RoleId, p.PermissionKey });
+                e.HasOne(p => p.Role).WithMany(r => r.Permissions).HasForeignKey(p => p.RoleId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(p => p.Permission).WithMany().HasForeignKey(p => p.PermissionKey).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Models.Security.UserAccessRole>(e =>
+            {
+                e.ToTable("UserAccessRoles");
+                e.HasKey(ur => new { ur.UserId, ur.RoleId });
+                e.HasIndex(ur => ur.RoleId);
+                e.HasOne(ur => ur.User).WithMany().HasForeignKey(ur => ur.UserId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(ur => ur.Role).WithMany(r => r.Users).HasForeignKey(ur => ur.RoleId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Models.Security.AuditLog>(e =>
+            {
+                e.ToTable("AuditLogs");
+                e.HasIndex(a => a.OccurredOn);
+                e.HasIndex(a => new { a.CompanyId, a.OccurredOn });
+                e.HasIndex(a => new { a.EntityType, a.EntityId });
+            });
+
+            builder.Entity<Models.Security.CompanyStatusChange>(e =>
+            {
+                e.ToTable("CompanyStatusChanges");
+                e.HasIndex(c => new { c.CompanyId, c.ChangedOn });
+                e.HasOne(c => c.Company).WithMany().HasForeignKey(c => c.CompanyId).OnDelete(DeleteBehavior.Cascade);
+            });
+        }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -128,6 +231,8 @@ namespace RadiantHomes.DAL
                 .HasForeignKey(r => r.ReferralCodeId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            ConfigureAccessControl(builder);
+
             builder.Entity<ApartmentHouseSaleTransaction>()
     .ToTable("ApartmentHouseSaleTransactions");
 
@@ -135,10 +240,8 @@ namespace RadiantHomes.DAL
     .ToTable("HousePerFloors");
             // Keys
             builder.Entity<ApartmentHouse>().HasKey(a => a.Id);
-            builder.Entity<ApartmentHouse>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<Subscriber>().HasKey(a => a.Id);
-            builder.Entity<Subscriber>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
 
 
@@ -147,29 +250,22 @@ namespace RadiantHomes.DAL
 
 
             builder.Entity<HouseSpecs>().HasKey(a => a.Id);
-            builder.Entity<HouseSpecs>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<ApartmentPhoto>().HasKey(a => a.PhotoId);
             builder.Entity<ApartmentPhoto>().Property(a => a.PhotoId).ValueGeneratedOnAdd();
 
 
             builder.Entity<Building>().HasKey(a => a.Id);
-            builder.Entity<Building>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
            
             builder.Entity<ApartmentHouseReview>().HasKey(a => a.Id);
-            builder.Entity<ApartmentHouseReview>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<CompanyFinancialDetail>().HasKey(a => a.Id);
-            builder.Entity<CompanyFinancialDetail>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<CustomerTestimonial>().HasKey(a => a.Id);
-            builder.Entity<CustomerTestimonial>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<HouseProject>().HasKey(a => a.ProjectId);
-            builder.Entity<HouseProject>().Property(a => a.ProjectId).HasDefaultValueSql("NEWID()");
 
             builder.Entity<HousingCompany>().HasKey(a => a.CompanyId);
-            builder.Entity<HousingCompany>().Property(a => a.CompanyId).HasDefaultValueSql("NEWID()");
 
 
             builder.Entity<Notification>().HasKey(n => n.Id);
@@ -177,49 +273,35 @@ namespace RadiantHomes.DAL
 
 
             builder.Entity<CommisionRate>().HasKey(a => a.CommisionRateId);
-            builder.Entity<CommisionRate>().Property(a => a.CommisionRateId).HasDefaultValueSql("NEWID()");
 
 
             builder.Entity<House>().HasKey(a => a.Id);
-            builder.Entity<House>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<RentInfo>().HasKey(a => a.Id);
-            builder.Entity<RentInfo>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
 
             builder.Entity<PartyAddress>().HasKey(a => a.AddressID);
-            builder.Entity<PartyAddress>().Property(a => a.AddressID).HasDefaultValueSql("NEWID()");
 
             builder.Entity<IssueOrCompliant>().HasKey(a => a.IssueId);
-            builder.Entity<IssueOrCompliant>().Property(a => a.IssueId).HasDefaultValueSql("NEWID()");
 
 
             builder.Entity<HouseCategory>().HasKey(a => a.Id);
-            builder.Entity<HouseCategory>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<HomeOwnerRanking>().HasKey(a => a.RankingId);
-            builder.Entity<HomeOwnerRanking>().Property(a => a.RankingId).HasDefaultValueSql("NEWID()");
 
             builder.Entity<Customer>().HasKey(a => a.Id);
-            builder.Entity<Customer>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<HouseRentPayment>().HasKey(a => a.Id);
-            builder.Entity<HouseRentPayment>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<HouseRentTransaction>().HasKey(a => a.Id);
-            builder.Entity<HouseRentTransaction>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<HouseSalePayment>().HasKey(a => a.Id);
-            builder.Entity < HouseSalePayment>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<ApartmentHouseSaleTransaction>().HasKey(a => a.Id);
-            builder.Entity<ApartmentHouseSaleTransaction>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<HouseSaleTransaction>().HasKey(a => a.Id);
-            builder.Entity<HouseSaleTransaction>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
             builder.Entity<HouseReview>().HasKey(a => a.Id);
-            builder.Entity<HouseReview>().Property(a => a.Id).HasDefaultValueSql("NEWID()");
 
 
             // House Sale Transaction Relationships

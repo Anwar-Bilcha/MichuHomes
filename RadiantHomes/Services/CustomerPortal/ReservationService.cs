@@ -62,6 +62,8 @@ namespace RadiantHomes.Services.CustomerPortal
             var company = house.Building?.Project?.Company;
             var ownerId = company?.ContactPerson.FirstOrDefault()?.Id ?? Guid.Empty;
             if (company is null || ownerId == Guid.Empty) return new(ReservationOutcome.CompanyNotReady);
+            // Only approved companies sell (pending, rejected and suspended companies are hidden from customers).
+            if (company.Status != RadiantHomes.Models.Security.CompanyStatuses.Approved) return new(ReservationOutcome.NotAvailable);
             // Listed apartments only (approved and available), the same rule as the public listing.
             if (!house.IsAvailable || !string.Equals(house.Status, ApartmentHouseApproval.ApprovedStatus, StringComparison.OrdinalIgnoreCase))
                 return new(ReservationOutcome.NotAvailable);

@@ -14,7 +14,7 @@
         <div asp-validation-summary="All" class="alert alert-danger"></div>
 
         <div class="mh-fieldset">
-            @if (User.IsInRole(MichuHomesRoles.MichuAdmin) && Model.SelectedCompanyId == Guid.Empty)
+            @if (Model.IsSuperAdmin && Model.SelectedCompanyId == Guid.Empty)
             {
                 <h2 class="mh-fieldset-title">Select Target Company</h2>
                 <div class="row g-3">

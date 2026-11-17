@@ -1,0 +1,107 @@
+@page
+@model RadiantHomes.Pages.Admin.Companies.DetailsModel
+@using RadiantHomes.Models.Security
+@using RadiantHomes.Services.Security
+@{
+    ViewData["Title"] = Model.Company.Name;
+    ViewData["Subtitle"] = "Company review";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var a = Model.Company.Address;
+    string Label(CompanyAction x) => x switch
+    {
+        CompanyAction.Approve => "Approve",
+        CompanyAction.Reject => "Reject",
+        CompanyAction.RequestInfo => "Ask for more information",
+        CompanyAction.Suspend => "Suspend",
+        CompanyAction.Reactivate => "Reactivate",
+        _ => x.ToString(),
+    };
+    string Variant(CompanyAction x) => x switch
+    {
+        CompanyAction.Approve or CompanyAction.Reactivate => "btn-success",
+        CompanyAction.Reject or CompanyAction.Suspend => "btn-outline-danger",
+        _ => "btn-outline-primary",
+    };
+}
+
+@section PageActions {
+    <span class="badge fs-6 @CompanyStatuses.Badge(Model.Company.Status)">@CompanyStatuses.Label(Model.Company.Status)</span>
+}
+
+<div class="row g-3">
+    <div class="col-12 col-xl-7">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold"><i class="bi bi-building" aria-hidden="true"></i> Company</div>
+            <div class="card-body">
+                <dl class="row mb-0 small">
+                    <dt class="col-sm-4">Licence number</dt><dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.Company.LicenseNumber) ? "—" : Model.Company.LicenseNumber)</dd>
+                    <dt class="col-sm-4">Established</dt><dd class="col-sm-8">@Model.Company.EstablishedDate.ToString("d MMM yyyy")</dd>
+                    <dt class="col-sm-4">Email</dt><dd class="col-sm-8">@Model.Company.Email</dd>
+                    <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">@Model.Company.PhoneNumber</dd>
+                    <dt class="col-sm-4">Website</dt><dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.Company.Website) ? "—" : Model.Company.Website)</dd>
+                    <dt class="col-sm-4">Address</dt><dd class="col-sm-8">@(a is null ? "—" : string.Join(", ", new[] { a.SubCity, a.City }.Where(s => !string.IsNullOrWhiteSpace(s))))</dd>
+                    <dt class="col-sm-4">Projects</dt><dd class="col-sm-8">@Model.Projects</dd>
+                    <dt class="col-sm-4">Listed homes</dt><dd class="col-sm-8">@Model.Listed</dd>
+                </dl>
+            </div>
+            <div class="card-footer d-flex flex-wrap gap-2">
+                <a class="btn btn-sm btn-outline-secondary" asp-page="/RealEstates/Details" asp-route-id="@Model.Company.CompanyId"><i class="bi bi-eye" aria-hidden="true"></i> Public profile</a>
+                <a mh-permission="companies.update" class="btn btn-sm btn-outline-secondary" asp-page="/RealEstates/Edit" asp-route-id="@Model.Company.CompanyId"><i class="bi bi-pencil" aria-hidden="true"></i> Edit details</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header fw-semibold"><i class="bi bi-clock-history" aria-hidden="true"></i> Approval history</div>
+            <div class="card-body"><partial name="_CompanyStatusHistory" model="Model.History" /></div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold"><i class="bi bi-clipboard-check" aria-hidden="true"></i> Decision</div>
+            <div class="card-body">
+                @if (!Model.Actions.Any())
+                {
+                    <p class="text-muted small mb-0">No action is available for a company that is "@CompanyStatuses.Label(Model.Company.Status)", or you don't have the permission for it.</p>
+                }
+                else
+                {
+                    <form method="post">
+                        <label class="form-label" for="reason">Reason or message to the company</label>
+                        <textarea class="form-control mb-1" id="reason" name="Reason" rows="3" maxlength="1000">@Model.Reason</textarea>
+                        <div class="form-text mb-3">Required to reject, ask for information or suspend. The company sees it.</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var action in Model.Actions)
+                            {
+                                <button type="submit" class="btn @Variant(action)" asp-page-handler="@action.ToString()" asp-route-id="@Model.Id">@Label(action)</button>
+                            }
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-people" aria-hidden="true"></i> Company staff (@Model.Staff.Count)</span>
+                <a mh-permission="users.view" class="small" asp-page="/Staff/Users/Index" asp-route-scope="@Model.Company.CompanyId">Manage</a>
+            </div>
+            @if (!Model.Staff.Any())
+            {
+                <div class="card-body small text-muted">
+                    No staff accounts yet.
+                    <a mh-permission="users.manage" asp-page="/Staff/Users/Create" asp-route-company="@Model.Company.CompanyId">Create the company's first administrator</a>
+                </div>
+            }
+            else
+            {
+                <ul class="list-group list-group-flush small">
+                    @foreach (var s in Model.Staff)
+                    {
+                        <li class="list-group-item"><a asp-page="/Staff/Users/Edit" asp-route-id="@s.Id">@s.Name</a><span class="d-block text-muted">@s.Email</span></li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>

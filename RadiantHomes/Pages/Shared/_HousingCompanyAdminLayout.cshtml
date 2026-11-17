@@ -18,7 +18,9 @@
 
     var showHeader = (ViewData["PageHeader"] as bool?) ?? true;
     var width = (ViewData["PageWidth"] as string ?? string.Empty).ToLowerInvariant();
-    var isMichuAdmin = User.IsInRole(MichuHomesRoles.MichuAdmin);
+    // Menus and buttons follow the signed-in user's permissions (Services/Security), never role names.
+    var access = await Context.AccessAsync();
+    bool Can(params string[] keys) => access.IsActive && access.HasAny(keys);
 
     // Sidebar highlighting: "section" items match every page in the folder except Create,
     // "exact" items match one page.
@@ -42,18 +44,22 @@
             customerProfile = _context.UserProfiles.FirstOrDefault(u => u.Id == currentCustomerId);
         }
 
-        // Michu admins see every notification (same list as Admin/Notifications/NotificationsAll);
-        // company admins see their own company's.
-        if (isMichuAdmin)
+        // notifications.view: platform staff see every notification (same list as Admin/Notifications/NotificationsAll);
+        // company staff see their own company's (company taken from the account, not from a profile).
+        if (Can(Perm.NotificationsView) && access.IsPlatform)
         {
             notifications = await NotificationService.GetForMichuAdminAsync();
         }
-        else if (customerProfile?.CompanyId != null)
+        else if (Can(Perm.NotificationsView) && access.CompanyId is Guid staffCompanyId)
         {
-            notifications = (await NotificationService.GetAllNotifications(customerProfile.CompanyId.Value)).ToList();
+            notifications = (await NotificationService.GetAllNotifications(staffCompanyId)).ToList();
         }
 
-        if (customerProfile != null)
+        if (!string.IsNullOrWhiteSpace(currentUser?.FullName))
+        {
+            userName = currentUser!.FullName!;
+        }
+        else if (customerProfile != null)
         {
             userName = $"{customerProfile.FirstName} {customerProfile.LastName}";
         }
@@ -63,11 +69,6 @@
         }
     }
     var unreadCount = notifications.Count(n => !n.IsRead);
-
-    // The signed-in admin's own company (Real Estate Admins), used for the "Company profile" link.
-    RadiantHomes.Services.AdminServices.CompanyScope? companyScope = User.Identity?.IsAuthenticated == true
-        ? await RadiantHomes.Services.AdminServices.CompanyScope.ForAsync(User, _context)
-        : null;
 }
 <!DOCTYPE html>
 <html lang="@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName">
@@ -97,56 +98,122 @@
                     </a>
 
                     <nav class="mh-sidenav" aria-label="Admin">
-                        @if (isMichuAdmin)
+                        @if (Can(Perm.PlatformDashboardView, Perm.ReportsView, Perm.CompaniesView))
                         {
                             <div class="mh-sidenav-label">Overview</div>
                             <ul>
-                                <li><a class="nav-link @Exact("/Admin/Dashboard/AdminDashboard")" aria-current="@Current(Exact("/Admin/Dashboard/AdminDashboard"))" asp-area="" asp-page="/Admin/Dashboard/AdminDashboard"><i class="bi bi-speedometer2" aria-hidden="true"></i>Dashboard</a></li>
-                                <li><a class="nav-link @Exact("/Admin/Reports/AdminReports")" aria-current="@Current(Exact("/Admin/Reports/AdminReports"))" asp-area="" asp-page="/Admin/Reports/AdminReports"><i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i>Reports</a></li>
+                                @if (Can(Perm.PlatformDashboardView))
+                                {
+                                    <li><a class="nav-link @Exact("/Admin/Dashboard/AdminDashboard")" aria-current="@Current(Exact("/Admin/Dashboard/AdminDashboard"))" asp-area="" asp-page="/Admin/Dashboard/AdminDashboard"><i class="bi bi-speedometer2" aria-hidden="true"></i>Dashboard</a></li>
+                                }
+                                @if (Can(Perm.CompaniesView))
+                                {
+                                    <li><a class="nav-link @Section("/Admin/Companies")" aria-current="@Current(Section("/Admin/Companies"))" asp-area="" asp-page="/Admin/Companies/Index"><i class="bi bi-patch-check" aria-hidden="true"></i>Company approvals</a></li>
+                                }
+                                @if (Can(Perm.ReportsView))
+                                {
+                                    <li><a class="nav-link @Exact("/Admin/Reports/AdminReports")" aria-current="@Current(Exact("/Admin/Reports/AdminReports"))" asp-area="" asp-page="/Admin/Reports/AdminReports"><i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i>Reports</a></li>
+                                }
                             </ul>
                         }
 
                         <div class="mh-sidenav-label">Company</div>
                         <ul>
-                            @if (isMichuAdmin)
+                            @if (Can(Perm.CompaniesCreate))
                             {
                                 <li><a class="nav-link @Exact("/RealEstates/OnBoarding/CompanyProfile")" aria-current="@Current(Exact("/RealEstates/OnBoarding/CompanyProfile"))" asp-area="" asp-page="/RealEstates/OnBoarding/CompanyProfile"><i class="bi bi-building-add" aria-hidden="true"></i>Onboard a company</a></li>
                             }
-                            else if (companyScope?.CompanyId is Guid ownCompanyId)
+                            @if (access.IsCompanyStaff && access.CompanyId is Guid ownCompanyId)
                             {
-                                <li><a class="nav-link @Exact("/RealEstates/Edit")" aria-current="@Current(Exact("/RealEstates/Edit"))" asp-area="" asp-page="/RealEstates/Edit" asp-route-id="@ownCompanyId"><i class="bi bi-building" aria-hidden="true"></i>Company profile</a></li>
+                                @if (Can(Perm.CompanyProfileView))
+                                {
+                                    <li><a class="nav-link @Exact("/Status")" aria-current="@Current(Exact("/Status"))" asp-area="HousingCompanyAdmin" asp-page="/Status"><i class="bi bi-patch-check" aria-hidden="true"></i>Approval status</a></li>
+                                }
+                                @if (Can(Perm.CompanyProfileUpdate))
+                                {
+                                    <li><a class="nav-link @Exact("/RealEstates/Edit")" aria-current="@Current(Exact("/RealEstates/Edit"))" asp-area="" asp-page="/RealEstates/Edit" asp-route-id="@ownCompanyId"><i class="bi bi-building" aria-hidden="true"></i>Company profile</a></li>
+                                }
                             }
-                            <li><a class="nav-link @Exact("/Admin/Notifications/NotificationsAll")" aria-current="@Current(Exact("/Admin/Notifications/NotificationsAll"))" asp-area="" asp-page="/Admin/Notifications/NotificationsAll"><i class="bi bi-bell" aria-hidden="true"></i>Approve notifications @if (unreadCount > 0) { <span class="badge bg-warning ms-auto">@unreadCount</span> }</a></li>
+                            @if (Can(Perm.NotificationsView))
+                            {
+                                <li><a class="nav-link @Exact("/Admin/Notifications/NotificationsAll")" aria-current="@Current(Exact("/Admin/Notifications/NotificationsAll"))" asp-area="" asp-page="/Admin/Notifications/NotificationsAll"><i class="bi bi-bell" aria-hidden="true"></i>Notifications @if (unreadCount > 0) { <span class="badge bg-warning ms-auto">@unreadCount</span> }</a></li>
+                            }
                         </ul>
 
-                        <div class="mh-sidenav-label">Projects</div>
-                        <ul>
-                            <li><a class="nav-link @Section("/Projects")" aria-current="@Current(Section("/Projects"))" asp-page="/Projects/Index"><i class="bi bi-kanban" aria-hidden="true"></i>All projects</a></li>
-                            <li><a class="nav-link @Exact("/Projects/Create")" aria-current="@Current(Exact("/Projects/Create"))" asp-page="/Projects/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New project</a></li>
-                        </ul>
+                        @if (Can(Perm.ProjectsCreate, Perm.ProjectsUpdate, Perm.ProjectsDelete))
+                        {
+                            <div class="mh-sidenav-label">Projects</div>
+                            <ul>
+                                <li><a class="nav-link @Section("/Projects")" aria-current="@Current(Section("/Projects"))" asp-page="/Projects/Index"><i class="bi bi-kanban" aria-hidden="true"></i>All projects</a></li>
+                                @if (Can(Perm.ProjectsCreate))
+                                {
+                                    <li><a class="nav-link @Exact("/Projects/Create")" aria-current="@Current(Exact("/Projects/Create"))" asp-page="/Projects/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New project</a></li>
+                                }
+                            </ul>
+                        }
 
-                        <div class="mh-sidenav-label">Buildings</div>
-                        <ul>
-                            <li><a class="nav-link @Section("/Buildings")" aria-current="@Current(Section("/Buildings"))" asp-page="/Buildings/Index"><i class="bi bi-buildings" aria-hidden="true"></i>All buildings</a></li>
-                            <li><a class="nav-link @Exact("/Buildings/Create")" aria-current="@Current(Exact("/Buildings/Create"))" asp-page="/Buildings/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New building</a></li>
-                        </ul>
+                        @if (Can(Perm.BuildingsCreate, Perm.BuildingsUpdate, Perm.BuildingsDelete))
+                        {
+                            <div class="mh-sidenav-label">Buildings</div>
+                            <ul>
+                                <li><a class="nav-link @Section("/Buildings")" aria-current="@Current(Section("/Buildings"))" asp-page="/Buildings/Index"><i class="bi bi-buildings" aria-hidden="true"></i>All buildings</a></li>
+                                @if (Can(Perm.BuildingsCreate))
+                                {
+                                    <li><a class="nav-link @Exact("/Buildings/Create")" aria-current="@Current(Exact("/Buildings/Create"))" asp-page="/Buildings/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New building</a></li>
+                                }
+                            </ul>
+                        }
 
-                        <div class="mh-sidenav-label">Apartments</div>
-                        <ul>
-                            <li><a class="nav-link @Section("/ApartmentHouses")" aria-current="@Current(Section("/ApartmentHouses"))" asp-page="/ApartmentHouses/Index"><i class="bi bi-house-door" aria-hidden="true"></i>All apartments</a></li>
-                            <li><a class="nav-link @Exact("/ApartmentHouses/Create")" aria-current="@Current(Exact("/ApartmentHouses/Create"))" asp-page="/ApartmentHouses/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New apartment</a></li>
-                            <li><a class="nav-link @Section("/Reservations")" aria-current="@Current(Section("/Reservations"))" asp-area="HousingCompanyAdmin" asp-page="/Reservations/Index"><i class="bi bi-calendar-check" aria-hidden="true"></i>Reservations</a></li>
-                        </ul>
+                        @if (Can(Perm.HousesCreate, Perm.HousesUpdate, Perm.HousesDelete, Perm.ReservationsView))
+                        {
+                            <div class="mh-sidenav-label">Apartments</div>
+                            <ul>
+                                @if (Can(Perm.HousesCreate, Perm.HousesUpdate, Perm.HousesDelete))
+                                {
+                                    <li><a class="nav-link @Section("/ApartmentHouses")" aria-current="@Current(Section("/ApartmentHouses"))" asp-page="/ApartmentHouses/Index"><i class="bi bi-house-door" aria-hidden="true"></i>All apartments</a></li>
+                                }
+                                @if (Can(Perm.HousesCreate))
+                                {
+                                    <li><a class="nav-link @Exact("/ApartmentHouses/Create")" aria-current="@Current(Exact("/ApartmentHouses/Create"))" asp-page="/ApartmentHouses/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New apartment</a></li>
+                                }
+                                @if (Can(Perm.ReservationsView))
+                                {
+                                    <li><a class="nav-link @Section("/Reservations")" aria-current="@Current(Section("/Reservations"))" asp-area="HousingCompanyAdmin" asp-page="/Reservations/Index"><i class="bi bi-calendar-check" aria-hidden="true"></i>Reservations</a></li>
+                                }
+                            </ul>
+                        }
 
-                        <div class="mh-sidenav-label">Testimonials</div>
-                        <ul>
-                            <li><a class="nav-link @Section("/RealEstates/Testimonials")" aria-current="@Current(Section("/RealEstates/Testimonials"))" asp-area="" asp-page="/RealEstates/Testimonials/Index"><i class="bi bi-chat-quote" aria-hidden="true"></i>All testimonials</a></li>
-                            <li><a class="nav-link @Exact("/RealEstates/Testimonials/Create")" aria-current="@Current(Exact("/RealEstates/Testimonials/Create"))" asp-area="" asp-page="/RealEstates/Testimonials/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New testimonial</a></li>
-                        </ul>
+                        @if (Can(Perm.TestimonialsManage))
+                        {
+                            <div class="mh-sidenav-label">Testimonials</div>
+                            <ul>
+                                <li><a class="nav-link @Section("/RealEstates/Testimonials")" aria-current="@Current(Section("/RealEstates/Testimonials"))" asp-area="" asp-page="/RealEstates/Testimonials/Index"><i class="bi bi-chat-quote" aria-hidden="true"></i>All testimonials</a></li>
+                                <li><a class="nav-link @Exact("/RealEstates/Testimonials/Create")" aria-current="@Current(Exact("/RealEstates/Testimonials/Create"))" asp-area="" asp-page="/RealEstates/Testimonials/Create"><i class="bi bi-plus-square" aria-hidden="true"></i>New testimonial</a></li>
+                            </ul>
+                        }
+
+                        @if (Can(Perm.UsersView, Perm.RolesView, Perm.AuditView))
+                        {
+                            <div class="mh-sidenav-label">Users &amp; access</div>
+                            <ul>
+                                @if (Can(Perm.UsersView))
+                                {
+                                    <li><a class="nav-link @Section("/Staff/Users")" aria-current="@Current(Section("/Staff/Users"))" asp-area="" asp-page="/Staff/Users/Index"><i class="bi bi-people" aria-hidden="true"></i>Users</a></li>
+                                }
+                                @if (Can(Perm.RolesView))
+                                {
+                                    <li><a class="nav-link @Section("/Staff/Roles")" aria-current="@Current(Section("/Staff/Roles"))" asp-area="" asp-page="/Staff/Roles/Index"><i class="bi bi-shield-lock" aria-hidden="true"></i>Roles &amp; permissions</a></li>
+                                }
+                                @if (Can(Perm.AuditView))
+                                {
+                                    <li><a class="nav-link @Section("/Staff/Audit")" aria-current="@Current(Section("/Staff/Audit"))" asp-area="" asp-page="/Staff/Audit/Index"><i class="bi bi-journal-text" aria-hidden="true"></i>Audit log</a></li>
+                                }
+                            </ul>
+                        }
                     </nav>
 
                     <div class="mh-sidebar-footer">
-                        @if (isMichuAdmin)
+                        @if (Can(Perm.CompaniesCreate))
                         {
                             <button type="button" class="btn btn-accent btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#createAdminModal">
                                 <i class="bi bi-person-plus" aria-hidden="true"></i> Create admin
@@ -242,6 +309,19 @@
                     IgnoreSection("PageActions");
                 }
 
+                @if (access.IsCompanyStaff && !access.CompanyApproved)
+                {
+                    @* Company approval gate (Services/Security): until the platform approves the company, its staff only keep the profile and inbox. *@
+                    <div class="alert alert-warning d-flex gap-2 align-items-start mx-3 mt-3" role="status">
+                        <i class="bi bi-hourglass-split mt-1" aria-hidden="true"></i>
+                        <div>
+                            <strong>@RadiantHomes.Models.Security.CompanyStatuses.Label(access.CompanyStatus).</strong>
+                            Company administration opens once Michu Homes approves your company.
+                            <a asp-area="HousingCompanyAdmin" asp-page="/Status">See the approval status</a>
+                        </div>
+                    </div>
+                }
+
                 @if (width == "full")
                 {
                     @RenderBody()
@@ -261,8 +341,7 @@
         </div>
     </div>
 
-    @if (isMichuAdmin)
-    {
+    @if (Can(Perm.CompaniesCreate))    {
         var companies = _context.HousingCompanies.ToList();
         <div class="modal fade" id="createAdminModal" tabindex="-1" aria-labelledby="createAdminModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -292,7 +371,7 @@
         </div>
     }
 
-    @if (isMichuAdmin || User.IsInRole(MichuHomesRoles.RealEstateAdmin))
+    @if (Can(Perm.VideoCallsReceive))
     {
         @* Agents: a customer waiting in a video call (Pages/LiveVideoMeet). Checked every 20 seconds while the page is visible. *@
         <div class="mh-call-alert" id="mhCallAlert" role="alert" hidden>

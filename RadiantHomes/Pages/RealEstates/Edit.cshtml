@@ -37,11 +37,7 @@
                             asp-items="@(Enum.GetValues<RadiantHomes.Models.HousingCompanies.HousingCompany.CompanyType>().Select(c => new SelectListItem(c.GetDisplayName(), c.ToString())))"></select>
                     <span asp-validation-for="HousingCompany.CompanyCategory" class="text-danger"></span>
                 </div>
-                <div class="col-md-4">
-                    <label asp-for="HousingCompany.Status" class="form-label"></label>
-                    <select asp-for="HousingCompany.Status" class="form-select" asp-items="CompanyForm.StatusItems(Model.HousingCompany?.Status)"></select>
-                    <span asp-validation-for="HousingCompany.Status" class="text-danger"></span>
-                </div>
+                <div class="col-md-4">\n                    <span class="form-label d-block">Approval status</span>\n                    <span class="badge \@RadiantHomes.Models.Security.CompanyStatuses.Badge(Model.HousingCompany?.Status)">\@RadiantHomes.Models.Security.CompanyStatuses.Label(Model.HousingCompany?.Status)</span>\n                    <div class="form-text">Changed only by Michu Homes (company approvals).</div>\n                </div>
             </div>
         </div>
 

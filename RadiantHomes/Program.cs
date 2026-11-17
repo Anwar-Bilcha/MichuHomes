@@ -18,6 +18,7 @@ using RadiantHomes.Services.NotificationService;
 using RadiantHomes.Services.AdminServices;
 using RadiantHomes.Localization;
 using RadiantHomes.Utilities;
+using RadiantHomes.Services.Security;
 using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,7 +40,11 @@ builder.Services.Configure<RadiantHomes.Models.Shared.TwilioSettings>(
     builder.Configuration.GetSection(RadiantHomes.Models.Shared.TwilioSettings.SectionName));
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<ICustomerService,CustomerService>();
-builder.Services.AddTransient<IEmailSender, DummyEmailSender>();
+// Account emails (confirmation, password reset, staff invitations): SMTP from the "Email" settings; in development
+// messages are written to App_Data/mail (appsettings.Development.json). Without settings nothing is sent.
+builder.Services.Configure<RadiantHomes.Services.Email.EmailSettings>(builder.Configuration.GetSection(RadiantHomes.Services.Email.EmailSettings.Section));
+builder.Services.AddTransient<IEmailSender, RadiantHomes.Services.Email.SmtpEmailSender>();
+builder.Services.AddScoped<RadiantHomes.Services.Email.AccountEmails>();
 builder.Services.AddScoped<IAdminDashboard, AdminDashboardService>();
 // Customer portal (Pages/Portal, Services/CustomerPortal)
 builder.Services.AddScoped<RadiantHomes.Services.CustomerPortal.PortalUsers>();
@@ -55,42 +60,90 @@ builder.Services.Configure<RadiantHomes.Services.VideoCalls.JaasSettings>(
 builder.Services.AddSingleton<RadiantHomes.Services.VideoCalls.JaasTokens>();
 builder.Services.AddScoped<RadiantHomes.Services.VideoCalls.VideoCallService>();
 builder.Services.AddMemoryCache();
-//builder.Services.AddScoped<ExcelExportService>();
-// Add services to the container.
-//builder.Services.AddRazorPages();
-// Access rules. Policies: MichuAdminOnly (platform admins), CompanyAdmin (platform or real-estate admins).
-// Pages not listed here stay public (home, listings, details, registration).
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy(AccessPolicies.MichuAdminOnly, p => p.RequireRole(MichuHomesRoles.MichuAdmin));
-    options.AddPolicy(AccessPolicies.CompanyAdmin, p => p.RequireRole(MichuHomesRoles.MichuAdmin, MichuHomesRoles.RealEstateAdmin));
-});
+
+// Access control: user → roles → permissions (Services/Security). Platform roles act across companies, company roles
+// within their own company. Pages are protected by permission policies ("perm:key|key", see Perm.Policy) below.
+builder.Services.AddScoped<RadiantHomes.Services.Security.AccessControlService>();
+builder.Services.AddScoped<RadiantHomes.Services.Security.AuditService>();
+builder.Services.AddScoped<RadiantHomes.Services.Security.AccessManagementService>();
+builder.Services.AddScoped<RadiantHomes.Services.Security.CompanyLifecycleService>();
+builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationPolicyProvider, RadiantHomes.Services.Security.PermissionPolicyProvider>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, RadiantHomes.Services.Security.PermissionHandler>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Authentication.IClaimsTransformation, RadiantHomes.Services.Security.PermissionClaimsTransformation>();
+builder.Services.AddAuthorization();
+// Deactivating an account changes its security stamp; sign-in cookies are re-checked every minute.
+builder.Services.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.FromMinutes(1));
 
 // Areas/HousingCompanyAdmin/Pages/Index.cshtml is already reachable at /HousingCompanyAdmin by convention;
 // an extra AddAreaPageRoute for the same URL made that request ambiguous (500), so none is added.
+// Pages not listed here stay public (home, listings, details, registration).
 builder.Services.AddRazorPages(options =>
 {
     var c = options.Conventions;
+    static string P(params string[] keys) => Perm.Policy(keys);
+    var staff = Perm.AnyStaffPolicy;
 
     // Platform administration
-    c.AuthorizePage("/Admin/Dashboard/AdminDashboard", AccessPolicies.MichuAdminOnly);
-    c.AuthorizeFolder("/Admin/Reports", AccessPolicies.MichuAdminOnly);
-    c.AuthorizeFolder("/Admin/Notifications", AccessPolicies.CompanyAdmin);
+    c.AuthorizePage("/Admin/Dashboard/AdminDashboard", P(Perm.PlatformDashboardView));
+    c.AuthorizeFolder("/Admin/Reports", P(Perm.ReportsView));
+    c.AuthorizeFolder("/Admin/Notifications", P(Perm.NotificationsView));
+    c.AuthorizeFolder("/Admin/Companies", P(Perm.CompaniesView));
 
-    // Company administration
-    c.AuthorizeAreaFolder("HousingCompanyAdmin", "/", AccessPolicies.CompanyAdmin);
-    c.AuthorizeFolder("/RealEstates/OnBoarding", AccessPolicies.CompanyAdmin);
-    c.AuthorizePage("/UploadPhotos", AccessPolicies.CompanyAdmin);
-    c.AuthorizePage("/HouseOwner/Index", AccessPolicies.CompanyAdmin);
-    foreach (var folder in new[] { "/Projects", "/Buildings", "/ApartmentHouses", "/RealEstates", "/RealEstates/Testimonials" })
+    // Users, roles and audit log (each domain manages its own; platform staff also oversee companies')
+    c.AuthorizeFolder("/Staff", staff);
+    c.AuthorizeFolder("/Staff/Users", P(Perm.UsersView));
+    c.AuthorizePage("/Staff/Users/Create", P(Perm.UsersManage));
+    c.AuthorizeFolder("/Staff/Roles", P(Perm.RolesView));
+    c.AuthorizePage("/Staff/Roles/Create", P(Perm.RolesManage));
+    c.AuthorizeFolder("/Staff/Audit", P(Perm.AuditView));
+
+    // Company administration area (every page needs a staff permission; each page then its own)
+    c.AuthorizeAreaFolder("HousingCompanyAdmin", "/", staff);
+    c.AuthorizeAreaPage("HousingCompanyAdmin", "/Status", P(Perm.CompanyProfileView, Perm.CompaniesView));
+    c.AuthorizeAreaPage("HousingCompanyAdmin", "/Create", P(Perm.CompaniesCreate));
+    c.AuthorizeAreaPage("HousingCompanyAdmin", "/Edit", P(Perm.CompaniesUpdate, Perm.CompanyProfileUpdate));
+    c.AuthorizeAreaPage("HousingCompanyAdmin", "/Delete", P(Perm.CompaniesDelete));
+    c.AuthorizeAreaPage("HousingCompanyAdmin", "/Details", P(Perm.CompaniesView, Perm.CompanyProfileView));
+    foreach (var (folder, create, update, delete) in new[]
+             {
+                 ("/Projects", Perm.ProjectsCreate, Perm.ProjectsUpdate, Perm.ProjectsDelete),
+                 ("/Buildings", Perm.BuildingsCreate, Perm.BuildingsUpdate, Perm.BuildingsDelete),
+                 ("/ApartmentHouses", Perm.HousesCreate, Perm.HousesUpdate, Perm.HousesDelete),
+             })
     {
-        foreach (var page in new[] { "Create", "Edit", "Delete" })
-        {
-            c.AuthorizePage($"{folder}/{page}", AccessPolicies.CompanyAdmin);
-        }
+        c.AuthorizeAreaFolder("HousingCompanyAdmin", folder, P(create, update, delete));
+        c.AuthorizeAreaPage("HousingCompanyAdmin", folder + "/Create", P(create));
+        c.AuthorizeAreaPage("HousingCompanyAdmin", folder + "/Edit", P(update));
+        c.AuthorizeAreaPage("HousingCompanyAdmin", folder + "/Delete", P(delete));
+        c.AuthorizePage(folder + "/Create", P(create));
+        c.AuthorizePage(folder + "/Edit", P(update));
+        c.AuthorizePage(folder + "/Delete", P(delete));
     }
-    c.AuthorizePage("/ApartmentHouses/Tour", AccessPolicies.CompanyAdmin); // rooms of an apartment's 3D tour
-    c.AuthorizePage("/LiveVideoMeet/Join", AccessPolicies.CompanyAdmin);   // agents answering a customer's video call
+    c.AuthorizeAreaPage("HousingCompanyAdmin", "/Buildings/DownloadBuildingTemplate", P(Perm.BuildingsCreate));
+    c.AuthorizeAreaFolder("HousingCompanyAdmin", "/Financial", P(Perm.FinancialsView, Perm.FinancialsManage));
+    foreach (var page in new[] { "/Financial/Create", "/Financial/Edit", "/Financial/Delete" })
+    {
+        c.AuthorizeAreaPage("HousingCompanyAdmin", page, P(Perm.FinancialsManage));
+    }
+    c.AuthorizeAreaFolder("HousingCompanyAdmin", "/Reservations", P(Perm.ReservationsView));
+
+    // Company pages outside the area
+    c.AuthorizePage("/RealEstates/Create", P(Perm.CompaniesCreate));
+    c.AuthorizePage("/RealEstates/Edit", P(Perm.CompaniesUpdate, Perm.CompanyProfileUpdate));
+    c.AuthorizePage("/RealEstates/Delete", P(Perm.CompaniesDelete));
+    c.AuthorizeFolder("/RealEstates/OnBoarding", staff);
+    c.AuthorizePage("/RealEstates/OnBoarding/CompanyProfile", P(Perm.CompaniesCreate));
+    c.AuthorizePage("/RealEstates/OnBoarding/ContactPerson", P(Perm.CompaniesCreate));
+    c.AuthorizePage("/RealEstates/OnBoarding/FinancialDetails", P(Perm.FinancialsManage));
+    c.AuthorizePage("/RealEstates/OnBoarding/HouseProjects", P(Perm.ProjectsCreate));
+    foreach (var page in new[] { "Create", "Edit", "Delete" })
+    {
+        c.AuthorizePage($"/RealEstates/Testimonials/{page}", P(Perm.TestimonialsManage));
+    }
+    c.AuthorizePage("/UploadPhotos", P(Perm.HousesUpdate, Perm.ProjectsUpdate));
+    c.AuthorizePage("/ApartmentHouses/Tour", P(Perm.HousesUpdate));         // rooms of an apartment's 3D tour
+    c.AuthorizePage("/HouseOwner/Index", P(Perm.CustomersView));
+    c.AuthorizePage("/LiveVideoMeet/Join", P(Perm.VideoCallsReceive));      // agents answering a customer's video call
 
     // Customer portal: any signed-in user (pages that need a customer profile ask for it)
     c.AuthorizeFolder("/Portal");
@@ -243,6 +296,9 @@ try
             await roleManager.CreateAsync(new IdentityRole(roleName));
         }
     }
+
+    // Permission catalog and built-in access roles (Platform Super Admin, each company's Company Super Admin)
+    await AccessControlSeeder.SyncAsync(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), app.Logger);
 }
 catch (Exception ex)
 {
@@ -293,3 +349,6 @@ app.MapGet("/r/{code}", async (string code, HttpContext http, RadiantHomes.Servi
 });
 
 app.Run();
+
+// Lets the integration tests (tests/RadiantHomes.Tests) start the app with WebApplicationFactory.
+public partial class Program { }

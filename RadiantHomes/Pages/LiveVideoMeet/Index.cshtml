@@ -53,7 +53,7 @@
         <div>
             <strong>Video calls are not available at the moment.</strong>
             Please call us or write to us, we are happy to help.
-            @if (User.IsInRole(MichuHomesRoles.MichuAdmin))
+            @if ((await HttpContext.AccessAsync()).IsPlatform)
             {
                 <small class="d-block mt-1">For administrators: add the JaaS keys (Jaas:AppId, Jaas:ApiKeyId and Jaas:PrivateKey) to the server settings to turn video calls on.</small>
             }

@@ -1,0 +1,90 @@
+@page
+@model RadiantHomes.Pages.Staff.Roles.EditModel
+@{
+    ViewData["Title"] = Model.Role.Name;
+    ViewData["Subtitle"] = Model.ScopeLabel;
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+@section PageActions {
+    @if (Model.Role.IsSystem) { <span class="badge text-bg-light border fs-6">Built-in</span> }
+    <span class="badge fs-6 @(Model.Role.IsActive ? "text-bg-success" : "text-bg-secondary")">@(Model.Role.IsActive ? "Active" : "Inactive")</span>
+}
+
+<div class="row g-3">
+    <div class="col-12 col-xl-8">
+        <form method="post" class="card">
+            <div class="card-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                @if (Model.Role.IsSystem)
+                {
+                    <div class="alert alert-info small" role="status">Built-in roles always hold every permission of their kind and can't be changed or deleted. Create your own roles for narrower access.</div>
+                }
+                <fieldset disabled="@Model.ReadOnly">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-5">
+                            <label asp-for="Input.Name" class="form-label"></label>
+                            <input asp-for="Input.Name" class="form-control" />
+                            <span asp-validation-for="Input.Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-7">
+                            <label asp-for="Input.Description" class="form-label"></label>
+                            <input asp-for="Input.Description" class="form-control" />
+                            <span asp-validation-for="Input.Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" asp-for="Input.IsActive" />
+                        <label class="form-check-label" asp-for="Input.IsActive">Active (its permissions count for the people who hold it)</label>
+                    </div>
+                </fieldset>
+                <h2 class="h6">Permissions</h2>
+                @if (!Model.ReadOnly)
+                {
+                    <p class="small text-muted">You can only add permissions you have yourself. Removing is always possible.</p>
+                }
+                <partial name="_PermissionPicker" model="Model.Picker" />
+            </div>
+            @if (!Model.ReadOnly)
+            {
+                <div class="card-footer d-flex justify-content-end gap-2">
+                    <a class="btn btn-secondary" asp-page="./Index">Back</a>
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-check2" aria-hidden="true"></i> Save role</button>
+                </div>
+            }
+        </form>
+    </div>
+    <div class="col-12 col-xl-4">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold"><i class="bi bi-people" aria-hidden="true"></i> People with this role (@Model.Holders.Count)</div>
+            @if (!Model.Holders.Any())
+            {
+                <div class="card-body small text-muted">Nobody holds this role.</div>
+            }
+            else
+            {
+                <ul class="list-group list-group-flush small">
+                    @foreach (var h in Model.Holders)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                            <span><a asp-page="/Staff/Users/Edit" asp-route-id="@h.Id">@h.Name</a><span class="d-block text-muted">@h.Email</span></span>
+                            @if (!h.Active) { <span class="badge text-bg-secondary">Deactivated</span> }
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+        @if (!Model.Role.IsSystem)
+        {
+            <form mh-permission="roles.manage" method="post" asp-page-handler="Delete" asp-route-id="@Model.Id" class="card card-body"
+                  data-confirm-title="@($"Delete the role \"{Model.Role.Name}\"?")" data-confirm="This can't be undone. Roles still given to people can't be deleted; deactivate them instead." data-confirm-ok="Delete role" data-confirm-variant="danger">
+                <button type="submit" class="btn btn-outline-danger" disabled="@(Model.Holders.Any())"><i class="bi bi-trash" aria-hidden="true"></i> Delete role</button>
+                @if (Model.Holders.Any()) { <p class="small text-muted mt-2 mb-0">Give these people another role first, or deactivate this role.</p> }
+            </form>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

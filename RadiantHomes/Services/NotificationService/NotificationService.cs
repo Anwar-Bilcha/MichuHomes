@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using RadiantHomes.Services.Security;
 using RadiantHomes.DAL;
 using RadiantHomes.Models;
 using RadiantHomes.Models.HousingCompanies;
@@ -14,23 +15,24 @@ namespace RadiantHomes.Services.NotificationService
 
         private readonly ApplicationDbContext _context;
         private readonly ILogger<NotificationService> _logger;
+        private readonly AccessControlService _access;
 
-        public NotificationService(ApplicationDbContext context, ILogger<NotificationService> logger)
+        public NotificationService(ApplicationDbContext context, ILogger<NotificationService> logger, AccessControlService access)
         {
+            _access = access;
             _context = context;
             _logger = logger;
         }
 
+        // notifications.view: platform staff see every notification, company staff their own company's.
         public async Task<bool> CanAccessAsync(ClaimsPrincipal user, Notification notification)
         {
-            if (user.IsInRole(MichuHomesRoles.MichuAdmin)) return true;
-            if (!user.IsInRole(MichuHomesRoles.RealEstateAdmin)) return false;
-
-            var companyId = await GetUserCompanyIdAsync(user);
-            return companyId != null && notification.ReceiverCompanyId == companyId;
+            var access = await _access.GetAsync(user);
+            if (!access.Has(Perm.NotificationsView)) return false;
+            return access.IsPlatform || (access.CompanyId != null && notification.ReceiverCompanyId == access.CompanyId);
         }
 
-        public bool CanApproveHouses(ClaimsPrincipal user) => user.IsInRole(MichuHomesRoles.MichuAdmin);
+        public bool CanApproveHouses(ClaimsPrincipal user) => user.HasPermission(Perm.HousesApprove);
 
         // One definition of "the user's company" for the whole app (tenant scoping): see CompanyScope
         public async Task<Guid?> GetUserCompanyIdAsync(ClaimsPrincipal user) =>

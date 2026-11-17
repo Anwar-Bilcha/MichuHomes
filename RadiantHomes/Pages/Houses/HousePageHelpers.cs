@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Linq.Expressions;
+using RadiantHomes.Services.Security;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -17,11 +18,11 @@ namespace RadiantHomes.Pages.Houses
     public static class HouseAccess
     {
         /// <summary>
-        /// Platform and real-estate admins may list a house for any owner; everyone else lists houses as
+        /// Staff with the owner_houses.manage permission may list a house for any owner; everyone else lists houses as
         /// themselves (their own customer profile).
         /// </summary>
         public static bool CanChooseOwner(ClaimsPrincipal user) =>
-            user.IsInRole(MichuHomesRoles.MichuAdmin) || user.IsInRole(MichuHomesRoles.RealEstateAdmin);
+            user.HasPermission(Perm.OwnerHousesManage);
 
         /// <summary>
         /// The customer profile linked to the signed-in account (AppUser.CustomerId), or null.
@@ -34,24 +35,24 @@ namespace RadiantHomes.Pages.Houses
             return appUser?.CustomerId is Guid id && id != Guid.Empty ? id : null;
         }
 
-        /// <summary>The house owner or a Michu admin may edit or delete a house.</summary>
+        /// <summary>The house owner or staff with owner_houses.manage may edit or delete a house.</summary>
         public static bool CanManage(ClaimsPrincipal user, Guid? currentCustomerId, House house) =>
-            user.IsInRole(MichuHomesRoles.MichuAdmin) ||
+            user.HasPermission(Perm.OwnerHousesManage) ||
             (currentCustomerId is Guid customerId && customerId == house.HouseOwnerId);
 
         public static async Task<bool> CanManageAsync(UserManager<AppUser> userManager, ClaimsPrincipal user, House house) =>
-            user.IsInRole(MichuHomesRoles.MichuAdmin) ||
+            user.HasPermission(Perm.OwnerHousesManage) ||
             CanManage(user, await CurrentCustomerIdAsync(userManager, user), house);
     }
 
     /// <summary>
-    /// Who may see or change a rent/sale transaction or a rent payment: a Michu admin, or a party to it
+    /// Who may see or change a rent/sale transaction or a rent payment: staff with owner_houses.manage, or a party to it
     /// (rent: owner or tenant; sale: seller or buyer; payment: the parties of its rent transaction),
     /// matched on the signed-in account's customer profile (AppUser.CustomerId).
     /// </summary>
     public static class TransactionAccess
     {
-        public static bool IsAdmin(ClaimsPrincipal user) => user.IsInRole(MichuHomesRoles.MichuAdmin);
+        public static bool IsAdmin(ClaimsPrincipal user) => user.HasPermission(Perm.OwnerHousesManage);
 
         public static bool IsParty(Guid? customerId, Guid ownerId, Guid tenantOrBuyerId) =>
             customerId is Guid id && (id == ownerId || id == tenantOrBuyerId);
@@ -125,9 +126,11 @@ namespace RadiantHomes.Pages.Houses
     /// <summary>Which apartments are publicly listed (the apartment listing and the home page show only these).</summary>
     public static class ApartmentListing
     {
-        /// <summary>Approved by an admin and still available.</summary>
+        /// <summary>Approved by the platform, still available, and its company is approved (not pending, rejected or suspended).</summary>
         public static readonly Expression<Func<ApartmentHouse, bool>> IsListed =
-            h => h.IsAvailable && h.Status != null && h.Status.ToLower() == "approved";
+            h => h.IsAvailable && h.Status != null && h.Status.ToLower() == "approved"
+                 && h.Building != null && h.Building.Project != null && h.Building.Project.Company != null
+                 && h.Building.Project.Company.Status == RadiantHomes.Models.Security.CompanyStatuses.Approved;
     }
 
     /// <summary>
