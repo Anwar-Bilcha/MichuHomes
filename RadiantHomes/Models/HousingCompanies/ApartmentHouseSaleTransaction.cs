@@ -48,6 +48,25 @@ namespace RadiantHomes.Models.HousingCompanies
         [Timestamp]
         public byte[] RowVersion { get; set; } = Array.Empty<byte>();
         public List<ReservationStatusChange> History { get; set; } = new();
+
+        // Sale record (filled when the company marks the reservation as sold)
+        [Display(Name = "Agreed price")]
+        public double? AgreedPrice { get; set; }
+        public double? Discount { get; set; }
+        [Display(Name = "Sold on")]
+        public DateTime? SoldOn { get; set; }
+        [MaxLength(450)]
+        public string? SoldByUserId { get; set; }
+        [MaxLength(20)]
+        [Display(Name = "Payment")]
+        public string? PaymentStatus { get; set; }
+        /// <summary>Signed agreement, stored under App_Data/agreements/{Id} (never public).</summary>
+        [MaxLength(80)]
+        public string? AgreementFileName { get; set; }
+        public Guid? LeadId { get; set; }
+        public DateTime? ReversedOn { get; set; }
+        [MaxLength(500)]
+        public string? ReversalReason { get; set; }
     }
     public enum HouseReserveStatuses
     {
@@ -55,6 +74,8 @@ namespace RadiantHomes.Models.HousingCompanies
         /// <summary>Not answered by the company in time (pending reservations only).</summary>
         Expired,
         /// <summary>Declined by the company, with a reason.</summary>
-        Rejected
+        Rejected,
+        /// <summary>A completed sale that was undone (with a reason); the home is listed again.</summary>
+        Reversed
     }
 }

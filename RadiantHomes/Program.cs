@@ -72,6 +72,16 @@ builder.Services.AddScoped<RadiantHomes.Services.Settings.PlatformSettings>();
 builder.Services.AddScoped<RadiantHomes.Services.Kyc.KycService>();
 builder.Services.AddScoped<RadiantHomes.Services.Properties.BulkUploadService>();
 builder.Services.AddHostedService<RadiantHomes.Services.CustomerPortal.ReservationExpiryJob>();
+// Foundation 3: sales agents on projects, customer chat (SignalR hub /hubs/chat), site visits, leads (CRM), sales,
+// video call log (unanswered calls become missed every minute)
+builder.Services.AddScoped<RadiantHomes.Services.Sales.AgentService>();
+builder.Services.AddScoped<RadiantHomes.Services.Sales.LeadService>();
+builder.Services.AddScoped<RadiantHomes.Services.Sales.ChatService>();
+builder.Services.AddScoped<RadiantHomes.Services.Sales.SiteVisitService>();
+builder.Services.AddScoped<RadiantHomes.Services.Sales.SalesReports>();
+builder.Services.AddScoped<RadiantHomes.Services.Sales.SaleAgreements>();
+builder.Services.AddHostedService<RadiantHomes.Services.VideoCalls.SalesHousekeepingJob>();
+builder.Services.AddSignalR(o => o.MaximumReceiveMessageSize = 16 * 1024);
 builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationPolicyProvider, RadiantHomes.Services.Security.PermissionPolicyProvider>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, RadiantHomes.Services.Security.PermissionHandler>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authentication.IClaimsTransformation, RadiantHomes.Services.Security.PermissionClaimsTransformation>();
@@ -104,6 +114,15 @@ builder.Services.AddRazorPages(options =>
     c.AuthorizePage("/Staff/Roles/Create", P(Perm.RolesManage));
     c.AuthorizeFolder("/Staff/Audit", P(Perm.AuditView));
     c.AuthorizeFolder("/Staff/Uploads", P(Perm.HousesApprove, Perm.HousesCreate, Perm.HousesUpdate)); // platform reviews, companies follow up
+    // Sales: agents, chat inbox, site visits, leads, sales, call history (each list is filtered to the user's sales scope)
+    c.AuthorizeFolder("/Staff/Agents", P(Perm.AgentsAssign));
+    c.AuthorizeFolder("/Staff/Inbox", P(Perm.ChatView));
+    c.AuthorizeFolder("/Staff/Visits", P(Perm.VisitsView));
+    c.AuthorizeFolder("/Staff/Leads", P(Perm.LeadsView));
+    c.AuthorizePage("/Staff/Leads/Create", P(Perm.LeadsManage));
+    c.AuthorizeFolder("/Staff/Sales", P(Perm.SalesRecord, Perm.SalesReverse, Perm.ReservationsView));
+    c.AuthorizePage("/Staff/Sales/Record", P(Perm.SalesRecord));
+    c.AuthorizeFolder("/Staff/Calls", P(Perm.CallHistoryView, Perm.VideoCallsReceive));
 
     // Company administration area (every page needs a staff permission; each page then its own)
     c.AuthorizeAreaFolder("HousingCompanyAdmin", "/", staff);
@@ -337,6 +356,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
 app.MapRazorPages();
+app.MapHub<RadiantHomes.Services.Sales.ChatHub>("/hubs/chat");
 app.MapMichuLocalizationEndpoints();
 
 // Referral links (customer portal, "Refer a friend"): /r/MH-7K3Q9P keeps the code for 30 days and opens registration.

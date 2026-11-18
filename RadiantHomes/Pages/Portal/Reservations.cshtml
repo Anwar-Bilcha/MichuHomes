@@ -49,7 +49,7 @@
                 {
                     <span class="mh-rcard-meta"><i class="bi bi-alarm" aria-hidden="true"></i> The company has until @exp.ToLocalTime().ToString("d MMM HH:mm") to answer</span>
                 }
-                @if (t.Status is HouseReserveStatuses.Rejected or HouseReserveStatuses.Cancelled or HouseReserveStatuses.Expired && t.History.OrderByDescending(h => h.ChangedOn).FirstOrDefault(h => !string.IsNullOrWhiteSpace(h.Reason))?.Reason is string why)
+                @if (t.Status is HouseReserveStatuses.Rejected or HouseReserveStatuses.Cancelled or HouseReserveStatuses.Expired or HouseReserveStatuses.Reversed && t.History.OrderByDescending(h => h.ChangedOn).FirstOrDefault(h => !string.IsNullOrWhiteSpace(h.Reason))?.Reason is string why)
                 {
                     <span class="mh-rcard-note"><i class="bi bi-info-circle" aria-hidden="true"></i> @why</span>
                 }

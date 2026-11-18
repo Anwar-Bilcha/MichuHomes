@@ -15,6 +15,7 @@ namespace RadiantHomes.Services.Security
         public const string Reservations = "Reservations";
         public const string Uploads = "Uploads";
         public const string Settings = "Settings";
+        public const string Sales = "Sales";
     }
 
     /// <summary>

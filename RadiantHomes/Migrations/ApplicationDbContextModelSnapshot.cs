@@ -945,6 +945,13 @@ namespace RadiantHomes.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<double?>("AgreedPrice")
+                        .HasColumnType("float");
+
+                    b.Property<string>("AgreementFileName")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
                     b.Property<Guid>("ApartmentHouseId")
                         .HasColumnType("uniqueidentifier");
 
@@ -960,8 +967,14 @@ namespace RadiantHomes.Migrations
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<double?>("Discount")
+                        .HasColumnType("float");
+
                     b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LeadId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Notes")
                         .IsRequired()
@@ -970,16 +983,34 @@ namespace RadiantHomes.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("PaymentStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReversedOn")
+                        .HasColumnType("datetime2");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
+
+                    b.Property<string>("SoldByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("SoldOn")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -1941,6 +1972,499 @@ namespace RadiantHomes.Migrations
                     b.ToTable("HouseRentInfos");
                 });
 
+            modelBuilder.Entity("RadiantHomes.Models.Sales.CallLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AgentName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("AgentUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("AnsweredOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ApartmentHouseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("CustomerPhone")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("CustomerUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("EndedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("RequestedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Room")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Topic")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Room")
+                        .IsUnique();
+
+                    b.HasIndex("CompanyId", "RequestedOn");
+
+                    b.HasIndex("Status", "RequestedOn");
+
+                    b.ToTable("CallLogs", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.ChatMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("ClientMessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("FromCustomer")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ReadOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("SenderUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("SentOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "ClientMessageId")
+                        .IsUnique();
+
+                    b.HasIndex("ConversationId", "Id");
+
+                    b.ToTable("ChatMessages", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.Conversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AgentUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("ApartmentHouseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CustomerUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("LastMessageOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LeadId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentUserId");
+
+                    b.HasIndex("ApartmentHouseId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("CompanyId", "Status", "LastMessageOn");
+
+                    b.ToTable("Conversations", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.Lead", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AgentUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("ApartmentHouseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Bedrooms")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("Budget")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Campaign")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("ClosedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("LastContactOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("LostReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("NextFollowUpOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid?>("SaleTransactionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Stage")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Temperature")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentUserId");
+
+                    b.HasIndex("ApartmentHouseId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("NextFollowUpOn");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("Reference")
+                        .IsUnique();
+
+                    b.HasIndex("CompanyId", "Stage");
+
+                    b.ToTable("Leads", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.LeadActivity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("ByName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("LeadId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("OccurredOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeadId", "OccurredOn");
+
+                    b.ToTable("LeadActivities", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.ProjectAgentAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AssignedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("AssignedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EndedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime?>("EndedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId", "UserId")
+                        .IsUnique()
+                        .HasFilter("[EndedOn] IS NULL");
+
+                    b.HasIndex("UserId", "EndedOn");
+
+                    b.ToTable("ProjectAgentAssignments", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.SiteVisit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AgentUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("ApartmentHouseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CustomerUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("LeadId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Outcome")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("PreferredDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PreferredTime")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ScheduledStart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApartmentHouseId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("Reference")
+                        .IsUnique();
+
+                    b.HasIndex("AgentUserId", "ScheduledStart");
+
+                    b.HasIndex("CompanyId", "Status", "PreferredDate");
+
+                    b.ToTable("SiteVisits", (string)null);
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.SiteVisitStatusChange", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ChangedByName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTime>("ChangedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FromStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("SiteVisitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiteVisitId");
+
+                    b.ToTable("SiteVisitStatusChanges", (string)null);
+                });
+
             modelBuilder.Entity("RadiantHomes.Models.Security.AccessRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2875,6 +3399,157 @@ namespace RadiantHomes.Migrations
                     b.Navigation("House");
                 });
 
+            modelBuilder.Entity("RadiantHomes.Models.Sales.ChatMessage", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.Sales.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.Conversation", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.ApartmentHouse", "ApartmentHouse")
+                        .WithMany()
+                        .HasForeignKey("ApartmentHouseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.HousingCompany", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RadiantHomes.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.HouseProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ApartmentHouse");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.Lead", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.ApartmentHouse", "ApartmentHouse")
+                        .WithMany()
+                        .HasForeignKey("ApartmentHouseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.HousingCompany", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RadiantHomes.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.HouseProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ApartmentHouse");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.LeadActivity", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.Sales.Lead", "Lead")
+                        .WithMany("Activities")
+                        .HasForeignKey("LeadId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lead");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.ProjectAgentAssignment", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.HouseProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RadiantHomes.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.SiteVisit", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.ApartmentHouse", "ApartmentHouse")
+                        .WithMany()
+                        .HasForeignKey("ApartmentHouseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.HousingCompany", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RadiantHomes.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RadiantHomes.Models.HousingCompanies.HouseProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ApartmentHouse");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.SiteVisitStatusChange", b =>
+                {
+                    b.HasOne("RadiantHomes.Models.Sales.SiteVisit", "SiteVisit")
+                        .WithMany("History")
+                        .HasForeignKey("SiteVisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SiteVisit");
+                });
+
             modelBuilder.Entity("RadiantHomes.Models.Security.AccessRole", b =>
                 {
                     b.HasOne("RadiantHomes.Models.HousingCompanies.HousingCompany", "Company")
@@ -3094,6 +3769,21 @@ namespace RadiantHomes.Migrations
             modelBuilder.Entity("RadiantHomes.Models.ReferralCode", b =>
                 {
                     b.Navigation("Referrals");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.Conversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.Lead", b =>
+                {
+                    b.Navigation("Activities");
+                });
+
+            modelBuilder.Entity("RadiantHomes.Models.Sales.SiteVisit", b =>
+                {
+                    b.Navigation("History");
                 });
 
             modelBuilder.Entity("RadiantHomes.Models.Security.AccessRole", b =>

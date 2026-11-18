@@ -1,0 +1,39 @@
+@page
+@model RadiantHomes.Pages.Portal.Messages.NewModel
+@{
+    ViewData["Title"] = "Message the company";
+}
+
+<div class="card" style="max-width: 44rem">
+    <div class="card-body">
+        <p class="text-muted mb-3">
+            <i class="bi bi-buildings" aria-hidden="true"></i> <strong>@Model.Company</strong> · about <strong>@Model.About</strong>
+        </p>
+
+        @if (!Model.Verified)
+        {
+            <div class="alert alert-info d-flex gap-2 mb-0" role="status" data-chat-gate>
+                <i class="bi bi-shield-check" aria-hidden="true"></i>
+                <div>
+                    To protect companies and customers, only customers with a verified identity can chat.
+                    <a class="alert-link" asp-page="/Portal/Kyc">Verify your identity</a> — it takes a few minutes, and we usually answer within a working day.
+                </div>
+            </div>
+        }
+        else
+        {
+            @if (Model.Error is { } error)
+            {
+                <div class="alert alert-danger" role="alert">@error</div>
+            }
+            <form method="post" asp-route-apartment="@Model.Apartment" asp-route-project="@Model.Project">
+                <input type="hidden" asp-for="ClientMessageId" />
+                <label asp-for="Body" class="form-label">Your question</label>
+                <textarea asp-for="Body" class="form-control" rows="4" maxlength="@RadiantHomes.Services.Sales.ChatService.MaxLength" required
+                          placeholder="For example: Is the price negotiable? When can I visit? Which payment plans do you offer?"></textarea>
+                <div class="form-text">The company's sales agent answers here; you'll also get a notification.</div>
+                <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-send" aria-hidden="true"></i> Send</button>
+            </form>
+        }
+    </div>
+</div>

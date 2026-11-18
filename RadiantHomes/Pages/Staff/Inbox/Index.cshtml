@@ -1,0 +1,63 @@
+@page
+@model RadiantHomes.Pages.Staff.Inbox.IndexModel
+@using RadiantHomes.Models.Sales
+@{
+    ViewData["Title"] = "Customer messages";
+    ViewData["Subtitle"] = Model.Access.IsPlatform
+        ? "Conversations between verified customers and companies."
+        : "Questions from verified customers about your homes. Agents see the conversations of their projects.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var tabs = new[] { ("open", "Open"), ("mine", "Mine"), ("unassigned", "Unassigned"), ("closed", "Closed"), ("all", "All") };
+}
+
+<nav class="mh-segmented mb-3" aria-label="Conversations">
+    @foreach (var (key, label) in tabs)
+    {
+        <a class="@(Model.Current == key ? "active" : null)" asp-page="./Index" asp-route-show="@key" aria-current="@(Model.Current == key ? "page" : null)">@label</a>
+    }
+</nav>
+
+@if (Model.UnreadTotal > 0)
+{
+    <p class="small text-muted"><i class="bi bi-envelope-exclamation" aria-hidden="true"></i> @Model.UnreadTotal unread customer message(s).</p>
+}
+
+@if (!Model.Items.Any())
+{
+    <div class="card"><div class="mh-empty"><span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-chat-dots"></i></span><h2>No conversations here</h2><p>When a verified customer messages you about a home, the conversation appears here.</p></div></div>
+}
+else
+{
+    <div class="card">
+        <ul class="mh-conv-list">
+            @foreach (var c in Model.Items)
+            {
+                <li>
+                    <a asp-page="./Conversation" asp-route-id="@c.Id" data-conversation-row="@c.Id">
+                        <span class="mh-icon-btn" aria-hidden="true"><i class="bi bi-person"></i></span>
+                        <span class="min-w-0">
+                            <span class="mh-conv-title d-block text-truncate">@c.Customer</span>
+                            <span class="small text-muted d-block text-truncate">@c.Subject@(c.Project is null ? "" : $" · {c.Project}")@(Model.Access.IsPlatform ? $" · {c.Company}" : "")</span>
+                            @if (c.LastMessage is not null)
+                            {
+                                <span class="mh-conv-preview">@(c.LastFromCustomer ? "" : "You: ")@c.LastMessage</span>
+                            }
+                        </span>
+                        <span class="mh-conv-side">
+                            @c.LastMessageOn.ToLocalTime().ToString("d MMM HH:mm")
+                            <span class="d-block">@(c.AgentUserId is string a && Model.Names.TryGetValue(a, out var n) ? n : "Unassigned")</span>
+                            @if (c.Unread > 0)
+                            {
+                                <span class="badge rounded-pill text-bg-warning mt-1">@c.Unread new</span>
+                            }
+                            @if (c.Status == ConversationStatuses.Closed)
+                            {
+                                <span class="badge text-bg-secondary mt-1">Closed</span>
+                            }
+                        </span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+}

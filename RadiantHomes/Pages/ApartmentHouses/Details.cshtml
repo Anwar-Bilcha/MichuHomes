@@ -54,6 +54,12 @@
                     <a asp-page="/LiveVideoMeet/Index" asp-route-apartment="@Model.ApartmentHouse.Id" class="btn btn-outline-primary btn-lg">
                         <i class="bi bi-camera-video" aria-hidden="true"></i> Video call an agent
                     </a>
+                    <a asp-page="/Portal/Messages/New" asp-route-apartment="@Model.ApartmentHouse.Id" class="btn btn-outline-primary btn-lg" data-start-chat>
+                        <i class="bi bi-chat-dots" aria-hidden="true"></i> Message the company
+                    </a>
+                    <a asp-page="/Portal/Visits/Request" asp-route-apartment="@Model.ApartmentHouse.Id" class="btn btn-outline-primary btn-lg" data-request-visit>
+                        <i class="bi bi-calendar2-week" aria-hidden="true"></i> Ask for a site visit
+                    </a>
                     <a asp-page="/Houses/Actions/Complaints/Create" asp-route-id="@Model.ApartmentHouse.Id" class="btn btn-outline-danger btn-lg">
                         <i class="bi bi-exclamation-octagon" aria-hidden="true"></i> Report
                     </a>

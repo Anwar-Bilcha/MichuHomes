@@ -1,0 +1,102 @@
+@page
+@model RadiantHomes.Pages.Staff.Visits.IndexModel
+@using RadiantHomes.Models.Sales
+@using RadiantHomes.Services.Sales
+@{
+    ViewData["Title"] = "Site visits";
+    ViewData["Subtitle"] = "Customers ask for a day and time; confirm it with an agent (an agent can't have two visits within an hour), decline it, or move it. Afterwards, record how it went.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var tabs = new[] { ("requests", "Requests", Model.Count("requests")), ("upcoming", "Confirmed", Model.Count("upcoming")), ("past", "Past", -1), ("all", "All", -1) };
+}
+
+<nav class="mh-segmented mb-3" aria-label="Site visits">
+    @foreach (var (key, label, count) in tabs)
+    {
+        <a class="@(Model.Current == key ? "active" : null)" asp-page="./Index" asp-route-show="@key" aria-current="@(Model.Current == key ? "page" : null)">
+            @label @if (count >= 0) { <span class="badge rounded-pill text-bg-light ms-1">@count</span> }
+        </a>
+    }
+</nav>
+
+@if (!Model.Items.Any())
+{
+    <div class="card"><div class="mh-empty"><span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-calendar2-week"></i></span><h2>No visits here</h2><p>Customers ask for site visits from a home's page.</p></div></div>
+}
+
+<div class="row g-3">
+    @foreach (var v in Model.Items)
+    {
+        var agent = v.AgentUserId is string a && Model.Names.TryGetValue(a, out var n) ? n : null;
+        var staff = Model.Staff.TryGetValue(v.CompanyId, out var list) ? list : new List<(string Id, string Name)>();
+        var suggested = v.ScheduledStart ?? v.PreferredDate.Date.Add(TimeSpan.Parse(VisitSlots.All.Contains(v.PreferredTime) ? v.PreferredTime : "09:00"));
+        <div class="col-12 col-xl-6">
+            <div class="card h-100" data-visit="@v.Reference">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between gap-2 mb-1">
+                        <span class="badge @SiteVisitStatuses.Badge(v.Status)">@SiteVisitStatuses.Label(v.Status)</span>
+                        <span class="small text-muted" translate="no">@v.Reference</span>
+                    </div>
+                    <h2 class="h6 mb-0">@v.Customer.FirstName @v.Customer.LastName <span class="text-muted fw-normal small">· @v.Customer.PhoneNumber</span></h2>
+                    <div class="small text-muted mb-2">@v.Project.ProjectName@(v.ApartmentHouse is null ? "" : $" · {v.ApartmentHouse.Title}")@(Model.Access.IsPlatform ? $" · {v.Company.Name}" : "")</div>
+                    <p class="mb-1 small">
+                        <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                        @if (v.ScheduledStart is DateTime s)
+                        {
+                            <strong>@s.ToString("ddd d MMM yyyy, HH:mm")</strong>
+                        }
+                        else
+                        {
+                            <span>Asked for <strong>@v.PreferredDate.ToString("ddd d MMM") at @v.PreferredTime</strong></span>
+                        }
+                        · @(agent ?? "no agent yet")
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(v.Notes)) { <p class="small mb-1"><i class="bi bi-chat-left-quote" aria-hidden="true"></i> @v.Notes</p> }
+                    @if (!string.IsNullOrWhiteSpace(v.Outcome)) { <p class="small mb-1"><i class="bi bi-clipboard-check" aria-hidden="true"></i> @v.Outcome</p> }
+
+                    <details class="small mt-2">
+                        <summary>History (@v.History.Count)</summary>
+                        <ul class="mh-timeline mt-2">
+                            @foreach (var h in v.History.OrderBy(h => h.ChangedOn))
+                            {
+                                <li><strong>@SiteVisitStatuses.Label(h.ToStatus)</strong> · @h.ChangedOn.ToLocalTime().ToString("d MMM HH:mm") · @h.ChangedByName<div class="text-muted">@h.Note</div></li>
+                            }
+                        </ul>
+                    </details>
+
+                    @if (Model.CanManage && SiteVisitStatuses.Open.Contains(v.Status))
+                    {
+                        <form method="post" class="row g-2 mt-2 border-top pt-2">
+                            <div class="col-sm-6">
+                                <label class="form-label small" for="start-@v.Id">Start</label>
+                                <input class="form-control form-control-sm" type="datetime-local" id="start-@v.Id" name="Start" value="@suggested.ToString("yyyy-MM-ddTHH:mm")" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label small" for="agent-@v.Id">Agent</label>
+                                <select class="form-select form-select-sm" id="agent-@v.Id" name="AgentUserId">
+                                    @foreach (var st in staff) { <option value="@st.Id" selected="@(st.Id == v.AgentUserId)">@st.Name</option> }
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small" for="note-@v.Id">Note to the customer (needed to decline)</label>
+                                <input class="form-control form-control-sm" id="note-@v.Id" name="Note" maxlength="500" />
+                            </div>
+                            <div class="col-12 d-flex flex-wrap gap-2">
+                                <button class="btn btn-sm btn-success" asp-page-handler="Confirm" asp-route-id="@v.Id" asp-route-show="@Model.Show">@(v.Status == SiteVisitStatuses.Confirmed ? "Move visit" : "Confirm")</button>
+                                <button class="btn btn-sm btn-outline-danger" asp-page-handler="Reject" asp-route-id="@v.Id" asp-route-show="@Model.Show">Decline</button>
+                            </div>
+                        </form>
+                    }
+                    @if (Model.CanManage && v.Status == SiteVisitStatuses.Confirmed && v.ScheduledStart <= DateTime.Now.AddMinutes(30))
+                    {
+                        <form method="post" class="mt-2 border-top pt-2">
+                            <label class="form-label small" for="outcome-@v.Id">How did it go? (optional)</label>
+                            <input class="form-control form-control-sm mb-2" id="outcome-@v.Id" name="Note" maxlength="1000" placeholder="Interested in a 3-bedroom; wants a payment plan…" />
+                            <button class="btn btn-sm btn-primary" asp-page-handler="Completed" asp-route-id="@v.Id" asp-route-show="@Model.Show">The customer visited</button>
+                            <button class="btn btn-sm btn-outline-secondary" asp-page-handler="NoShow" asp-route-id="@v.Id" asp-route-show="@Model.Show">Didn't come</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

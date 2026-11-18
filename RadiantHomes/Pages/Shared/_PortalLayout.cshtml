@@ -18,10 +18,13 @@
     string Section(string page) => currentPage switch
     {
         "/Portal/Apartment" or "/Portal/Browse" => "/Portal/Browse",
+        _ when currentPage?.StartsWith("/Portal/Messages") == true => "/Portal/Messages",
+        _ when currentPage?.StartsWith("/Portal/Visits") == true => "/Portal/Visits",
         _ => currentPage,
     } == page ? "active" : string.Empty;
     string? Current(string page) => Section(page) == "active" ? "page" : null;
-    var moreActive = currentPage is "/Portal/More" or "/Portal/Prices" or "/Portal/Bought" or "/Portal/Comments" or "/Portal/Referrals" or "/Portal/Profile";
+    var moreActive = currentPage is "/Portal/More" or "/Portal/Prices" or "/Portal/Bought" or "/Portal/Comments" or "/Portal/Referrals" or "/Portal/Profile"
+        || currentPage?.StartsWith("/Portal/Messages") == true || currentPage?.StartsWith("/Portal/Visits") == true;
 }
 <!DOCTYPE html>
 <html lang="@System.Threading.Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName">
@@ -65,6 +68,8 @@
                 <a class="@Section("/Portal/Prices")" aria-current="@Current("/Portal/Prices")" asp-page="/Portal/Prices"><i class="bi bi-graph-down-arrow" aria-hidden="true"></i> Best prices</a>
                 <div class="mh-portal-nav-label">My activity</div>
                 <a class="@Section("/Portal/Reservations")" aria-current="@Current("/Portal/Reservations")" asp-page="/Portal/Reservations"><i class="bi bi-calendar-check" aria-hidden="true"></i> My reservations</a>
+                <a class="@Section("/Portal/Messages")" aria-current="@Current("/Portal/Messages")" asp-page="/Portal/Messages/Index"><i class="bi bi-chat-dots" aria-hidden="true"></i> Messages</a>
+                <a class="@Section("/Portal/Visits")" aria-current="@Current("/Portal/Visits")" asp-page="/Portal/Visits/Index"><i class="bi bi-calendar2-week" aria-hidden="true"></i> Site visits</a>
                 <a class="@Section("/Portal/Bought")" aria-current="@Current("/Portal/Bought")" asp-page="/Portal/Bought"><i class="bi bi-key" aria-hidden="true"></i> Houses bought</a>
                 <a class="@Section("/Portal/Comments")" aria-current="@Current("/Portal/Comments")" asp-page="/Portal/Comments"><i class="bi bi-chat-left-text" aria-hidden="true"></i> My comments</a>
                 <a class="@Section("/Portal/Referrals")" aria-current="@Current("/Portal/Referrals")" asp-page="/Portal/Referrals"><i class="bi bi-gift" aria-hidden="true"></i> Refer a friend</a>

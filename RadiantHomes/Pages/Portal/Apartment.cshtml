@@ -119,10 +119,26 @@
             <partial name="~/Pages/ApartmentHouses/_ApartmentModelViewer.cshtml" model="Model.Model3D" />
         }
 
+        <a class="mh-promo mb-2" asp-page="/Portal/Messages/New" asp-route-apartment="@a.Id" data-start-chat>
+            <i class="bi bi-chat-dots" aria-hidden="true"></i>
+            <span>
+                <strong>Questions about this home?</strong>
+                <span>Message the company's sales agent.</span>
+            </span>
+            <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i>
+        </a>
+        <a class="mh-promo mb-2" asp-page="/Portal/Visits/Request" asp-route-apartment="@a.Id" data-request-visit>
+            <i class="bi bi-calendar2-week" aria-hidden="true"></i>
+            <span>
+                <strong>See it in person</strong>
+                <span>Ask for a site visit on a day that suits you.</span>
+            </span>
+            <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i>
+        </a>
         <a class="mh-promo mb-3" asp-page="/LiveVideoMeet/Index" asp-route-apartment="@a.Id">
             <i class="bi bi-camera-video" aria-hidden="true"></i>
             <span>
-                <strong>Questions about this home?</strong>
+                <strong>Talk face to face</strong>
                 <span>Talk to an agent by video call.</span>
             </span>
             <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i>

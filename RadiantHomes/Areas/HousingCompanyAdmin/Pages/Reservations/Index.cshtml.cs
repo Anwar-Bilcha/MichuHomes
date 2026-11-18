@@ -52,7 +52,7 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Reservations
 
         public Task<IActionResult> OnPostApproveAsync(Guid id) => Change(id, HouseReserveStatuses.Approved);
         public Task<IActionResult> OnPostRejectAsync(Guid id) => Change(id, HouseReserveStatuses.Rejected);
-        public Task<IActionResult> OnPostSoldAsync(Guid id) => Change(id, HouseReserveStatuses.Completed);
+        // Sales are recorded with their price, agent and payment on Staff/Sales/Record (sales.record).
         public Task<IActionResult> OnPostCancelAsync(Guid id) => Change(id, HouseReserveStatuses.Cancelled);
 
         private async Task<IActionResult> Change(Guid id, HouseReserveStatuses to)
@@ -76,6 +76,7 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Reservations
             "declined" => HouseReserveStatuses.Rejected,
             "expired" => HouseReserveStatuses.Expired,
             "cancelled" => HouseReserveStatuses.Cancelled,
+            "reversed" => HouseReserveStatuses.Reversed,
             "all" => null,
             _ => HouseReserveStatuses.Pending,
         };

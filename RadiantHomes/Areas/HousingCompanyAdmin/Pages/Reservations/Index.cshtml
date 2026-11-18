@@ -5,13 +5,14 @@
 @using RadiantHomes.Services.CustomerPortal
 @{
     ViewData["Title"] = "Reservations";
-    ViewData["Subtitle"] = "Customers who reserved your apartments. Approve or decline a reservation, mark the apartment as sold, or cancel an approved one. The customer is notified each time.";
+    ViewData["Subtitle"] = "Customers who reserved your apartments. Approve or decline a reservation, record the sale (price, agent, payment), or cancel an approved one. The customer is notified each time.";
     Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
     var tabs = new (string Key, string Label, int? Count)[]
     {
         ("pending", "Waiting", Model.Count(HouseReserveStatuses.Pending)),
         ("approved", "Approved", Model.Count(HouseReserveStatuses.Approved)),
         ("completed", "Sold", Model.Count(HouseReserveStatuses.Completed)),
+        ("reversed", "Reversed", Model.Count(HouseReserveStatuses.Reversed)),
         ("declined", "Declined", Model.Count(HouseReserveStatuses.Rejected)),
         ("expired", "Expired", Model.Count(HouseReserveStatuses.Expired)),
         ("cancelled", "Cancelled", Model.Count(HouseReserveStatuses.Cancelled)),
@@ -24,6 +25,7 @@
         HouseReserveStatuses.Rejected => "declined",
         HouseReserveStatuses.Expired => "expired",
         HouseReserveStatuses.Cancelled => "cancelled",
+        HouseReserveStatuses.Reversed => "reversed",
         null => "all",
         _ => "pending",
     };
@@ -115,7 +117,7 @@ else
                                                 <button type="submit" class="btn btn-sm btn-primary" asp-page-handler="Approve" asp-route-id="@t.Id" asp-route-status="@current"><i class="bi bi-check2" aria-hidden="true"></i> Approve</button>
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" asp-page-handler="Reject" asp-route-id="@t.Id" asp-route-status="@current"><i class="bi bi-x-circle" aria-hidden="true"></i> Decline</button>
                                             }
-                                            <button type="submit" class="btn btn-sm btn-success" asp-page-handler="Sold" asp-route-id="@t.Id" asp-route-status="@current"><i class="bi bi-key" aria-hidden="true"></i> Mark as sold</button>
+                                            <a mh-permission="sales.record" class="btn btn-sm btn-success" asp-area="" asp-page="/Staff/Sales/Record" asp-route-id="@t.Id"><i class="bi bi-key" aria-hidden="true"></i> Record sale</a>
                                             @if (t.Status == HouseReserveStatuses.Approved)
                                             {
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" asp-page-handler="Cancel" asp-route-id="@t.Id" asp-route-status="@current"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel</button>

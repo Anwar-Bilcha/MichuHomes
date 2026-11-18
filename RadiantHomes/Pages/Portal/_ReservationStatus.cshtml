@@ -9,6 +9,7 @@
         HouseReserveStatuses.Cancelled => ("cancelled", "bi-x-circle", "Cancelled"),
         HouseReserveStatuses.Rejected => ("cancelled", "bi-x-octagon", "Declined by the company"),
         HouseReserveStatuses.Expired => ("cancelled", "bi-alarm", "Expired (no answer in time)"),
+        HouseReserveStatuses.Reversed => ("cancelled", "bi-arrow-counterclockwise", "Purchase reversed"),
         _ => ("cancelled", "bi-archive", "Closed"),
     };
 }

@@ -63,6 +63,16 @@ namespace RadiantHomes.DAL
         public DbSet<UploadBatchRow> UploadBatchRows { get; set; }
         public DbSet<Models.Shared.PlatformSetting> PlatformSettings { get; set; }
 
+        // Foundation 3: agents, chat, site visits, leads, call log
+        public DbSet<Models.Sales.ProjectAgentAssignment> ProjectAgentAssignments { get; set; }
+        public DbSet<Models.Sales.Conversation> Conversations { get; set; }
+        public DbSet<Models.Sales.ChatMessage> ChatMessages { get; set; }
+        public DbSet<Models.Sales.SiteVisit> SiteVisits { get; set; }
+        public DbSet<Models.Sales.SiteVisitStatusChange> SiteVisitStatusChanges { get; set; }
+        public DbSet<Models.Sales.Lead> Leads { get; set; }
+        public DbSet<Models.Sales.LeadActivity> LeadActivities { get; set; }
+        public DbSet<Models.Sales.CallLog> CallLogs { get; set; }
+
         // Guid keys have no database default (migration 20251227201651_GUIDCleanUpForRealEstate removed the
         // NEWID() defaults), so EF generates them on the client. Rows added with an explicit Guid.Empty key
         // (some pages build entities that way) get a fresh Guid here as well.
@@ -173,6 +183,82 @@ namespace RadiantHomes.DAL
             }
         }
 
+
+        private static void ConfigureFoundation3(ModelBuilder builder)
+        {
+            // Links to existing tables are Restrict: addresses and companies already cascade into projects, profiles and
+            // accounts, and SQL Server allows one cascade path. Only a record's own children cascade.
+            builder.Entity<Models.Sales.ProjectAgentAssignment>(e =>
+            {
+                e.ToTable("ProjectAgentAssignments");
+                e.HasIndex(a => new { a.ProjectId, a.UserId }).IsUnique().HasFilter("[EndedOn] IS NULL"); // one active assignment
+                e.HasIndex(a => new { a.UserId, a.EndedOn });
+                e.HasOne(a => a.Project).WithMany().HasForeignKey(a => a.ProjectId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(a => a.User).WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
+            builder.Entity<Models.Sales.Conversation>(e =>
+            {
+                e.ToTable("Conversations");
+                e.HasIndex(c => new { c.CompanyId, c.Status, c.LastMessageOn });
+                e.HasIndex(c => c.CustomerId);
+                e.HasIndex(c => c.AgentUserId);
+                e.HasOne(c => c.Company).WithMany().HasForeignKey(c => c.CompanyId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(c => c.Project).WithMany().HasForeignKey(c => c.ProjectId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(c => c.ApartmentHouse).WithMany().HasForeignKey(c => c.ApartmentHouseId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(c => c.Customer).WithMany().HasForeignKey(c => c.CustomerId).OnDelete(DeleteBehavior.Restrict);
+            });
+            builder.Entity<Models.Sales.ChatMessage>(e =>
+            {
+                e.ToTable("ChatMessages");
+                e.HasIndex(m => new { m.ConversationId, m.ClientMessageId }).IsUnique(); // a message sent twice is stored once
+                e.HasIndex(m => new { m.ConversationId, m.Id });
+                e.HasOne(m => m.Conversation).WithMany(c => c.Messages).HasForeignKey(m => m.ConversationId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<Models.Sales.SiteVisit>(e =>
+            {
+                e.ToTable("SiteVisits");
+                e.HasIndex(v => v.Reference).IsUnique();
+                e.HasIndex(v => new { v.CompanyId, v.Status, v.PreferredDate });
+                e.HasIndex(v => new { v.AgentUserId, v.ScheduledStart });
+                e.HasIndex(v => v.CustomerId);
+                e.HasOne(v => v.Company).WithMany().HasForeignKey(v => v.CompanyId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(v => v.Project).WithMany().HasForeignKey(v => v.ProjectId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(v => v.ApartmentHouse).WithMany().HasForeignKey(v => v.ApartmentHouseId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(v => v.Customer).WithMany().HasForeignKey(v => v.CustomerId).OnDelete(DeleteBehavior.Restrict);
+            });
+            builder.Entity<Models.Sales.SiteVisitStatusChange>(e =>
+            {
+                e.ToTable("SiteVisitStatusChanges");
+                e.HasOne(h => h.SiteVisit).WithMany(v => v.History).HasForeignKey(h => h.SiteVisitId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<Models.Sales.Lead>(e =>
+            {
+                e.ToTable("Leads");
+                e.HasIndex(l => l.Reference).IsUnique();
+                e.HasIndex(l => new { l.CompanyId, l.Stage });
+                e.HasIndex(l => l.AgentUserId);
+                e.HasIndex(l => l.CustomerId);
+                e.HasIndex(l => l.NextFollowUpOn);
+                e.HasOne(l => l.Company).WithMany().HasForeignKey(l => l.CompanyId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(l => l.Project).WithMany().HasForeignKey(l => l.ProjectId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(l => l.ApartmentHouse).WithMany().HasForeignKey(l => l.ApartmentHouseId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(l => l.Customer).WithMany().HasForeignKey(l => l.CustomerId).OnDelete(DeleteBehavior.Restrict);
+            });
+            builder.Entity<Models.Sales.LeadActivity>(e =>
+            {
+                e.ToTable("LeadActivities");
+                e.HasIndex(a => new { a.LeadId, a.OccurredOn });
+                e.HasOne(a => a.Lead).WithMany(l => l.Activities).HasForeignKey(a => a.LeadId).OnDelete(DeleteBehavior.Cascade);
+            });
+            builder.Entity<Models.Sales.CallLog>(e =>
+            {
+                e.ToTable("CallLogs");
+                e.HasIndex(c => c.Room).IsUnique();
+                e.HasIndex(c => new { c.CompanyId, c.RequestedOn });
+                e.HasIndex(c => new { c.Status, c.RequestedOn });
+                e.Ignore(c => c.DurationSeconds);
+            });
+        }
 
         private static void ConfigureFoundation2(ModelBuilder builder)
         {
@@ -306,6 +392,7 @@ namespace RadiantHomes.DAL
 
             ConfigureAccessControl(builder);
             ConfigureFoundation2(builder);
+            ConfigureFoundation3(builder);
 
             builder.Entity<ApartmentHouseSaleTransaction>()
     .ToTable("ApartmentHouseSaleTransactions");

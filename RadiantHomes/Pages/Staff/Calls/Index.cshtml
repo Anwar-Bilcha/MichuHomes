@@ -1,0 +1,80 @@
+@page
+@model RadiantHomes.Pages.Staff.Calls.IndexModel
+@using RadiantHomes.Models.Sales
+@using RadiantHomes.Services.VideoCalls
+@{
+    ViewData["Title"] = "Video calls";
+    ViewData["Subtitle"] = $"Customers waiting for an agent, and what happened to each call. A call nobody answers within {VideoCallService.MissedAfter.TotalMinutes:0} minutes is missed.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var statuses = new[] { CallStatuses.Ended, CallStatuses.Missed, CallStatuses.Rejected, CallStatuses.Cancelled, CallStatuses.Answered };
+}
+
+@if (Model.CanAnswer)
+{
+    <div class="card mb-4">
+        <div class="card-header fw-semibold"><i class="bi bi-camera-video" aria-hidden="true"></i> Waiting now (@Model.Waiting.Count)</div>
+        @if (!Model.Waiting.Any())
+        {
+            <div class="card-body small text-muted">Nobody is waiting. You'll see an alert anywhere in the admin area when a customer calls.</div>
+        }
+        else
+        {
+            <ul class="list-group list-group-flush">
+                @foreach (var c in Model.Waiting)
+                {
+                    <li class="list-group-item" data-waiting-call="@c.Id">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <div class="me-auto">
+                                <strong>@c.CustomerName</strong> <span class="small text-muted">· waiting since @c.RequestedOn.ToLocalTime().ToString("HH:mm")</span>
+                                <div class="small text-muted">@(c.Topic ?? "General question")@(string.IsNullOrWhiteSpace(c.CustomerPhone) ? "" : $" · {c.CustomerPhone}")</div>
+                            </div>
+                            <a class="btn btn-sm btn-success" href="@VideoCallService.AgentPath(c.Id)"><i class="bi bi-camera-video" aria-hidden="true"></i> Join</a>
+                            <form method="post" asp-page-handler="Reject" asp-route-id="@c.Id" asp-route-status="@Model.Status" class="d-flex gap-1">
+                                <input class="form-control form-control-sm" name="Reason" maxlength="500" required placeholder="Reason to decline" aria-label="Reason to decline the call of @c.CustomerName" />
+                                <button class="btn btn-sm btn-outline-danger">Decline</button>
+                            </form>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+}
+
+@if (Model.CanSeeHistory)
+{
+    <h2 class="h5 mb-2">History</h2>
+    <nav class="mh-segmented mb-3" aria-label="Call status">
+        <a class="@(string.IsNullOrEmpty(Model.Status) ? "active" : null)" asp-page="./Index">All</a>
+        @foreach (var s in statuses)
+        {
+            <a class="@(Model.Status == s ? "active" : null)" asp-page="./Index" asp-route-status="@s">@CallStatuses.Label(s) <span class="badge rounded-pill text-bg-light ms-1">@Model.Count(s)</span></a>
+        }
+    </nav>
+    if (!Model.Items.Any())
+    {
+        <div class="card"><div class="mh-empty"><span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-telephone"></i></span><h2>No calls here</h2></div></div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th scope="col">Customer</th><th scope="col">Asked</th><th scope="col">Status</th><th scope="col">Agent</th><th scope="col">Duration</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in Model.Items)
+                        {
+                            <tr data-call="@c.Id">
+                                <td>@c.CustomerName<div class="small text-muted">@(c.Topic ?? "General question")@(string.IsNullOrWhiteSpace(c.CustomerPhone) ? "" : $" · {c.CustomerPhone}")</div></td>
+                                <td class="small text-nowrap">@c.RequestedOn.ToLocalTime().ToString("d MMM yyyy HH:mm")</td>
+                                <td><span class="badge @CallStatuses.Badge(c.Status)">@CallStatuses.Label(c.Status)</span>@if (!string.IsNullOrWhiteSpace(c.Reason) && c.Status == CallStatuses.Rejected) { <div class="small text-muted">@c.Reason</div> }</td>
+                                <td class="small">@(c.AgentName ?? "—")</td>
+                                <td class="small">@RadiantHomes.Pages.Staff.Calls.IndexModel.Duration(c)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}

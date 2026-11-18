@@ -46,6 +46,9 @@ namespace RadiantHomes.Tests.Infrastructure
             services.AddScoped<RadiantHomes.Services.CustomerPortal.ReservationService>();
             services.AddScoped<RadiantHomes.Services.Kyc.KycService>();
             services.AddScoped<RadiantHomes.Services.Properties.BulkUploadService>();
+            // Foundation 3 (reservations record a lead)
+            services.AddScoped<RadiantHomes.Services.Sales.AgentService>();
+            services.AddScoped<RadiantHomes.Services.Sales.LeadService>();
             _root = services.BuildServiceProvider();
             _scope = _root.CreateAsyncScope();
         }

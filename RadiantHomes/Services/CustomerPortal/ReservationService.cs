@@ -5,7 +5,9 @@ using RadiantHomes.DAL;
 using RadiantHomes.Models;
 using RadiantHomes.Models.HousingCompanies;
 using RadiantHomes.Services.AdminServices;
+using RadiantHomes.Models.Sales;
 using RadiantHomes.Services.NotificationService;
+using RadiantHomes.Services.Sales;
 using RadiantHomes.Services.Settings;
 
 namespace RadiantHomes.Services.CustomerPortal
@@ -28,6 +30,9 @@ namespace RadiantHomes.Services.CustomerPortal
     }
 
     public sealed record ReservationChange(bool Succeeded, string Message);
+
+    /// <summary>What a sale records (Staff/Sales/Record): the agreed price, discount, date, selling agent and payment.</summary>
+    public sealed record SaleDetails(double AgreedPrice, double? Discount, DateTime SoldOn, string? SoldByUserId, string PaymentStatus);
 
     /// <summary>
     /// Reservations of company apartments (ApartmentHouseSaleTransactions). A customer reserves (public apartment page
@@ -52,13 +57,15 @@ namespace RadiantHomes.Services.CustomerPortal
         private readonly INotificationService _notifications;
         private readonly CustomerNotifications _customers;
         private readonly PlatformSettings _settings;
+        private readonly LeadService _leads;
 
-        public ReservationService(ApplicationDbContext context, INotificationService notifications, CustomerNotifications customers, PlatformSettings settings)
+        public ReservationService(ApplicationDbContext context, INotificationService notifications, CustomerNotifications customers, PlatformSettings settings, LeadService leads)
         {
             _context = context;
             _notifications = notifications;
             _customers = customers;
             _settings = settings;
+            _leads = leads;
         }
 
         public static string Label(HouseReserveStatuses status) => status switch
@@ -69,6 +76,7 @@ namespace RadiantHomes.Services.CustomerPortal
             HouseReserveStatuses.Cancelled => "Cancelled",
             HouseReserveStatuses.Expired => "Expired",
             HouseReserveStatuses.Rejected => "Declined",
+            HouseReserveStatuses.Reversed => "Sale reversed",
             _ => status.ToString(),
         };
 
@@ -124,6 +132,13 @@ namespace RadiantHomes.Services.CustomerPortal
             };
             _context.ApartmentHouseSaleTransactions.Add(transaction);
             AddHistory(transaction, null, HouseReserveStatuses.Pending, null, null, customerName);
+            // The company's sales pipeline: the customer's lead moves to "Interested" (created when there is none).
+            if (await _context.UserProfiles.FirstOrDefaultAsync(p => p.Id == buyerId) is { } buyer)
+            {
+                var lead = await _leads.TouchAsync(company.CompanyId, house.Building?.ProjectId, house.Id, buyer, "Reservation", "Reservation",
+                    $"Reserved \"{house.Title}\" ({transaction.Reference}).", LeadStages.Interested);
+                transaction.LeadId = lead.Id;
+            }
             _customers.Add(buyerId, "Reservation received",
                 $"Your reservation {transaction.Reference} of \"{house.Title}\" was sent to {company.Name}."
                 + (transaction.ExpiresAt is DateTime exp ? $" If they don't answer by {exp.ToLocalTime():d MMM HH:mm}, it expires and the home is listed again." : ""),
@@ -218,7 +233,7 @@ namespace RadiantHomes.Services.CustomerPortal
         /// approved one, or mark it sold. Declining and cancelling need a reason, which the customer sees.
         /// </summary>
         public async Task<ReservationChange> ChangeStatusAsync(Guid transactionId, HouseReserveStatuses to, CompanyScope scope,
-            string? reason = null, string? actorUserId = null, string? actorName = null)
+            string? reason = null, string? actorUserId = null, string? actorName = null, SaleDetails? sale = null)
         {
             var transaction = await WithApartment().FirstOrDefaultAsync(t => t.Id == transactionId);
             if (transaction is null || !scope.CanAccess(transaction.ApartmentHouse?.Building?.Project?.HousingCompanyId))
@@ -238,6 +253,11 @@ namespace RadiantHomes.Services.CustomerPortal
             if (to is HouseReserveStatuses.Rejected or HouseReserveStatuses.Cancelled && reason is null)
                 return new(false, "Please give the customer a reason.");
             if (reason is { Length: > 1000 }) return new(false, "Keep the reason under 1000 characters.");
+            if (to == HouseReserveStatuses.Completed && sale is not null)
+            {
+                var error = await CheckSaleAsync(transaction, sale);
+                if (error is not null) return new(false, error);
+            }
 
             var house = transaction.ApartmentHouse;
             var title = house?.Title ?? string.Empty;
@@ -259,6 +279,13 @@ namespace RadiantHomes.Services.CustomerPortal
                         house.SalesStatus = "Sold";
                         house.IsAvailable = false;
                     }
+                    transaction.AgreedPrice = sale?.AgreedPrice ?? house?.SalePrice;
+                    transaction.Discount = sale?.Discount is > 0 ? sale.Discount : null;
+                    transaction.SoldOn = sale?.SoldOn ?? DateTime.Now;
+                    transaction.SoldByUserId = sale?.SoldByUserId ?? (await IsCompanyStaffAsync(actorUserId, transaction.CompanyId) ? actorUserId : null);
+                    transaction.PaymentStatus = sale?.PaymentStatus ?? "Unpaid";
+                    if ((transaction.CompanyId ?? house?.Building?.Project?.HousingCompanyId) is Guid sellerId)
+                        await _leads.ConvertOnSaleAsync(sellerId, house?.Building?.ProjectId, house?.Id, transaction.CustomerId, transaction.Id, $"Bought \"{title}\" ({transaction.Reference}).");
                     Notify(transaction, "Purchase completed", $"Congratulations! Your purchase of \"{title}\" from {company} is complete (reservation {transaction.Reference}).", "/Portal/Bought");
                     message = $"\"{title}\" was marked as sold.";
                     break;
@@ -284,6 +311,86 @@ namespace RadiantHomes.Services.CustomerPortal
             }
             return new(true, message);
         }
+
+        /// <summary>
+        /// Undo a recorded sale (sales.reverse; the reason is kept and the customer is told): the reservation becomes
+        /// "Sale reversed", the home is listed again (unless an admin hid it) and the converted lead is closed as lost.
+        /// </summary>
+        public async Task<ReservationChange> ReverseSaleAsync(Guid transactionId, CompanyScope scope, string? reason, string? actorUserId, string? actorName)
+        {
+            var transaction = await WithApartment().FirstOrDefaultAsync(t => t.Id == transactionId);
+            if (transaction is null || !scope.CanAccess(transaction.ApartmentHouse?.Building?.Project?.HousingCompanyId))
+                return new(false, "This sale could not be found.");
+            if (transaction.Status != HouseReserveStatuses.Completed) return new(false, "Only completed sales can be reversed.");
+            reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim();
+            if (reason is null) return new(false, "Say why the sale is reversed.");
+            if (reason.Length > 500) return new(false, "Keep the reason under 500 characters.");
+
+            transaction.Status = HouseReserveStatuses.Reversed;
+            transaction.ReversedOn = DateTime.UtcNow;
+            transaction.ReversalReason = reason;
+            AddHistory(transaction, HouseReserveStatuses.Completed, HouseReserveStatuses.Reversed, reason, actorUserId, actorName);
+            var house = transaction.ApartmentHouse;
+            if (house is not null && string.Equals(house.SalesStatus, "Sold", StringComparison.OrdinalIgnoreCase)
+                && !await _context.ApartmentHouseSaleTransactions.AnyAsync(t => t.ApartmentHouseId == house.Id && t.Id != transaction.Id
+                    && (t.Status == HouseReserveStatuses.Pending || t.Status == HouseReserveStatuses.Approved || t.Status == HouseReserveStatuses.Completed)))
+            {
+                house.SalesStatus = "None";
+                if (string.Equals(house.Status, "Sold", StringComparison.OrdinalIgnoreCase))
+                {
+                    house.Status = ApartmentHouseApproval.ApprovedStatus;
+                    house.IsAvailable = true;
+                }
+            }
+            var lead = await _context.Leads.FirstOrDefaultAsync(l => l.SaleTransactionId == transaction.Id);
+            if (lead is not null)
+            {
+                lead.Stage = LeadStages.Lost;
+                lead.LostReason = $"Sale reversed: {reason}";
+                lead.ClosedOn = DateTime.UtcNow;
+                _context.LeadActivities.Add(new LeadActivity { LeadId = lead.Id, Type = "Sale", Body = $"Sale {transaction.Reference} reversed: {reason}", OccurredOn = DateTime.UtcNow, ByUserId = actorUserId, ByName = actorName });
+            }
+            var company = house?.Building?.Project?.Company?.Name ?? "The real estate company";
+            Notify(transaction, "Purchase reversed", $"{company} reversed the sale of \"{house?.Title}\" ({transaction.Reference}): {reason}", "/Portal/Reservations");
+            if (!await TrySaveAsync()) return new(false, Conflict);
+            return new(true, $"Sale {transaction.Reference} reversed; the home is listed again.");
+        }
+
+        /// <summary>Payment progress of a completed sale (sales.record).</summary>
+        public async Task<ReservationChange> SetPaymentStatusAsync(Guid transactionId, CompanyScope scope, string paymentStatus, string? actorUserId, string? actorName)
+        {
+            var transaction = await WithApartment().FirstOrDefaultAsync(t => t.Id == transactionId);
+            if (transaction is null || !scope.CanAccess(transaction.ApartmentHouse?.Building?.Project?.HousingCompanyId) || transaction.Status != HouseReserveStatuses.Completed)
+                return new(false, "This sale could not be found.");
+            if (!PaymentStatuses.All.Contains(paymentStatus)) return new(false, "Choose a payment status.");
+            if (transaction.PaymentStatus == paymentStatus) return new(true, "Nothing changed.");
+            var from = transaction.PaymentStatus;
+            transaction.PaymentStatus = paymentStatus;
+            AddHistory(transaction, HouseReserveStatuses.Completed, HouseReserveStatuses.Completed,
+                $"Payment: {PaymentStatuses.Label(from ?? "Unpaid")} → {PaymentStatuses.Label(paymentStatus)}", actorUserId, actorName);
+            if (paymentStatus == "Paid")
+                Notify(transaction, "Payment complete", $"{transaction.ApartmentHouse?.Building?.Project?.Company?.Name} confirmed your full payment for \"{transaction.ApartmentHouse?.Title}\".", "/Portal/Bought");
+            if (!await TrySaveAsync()) return new(false, Conflict);
+            return new(true, $"Payment status: {PaymentStatuses.Label(paymentStatus)}.");
+        }
+
+        private async Task<string?> CheckSaleAsync(ApartmentHouseSaleTransaction transaction, SaleDetails sale)
+        {
+            if (sale.AgreedPrice <= 0 || double.IsNaN(sale.AgreedPrice) || double.IsInfinity(sale.AgreedPrice)) return "Enter the agreed price.";
+            if (sale.Discount is < 0) return "The discount can't be negative.";
+            var listPrice = transaction.ApartmentHouse?.SalePrice ?? 0;
+            if (sale.Discount is double discount && listPrice > 0 && discount > listPrice) return "The discount is larger than the listed price.";
+            if (sale.SoldOn.Date > DateTime.Today.AddDays(1)) return "The sale date can't be in the future.";
+            if (sale.SoldOn.Date < transaction.TransactionDate.Date.AddDays(-1)) return "The sale date is before the reservation.";
+            if (!PaymentStatuses.All.Contains(sale.PaymentStatus)) return "Choose a payment status.";
+            if (sale.SoldByUserId is not null && !await IsCompanyStaffAsync(sale.SoldByUserId, transaction.CompanyId ?? transaction.ApartmentHouse?.Building?.Project?.HousingCompanyId))
+                return "The selling agent must be one of the company's staff.";
+            return null;
+        }
+
+        private async Task<bool> IsCompanyStaffAsync(string? userId, Guid? companyId) =>
+            userId is not null && companyId is not null && await _context.AppUsers.AnyAsync(u => u.Id == userId
+                && u.AccountType == RadiantHomes.Models.Security.AccountType.CompanyStaff && u.HousingCompanyId == companyId);
 
         /// <summary>
         /// Pending reservations past their answer time become Expired: the home is listed again and both sides are told.

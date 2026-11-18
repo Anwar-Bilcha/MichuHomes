@@ -1,0 +1,92 @@
+@page
+@model RadiantHomes.Pages.Staff.Leads.IndexModel
+@using RadiantHomes.Models.Sales
+@{
+    ViewData["Title"] = "Leads";
+    ViewData["Subtitle"] = "Everyone interested in buying: from reservations, site visits, chats, video calls, or added by your team.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+@section PageActions {
+    <a mh-permission="leads.view" class="btn btn-outline-primary" asp-page="./Report"><i class="bi bi-bar-chart" aria-hidden="true"></i> Report</a>
+    <a mh-permission="leads.manage" class="btn btn-primary" asp-page="./Create"><i class="bi bi-person-plus" aria-hidden="true"></i> New lead</a>
+}
+
+<div class="mh-pipeline mb-3" role="navigation" aria-label="Pipeline stages">
+    <a class="@(Model.CurrentStage == "open" ? "active" : null)" asp-page="./Index" asp-route-stage="open"><strong>@Model.OpenCount</strong><span>All open</span></a>
+    @foreach (var s in LeadStages.All)
+    {
+        <a class="@(Model.CurrentStage == s ? "active" : null)" asp-page="./Index" asp-route-stage="@s" aria-current="@(Model.CurrentStage == s ? "page" : null)"><strong>@Model.Count(s)</strong><span>@LeadStages.Label(s)</span></a>
+    }
+</div>
+
+<form method="get" class="card card-body mb-3">
+    <input type="hidden" name="stage" value="@Model.Stage" />
+    <div class="row g-2 align-items-end">
+        <div class="col-sm-6 col-lg-3">
+            <label class="form-label small" for="q">Search</label>
+            <input class="form-control form-control-sm" id="q" name="q" value="@Model.Q" placeholder="Name, phone, email, reference" />
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label small" for="agent">Agent</label>
+            <select class="form-select form-select-sm" id="agent" name="agent">
+                <option value="">Anyone</option>
+                <option value="me" selected="@(Model.Agent == "me")">Me</option>
+                <option value="none" selected="@(Model.Agent == "none")">Not assigned</option>
+                @foreach (var a in Model.AgentChoices) { <option value="@a.Id" selected="@(Model.Agent == a.Id)">@a.Name</option> }
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label small" for="temperature">Temperature</label>
+            <select class="form-select form-select-sm" id="temperature" name="temperature">
+                <option value="">Any</option>
+                @foreach (var t in LeadTemperatures.All) { <option value="@t" selected="@(Model.Temperature == t)">@t</option> }
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label small" for="source">Source</label>
+            <select class="form-select form-select-sm" id="source" name="source">
+                <option value="">Any</option>
+                @foreach (var s in LeadSources.All) { <option value="@s" selected="@(Model.Source == s)">@LeadSources.Label(s)</option> }
+            </select>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="due" name="due" value="true" checked="@Model.Due" />
+                <label class="form-check-label small" for="due">Follow-up due (@Model.DueCount)</label>
+            </div>
+        </div>
+        <div class="col-lg-1"><button class="btn btn-sm btn-primary w-100">Filter</button></div>
+    </div>
+</form>
+
+@if (!Model.Items.Any())
+{
+    <div class="card"><div class="mh-empty"><span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-person-lines-fill"></i></span><h2>No leads here</h2><p>Leads are created automatically when customers reserve, ask for visits, chat or call, and your team can add them.</p></div></div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th scope="col">Lead</th><th scope="col">Interest</th><th scope="col">Stage</th><th scope="col">Agent</th><th scope="col">Next follow-up</th></tr></thead>
+                <tbody>
+                    @foreach (var l in Model.Items)
+                    {
+                        var overdue = l.ClosedOn == null && l.NextFollowUpOn <= DateTime.Now;
+                        <tr data-lead="@l.Reference">
+                            <td>
+                                <a class="fw-semibold" asp-page="./Details" asp-route-id="@l.Id">@l.Name</a>
+                                <div class="small text-muted"><span translate="no">@l.Reference</span> · @LeadSources.Label(l.Source) · <span class="badge @(l.Temperature == "Hot" ? "text-bg-danger" : l.Temperature == "Cold" ? "text-bg-info" : "text-bg-warning")">@l.Temperature</span></div>
+                            </td>
+                            <td class="small">@(l.Project?.ProjectName ?? "—")@(Model.Access.IsPlatform ? $" · {l.Company.Name}" : "")@(l.Budget is double b ? $" · budget {b:N0} {l.Currency}" : "")</td>
+                            <td><span class="badge text-bg-light">@LeadStages.Label(l.Stage)</span></td>
+                            <td class="small">@(l.AgentUserId is string a && Model.Names.TryGetValue(a, out var n) ? n : "—")</td>
+                            <td class="small @(overdue ? "text-danger fw-semibold" : null)">@(l.NextFollowUpOn?.ToString("d MMM HH:mm") ?? "—")@(overdue ? " (due)" : "")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

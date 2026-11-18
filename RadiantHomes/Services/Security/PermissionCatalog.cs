@@ -62,6 +62,21 @@ namespace RadiantHomes.Services.Security
         public const string NotificationsView = "notifications.view";
         public const string VideoCallsReceive = "communications.video.receive";
 
+        // Foundation 3: agents, chat, calls, site visits, leads, sales
+        public const string AgentsAssign = "agents.assign";
+        public const string AllProjects = "sales.all_projects";
+        public const string ChatView = "communications.chat.view";
+        public const string ChatReply = "communications.chat.reply";
+        public const string ChatAssign = "communications.chat.assign";
+        public const string CallHistoryView = "communications.call_history.view";
+        public const string VisitsView = "sitevisits.view";
+        public const string VisitsManage = "sitevisits.manage";
+        public const string LeadsView = "leads.view";
+        public const string LeadsManage = "leads.manage";
+        public const string LeadsAssign = "leads.assign";
+        public const string SalesRecord = "sales.record";
+        public const string SalesReverse = "sales.reverse";
+
         /// <summary>Authorization policy name for "any of these permissions".</summary>
         public static string Policy(params string[] keys) => PermissionPolicy.Prefix + string.Join(PermissionPolicy.Separator, keys);
 
@@ -122,6 +137,19 @@ namespace RadiantHomes.Services.Security
             new(Perm.CustomerDocumentsView, "Sales", "View identity documents", "Open customers' uploaded identity documents.", PermissionScope.Both),
             new(Perm.NotificationsView, "Sales", "View notifications", "See the notification inbox (new reservations, uploads, call requests).", PermissionScope.Both),
             new(Perm.VideoCallsReceive, "Communication", "Answer video calls", "Receive and answer customers' video call requests.", PermissionScope.Both),
+            new(Perm.AgentsAssign, "Sales team", "Assign sales agents", "Assign company staff to projects as sales agents (and end assignments).", PermissionScope.Both),
+            new(Perm.AllProjects, "Sales team", "See all projects", "See every project's chats, site visits, leads and reservations. Without it, staff see only the projects they are assigned to.", PermissionScope.Company),
+            new(Perm.ChatView, "Communication", "View customer chats", "Read customer conversations (of the projects you may see).", PermissionScope.Both),
+            new(Perm.ChatReply, "Communication", "Reply to customers", "Send messages in customer conversations, close and reopen them.", PermissionScope.Both),
+            new(Perm.ChatAssign, "Communication", "Assign and transfer chats", "Give a conversation to another agent.", PermissionScope.Both),
+            new(Perm.CallHistoryView, "Communication", "View call history", "See video call requests and what happened to them.", PermissionScope.Both),
+            new(Perm.VisitsView, "Site visits", "View site visits", "See customers' site visit requests and appointments.", PermissionScope.Both),
+            new(Perm.VisitsManage, "Site visits", "Manage site visits", "Confirm, decline, reschedule and record the outcome of site visits.", PermissionScope.Both),
+            new(Perm.LeadsView, "Leads (CRM)", "View leads", "See leads, their pipeline and CRM reports.", PermissionScope.Both),
+            new(Perm.LeadsManage, "Leads (CRM)", "Manage leads", "Create and edit leads, move them through the pipeline, record calls, meetings and follow-ups.", PermissionScope.Both),
+            new(Perm.LeadsAssign, "Leads (CRM)", "Assign leads", "Give leads to agents.", PermissionScope.Both),
+            new(Perm.SalesRecord, "Sales", "Record sales", "Record a sale (price, discount, agent, payment, agreement) and update its payment status.", PermissionScope.Both),
+            new(Perm.SalesReverse, "Sales", "Reverse sales", "Undo a recorded sale with a reason (the home is listed again).", PermissionScope.Both),
         };
 
         private static readonly Dictionary<string, PermissionDefinition> ByKey = All.ToDictionary(p => p.Key, StringComparer.Ordinal);

@@ -1,0 +1,91 @@
+@page
+@model RadiantHomes.Pages.Portal.Visits.IndexModel
+@using RadiantHomes.Models.Sales
+@using RadiantHomes.Services.Sales
+@{
+    ViewData["Title"] = "My site visits";
+    var tomorrow = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+    var last = DateTime.Today.AddDays(SiteVisitService.MaxDaysAhead).ToString("yyyy-MM-dd");
+}
+
+<nav class="mh-segmented mb-3" aria-label="Site visits">
+    <a class="@(Model.ShowPast ? null : "active")" asp-page="./Index" aria-current="@(Model.ShowPast ? null : "page")">Upcoming</a>
+    <a class="@(Model.ShowPast ? "active" : null)" asp-page="./Index" asp-route-show="past" aria-current="@(Model.ShowPast ? "page" : null)">Past</a>
+</nav>
+
+@if (!Model.Items.Any())
+{
+    <div class="mh-empty">
+        <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-calendar2-week"></i></span>
+        <h2>@(Model.ShowPast ? "No past visits" : "No upcoming visits")</h2>
+        <p>Open a home and choose "Ask for a site visit" to see it in person.</p>
+        <a class="btn btn-primary" asp-page="/Portal/Browse"><i class="bi bi-search" aria-hidden="true"></i> Browse homes</a>
+    </div>
+}
+
+<div class="row g-3">
+    @foreach (var v in Model.Items)
+    {
+        var agent = v.AgentUserId is string a && Model.Agents.TryGetValue(a, out var n) ? n : null;
+        var lastNote = v.History.OrderByDescending(h => h.ChangedOn).FirstOrDefault()?.Note;
+        <div class="col-12 col-lg-6">
+            <div class="card h-100" data-visit="@v.Reference">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between gap-2 mb-1">
+                        <span class="badge @SiteVisitStatuses.Badge(v.Status)">@SiteVisitStatuses.Label(v.Status)</span>
+                        <span class="small text-muted" translate="no">@v.Reference</span>
+                    </div>
+                    <h2 class="h6 mb-1">@v.Project.ProjectName @(v.ApartmentHouse is null ? "" : $"· {v.ApartmentHouse.Title}")</h2>
+                    <div class="small text-muted mb-2">@v.Company.Name</div>
+                    <p class="mb-1">
+                        <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                        @if (v.Status == SiteVisitStatuses.Confirmed && v.ScheduledStart is DateTime s)
+                        {
+                            <strong>@s.ToString("dddd d MMMM, HH:mm")</strong>
+                            if (agent is not null) { <span class="text-muted">· @agent will meet you</span> }
+                        }
+                        else
+                        {
+                            <span>You asked for @v.PreferredDate.ToString("dddd d MMMM") at @v.PreferredTime</span>
+                        }
+                    </p>
+                    @if (v.Status is SiteVisitStatuses.Rejected or SiteVisitStatuses.Cancelled && lastNote is not null)
+                    {
+                        <p class="small mb-1"><i class="bi bi-info-circle" aria-hidden="true"></i> @lastNote</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(v.Outcome))
+                    {
+                        <p class="small mb-1"><i class="bi bi-chat-left-text" aria-hidden="true"></i> @v.Outcome</p>
+                    }
+
+                    @if (SiteVisitStatuses.Open.Contains(v.Status))
+                    {
+                        <details class="mt-2">
+                            <summary class="small">Change or cancel</summary>
+                            <form method="post" class="row g-2 mt-1">
+                                <div class="col-6">
+                                    <label class="form-label small" for="date-@v.Id">New day</label>
+                                    <input class="form-control form-control-sm" type="date" id="date-@v.Id" name="Date" min="@tomorrow" max="@last" />
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small" for="time-@v.Id">Time</label>
+                                    <select class="form-select form-select-sm" id="time-@v.Id" name="Time">
+                                        @foreach (var slot in VisitSlots.All) { <option value="@slot">@slot</option> }
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small" for="reason-@v.Id">Note (optional)</label>
+                                    <input class="form-control form-control-sm" id="reason-@v.Id" name="Reason" maxlength="500" />
+                                </div>
+                                <div class="col-12 d-flex flex-wrap gap-2">
+                                    <button class="btn btn-sm btn-primary" asp-page-handler="Move" asp-route-id="@v.Id">Ask for this time</button>
+                                    <button class="btn btn-sm btn-outline-danger" asp-page-handler="Cancel" asp-route-id="@v.Id" formnovalidate>Cancel the visit</button>
+                                </div>
+                            </form>
+                        </details>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

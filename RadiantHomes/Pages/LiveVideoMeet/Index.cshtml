@@ -38,6 +38,14 @@
     return;
 }
 
+@if (Model.CallClosed is { } closed)
+{
+    <div class="alert alert-warning d-flex gap-2" role="alert" data-call-closed>
+        <i class="bi bi-telephone-x" aria-hidden="true"></i>
+        <div>@closed You can ask for a new call below, or <a class="alert-link" href="/Portal/Messages">send a message</a>.</div>
+    </div>
+}
+
 @if (Model.LinkExpired)
 {
     <div class="alert alert-warning d-flex gap-2" role="alert">
