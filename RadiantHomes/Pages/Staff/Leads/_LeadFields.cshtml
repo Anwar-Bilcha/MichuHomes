@@ -1,0 +1,89 @@
+@model (RadiantHomes.Services.Sales.LeadInput Input, RadiantHomes.Pages.Staff.Leads.LeadFormOptions Options, bool IsNew)
+@using RadiantHomes.Models.Sales
+@*
+    The lead's fields (Create and Details). Field names bind to "Input.*" of the page model.
+*@
+@{
+    var i = Model.Input;
+    var o = Model.Options;
+}
+<div class="row g-3">
+    @if (Model.IsNew && o.ShowCompany)
+    {
+        <div class="col-md-6">
+            <label class="form-label" for="Input_CompanyId">Company</label>
+            <select class="form-select" id="Input_CompanyId" name="Input.CompanyId" required>
+                <option value="">Choose…</option>
+                @foreach (var c in o.Companies) { <option value="@c.Id" selected="@(i.CompanyId == c.Id)">@c.Name</option> }
+            </select>
+        </div>
+    }
+    <div class="col-md-6">
+        <label class="form-label" for="Input_Name">Name</label>
+        <input class="form-control" id="Input_Name" name="Input.Name" value="@i.Name" maxlength="150" required />
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="Input_Phone">Phone</label>
+        <input class="form-control" id="Input_Phone" name="Input.Phone" value="@i.Phone" maxlength="40" type="tel" />
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="Input_Email">Email</label>
+        <input class="form-control" id="Input_Email" name="Input.Email" value="@i.Email" maxlength="256" type="email" />
+        <div class="form-text">A phone number or an email address is needed.</div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="Input_ProjectId">Project of interest</label>
+        <select class="form-select" id="Input_ProjectId" name="Input.ProjectId">
+            <option value="">Not decided</option>
+            @foreach (var p in o.Projects) { <option value="@p.Id" selected="@(i.ProjectId == p.Id)">@p.Name@(o.ShowCompany ? $" · {o.CompanyName(p.CompanyId)}" : "")</option> }
+        </select>
+    </div>
+    <div class="col-6 col-md-3">
+        <label class="form-label" for="Input_Bedrooms">Bedrooms</label>
+        <input class="form-control" id="Input_Bedrooms" name="Input.Bedrooms" value="@i.Bedrooms" type="number" min="0" max="20" />
+    </div>
+    <div class="col-6 col-md-3">
+        <label class="form-label" for="Input_Budget">Budget</label>
+        <div class="input-group">
+            <input class="form-control" id="Input_Budget" name="Input.Budget" value="@i.Budget" type="number" min="0" step="1000" />
+            <select class="form-select" name="Input.Currency" aria-label="Currency" style="max-width:6rem">
+                @foreach (var cur in new[] { "ETB", "USD" }) { <option selected="@((i.Currency ?? "ETB") == cur)">@cur</option> }
+            </select>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="Input_Location">Preferred location</label>
+        <input class="form-control" id="Input_Location" name="Input.Location" value="@i.Location" maxlength="150" />
+    </div>
+    <div class="col-6 col-md-3">
+        <label class="form-label" for="Input_Source">Source</label>
+        <select class="form-select" id="Input_Source" name="Input.Source">
+            @foreach (var s in LeadSources.All) { <option value="@s" selected="@(i.Source == s)">@LeadSources.Label(s)</option> }
+        </select>
+    </div>
+    <div class="col-6 col-md-3">
+        <label class="form-label" for="Input_Temperature">Temperature</label>
+        <select class="form-select" id="Input_Temperature" name="Input.Temperature">
+            @foreach (var t in LeadTemperatures.All) { <option value="@t" selected="@(i.Temperature == t)">@t</option> }
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="Input_Campaign">Campaign (optional)</label>
+        <input class="form-control" id="Input_Campaign" name="Input.Campaign" value="@i.Campaign" maxlength="150" placeholder="e.g. Facebook – Bole launch" />
+    </div>
+    <div class="col-md-6">
+        <label class="form-label" for="Input_NextFollowUpOn">Next follow-up</label>
+        <input class="form-control" id="Input_NextFollowUpOn" name="Input.NextFollowUpOn" value="@(i.NextFollowUpOn?.ToString("yyyy-MM-ddTHH:mm"))" type="datetime-local" />
+    </div>
+    @if (Model.IsNew)
+    {
+        <div class="col-md-6">
+            <label class="form-label" for="Input_AgentUserId">Agent</label>
+            <select class="form-select" id="Input_AgentUserId" name="Input.AgentUserId">
+                <option value="">Automatic (the project's agent)</option>
+                @foreach (var a in o.Agents) { <option value="@a.Id" selected="@(i.AgentUserId == a.Id)">@a.Name@(o.ShowCompany ? $" · {o.CompanyName(a.CompanyId)}" : "")</option> }
+            </select>
+            @if (!o.CanAssign) { <div class="form-text">Without the assign permission you can only choose yourself.</div> }
+        </div>
+    }
+</div>

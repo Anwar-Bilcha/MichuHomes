@@ -1,0 +1,144 @@
+@page
+@model RadiantHomes.Pages.Staff.Leads.DetailsModel
+@using RadiantHomes.Models.Sales
+@using RadiantHomes.Services.CustomerPortal
+@{
+    var l = Model.Lead;
+    ViewData["Title"] = l.Name;
+    ViewData["Subtitle"] = $"Lead {l.Reference} · {LeadSources.Label(l.Source)} · created {l.CreatedOn.ToLocalTime():d MMM yyyy}";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var canManage = Model.Access.Has(Perm.LeadsManage);
+    var closed = l.ClosedOn is not null;
+}
+
+@section PageActions {
+    <a class="btn btn-outline-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> All leads</a>
+}
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                    <span class="badge text-bg-primary" data-lead-stage="@l.Stage">@LeadStages.Label(l.Stage)</span>
+                    <span class="badge @(l.Temperature == "Hot" ? "text-bg-danger" : l.Temperature == "Cold" ? "text-bg-info" : "text-bg-warning")">@l.Temperature</span>
+                    @if (l.CustomerId is not null) { <span class="badge text-bg-light"><i class="bi bi-person-check" aria-hidden="true"></i> Registered customer</span> }
+                    @if (l.LostReason is not null) { <span class="small text-danger">Lost: @l.LostReason</span> }
+                </div>
+                <dl class="row small mb-0">
+                    <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">@(l.Phone is null ? "—" : l.Phone)</dd>
+                    <dt class="col-sm-3">Email</dt><dd class="col-sm-9">@(l.Email ?? "—")</dd>
+                    <dt class="col-sm-3">Interest</dt>
+                    <dd class="col-sm-9">@(l.Project?.ProjectName ?? "No project yet")@(l.ApartmentHouse is null ? "" : $" · {l.ApartmentHouse.Title}")@(l.Bedrooms is int b ? $" · {b} bedrooms" : "")@(l.Budget is double bu ? $" · budget {bu:N0} {l.Currency}" : "")@(l.Location is null ? "" : $" · {l.Location}")</dd>
+                    @if (Model.Access.IsPlatform) { <dt class="col-sm-3">Company</dt><dd class="col-sm-9">@l.Company.Name</dd> }
+                    <dt class="col-sm-3">Agent</dt><dd class="col-sm-9">@(Model.AgentName ?? "Not assigned")</dd>
+                    <dt class="col-sm-3">Last contact</dt><dd class="col-sm-9">@(l.LastContactOn?.ToLocalTime().ToString("d MMM yyyy HH:mm") ?? "—")</dd>
+                    <dt class="col-sm-3">Next follow-up</dt><dd class="col-sm-9 @(l.NextFollowUpOn <= DateTime.Now && !closed ? "text-danger fw-semibold" : null)">@(l.NextFollowUpOn?.ToString("ddd d MMM yyyy HH:mm") ?? "—")</dd>
+                    @if (l.Campaign is not null) { <dt class="col-sm-3">Campaign</dt><dd class="col-sm-9">@l.Campaign</dd> }
+                </dl>
+            </div>
+        </div>
+
+        @if (canManage && !closed)
+        {
+            <form method="post" asp-page-handler="Activity" asp-route-id="@l.Id" class="card card-body mb-3">
+                <h2 class="h6">Record a contact</h2>
+                <div class="row g-2">
+                    <div class="col-sm-4">
+                        <label class="form-label small" for="ActivityType">Type</label>
+                        <select class="form-select form-select-sm" id="ActivityType" name="ActivityType">
+                            @foreach (var t in LeadActivityTypes.Manual) { <option value="@t">@t</option> }
+                        </select>
+                    </div>
+                    <div class="col-sm-8">
+                        <label class="form-label small" for="NextFollowUpOn">Next follow-up (optional)</label>
+                        <input class="form-control form-control-sm" type="datetime-local" id="NextFollowUpOn" name="NextFollowUpOn" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small" for="ActivityBody">What happened</label>
+                        <textarea class="form-control form-control-sm" id="ActivityBody" name="ActivityBody" rows="2" maxlength="2000" required></textarea>
+                    </div>
+                </div>
+                <div><button class="btn btn-sm btn-primary mt-2">Save</button></div>
+            </form>
+        }
+
+        <div class="card mb-3">
+            <div class="card-header fw-semibold">Activity</div>
+            <div class="card-body">
+                <ul class="mh-timeline">
+                    @foreach (var a in l.Activities.OrderByDescending(a => a.OccurredOn).ThenByDescending(a => a.Id))
+                    {
+                        <li data-activity="@a.Type">
+                            <strong>@a.Type</strong> · <span class="small text-muted">@a.OccurredOn.ToLocalTime().ToString("d MMM yyyy HH:mm") · @a.ByName</span>
+                            <div class="small" style="white-space:pre-wrap">@a.Body</div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        @if (Model.Conversations.Any() || Model.Visits.Any() || Model.Reservations.Any() || Model.Calls.Any())
+        {
+            <div class="card mb-3">
+                <div class="card-header fw-semibold">What the customer did</div>
+                <ul class="list-group list-group-flush small">
+                    @foreach (var c in Model.Conversations)
+                    {
+                        <li class="list-group-item"><i class="bi bi-chat-dots" aria-hidden="true"></i> Chat about <a asp-page="/Staff/Inbox/Conversation" asp-route-id="@c.Id">@c.Subject</a> · last message @c.LastMessageOn.ToLocalTime().ToString("d MMM HH:mm")</li>
+                    }
+                    @foreach (var v in Model.Visits)
+                    {
+                        <li class="list-group-item"><i class="bi bi-calendar2-week" aria-hidden="true"></i> Site visit @v.Reference · @v.Project.ProjectName · <span class="badge @SiteVisitStatuses.Badge(v.Status)">@SiteVisitStatuses.Label(v.Status)</span></li>
+                    }
+                    @foreach (var t in Model.Reservations)
+                    {
+                        <li class="list-group-item"><i class="bi bi-calendar-check" aria-hidden="true"></i> Reservation @t.Reference · @t.ApartmentHouse?.Title · <span class="badge @ReservationService.Badge(t.Status)">@ReservationService.Label(t.Status)</span></li>
+                    }
+                    @foreach (var c in Model.Calls)
+                    {
+                        <li class="list-group-item"><i class="bi bi-camera-video" aria-hidden="true"></i> Video call · @c.RequestedOn.ToLocalTime().ToString("d MMM HH:mm") · <span class="badge @CallStatuses.Badge(c.Status)">@CallStatuses.Label(c.Status)</span></li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        @if (canManage)
+        {
+            <form method="post" asp-page-handler="Stage" asp-route-id="@l.Id" class="card card-body mb-3">
+                <label class="form-label small fw-semibold" for="Stage">Stage</label>
+                <select class="form-select form-select-sm mb-2" id="Stage" name="Stage">
+                    @foreach (var s in LeadStages.All) { <option value="@s" selected="@(l.Stage == s)">@LeadStages.Label(s)</option> }
+                </select>
+                <label class="form-label small" for="LostReason">Reason (needed for "Lost")</label>
+                <input class="form-control form-control-sm mb-2" id="LostReason" name="LostReason" maxlength="500" value="@l.LostReason" />
+                <button class="btn btn-sm btn-primary">Change stage</button>
+            </form>
+        }
+
+        @if (Model.Access.Has(Perm.LeadsAssign))
+        {
+            <form method="post" asp-page-handler="Assign" asp-route-id="@l.Id" class="card card-body mb-3">
+                <label class="form-label small fw-semibold" for="AgentUserId">Agent</label>
+                <select class="form-select form-select-sm mb-2" id="AgentUserId" name="AgentUserId">
+                    <option value="">Not assigned</option>
+                    @foreach (var a in Model.Options.Agents) { <option value="@a.Id" selected="@(a.Id == l.AgentUserId)">@a.Name</option> }
+                </select>
+                <button class="btn btn-sm btn-primary">Assign</button>
+            </form>
+        }
+
+        @if (canManage)
+        {
+            <details class="card card-body">
+                <summary class="fw-semibold small">Edit details</summary>
+                <form method="post" asp-page-handler="Save" asp-route-id="@l.Id" class="mt-2">
+                    <partial name="_LeadFields" model="(Model.Input, Model.Options, false)" />
+                    <button class="btn btn-sm btn-primary mt-2">Save details</button>
+                </form>
+            </details>
+        }
+    </div>
+</div>

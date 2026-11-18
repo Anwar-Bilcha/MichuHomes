@@ -77,7 +77,6 @@ namespace RadiantHomes.Pages.RealEstates
             existing.LicenseNumber = HousingCompany.LicenseNumber;
             existing.EstablishedDate = HousingCompany.EstablishedDate;
             existing.CompanyCategory = HousingCompany.CompanyCategory;
-            existing.Status = HousingCompany.Status;
             existing.AddressId = HousingCompany.AddressId;
             existing.Email = HousingCompany.Email;
             existing.PhoneNumber = HousingCompany.PhoneNumber;

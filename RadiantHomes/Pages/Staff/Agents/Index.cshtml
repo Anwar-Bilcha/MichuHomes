@@ -1,0 +1,83 @@
+@page
+@model RadiantHomes.Pages.Staff.Agents.IndexModel
+@{
+    ViewData["Title"] = "Sales agents";
+    ViewData["Subtitle"] = "Assign staff to projects. Agents see the chats, site visits, leads and video calls of their projects; new ones go to the least busy agent. Staff with the \"all projects\" permission see everything.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+@if (Model.Access.IsPlatform)
+{
+    <form method="get" class="d-flex gap-2 mb-3" style="max-width:32rem">
+        <label class="visually-hidden" for="company">Company</label>
+        <select class="form-select" id="company" name="company">
+            @foreach (var c in Model.Companies) { <option value="@c.Id" selected="@(c.Id == Model.CompanyId)">@c.Name</option> }
+        </select>
+        <button class="btn btn-outline-primary">Show</button>
+    </form>
+}
+
+@if (Model.CompanyId is null)
+{
+    <div class="card"><div class="mh-empty"><h2>No company</h2></div></div>
+    return;
+}
+
+<div class="row g-3">
+    <div class="col-xl-7">
+        @if (!Model.Projects.Any())
+        {
+            <div class="card"><div class="mh-empty"><span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-kanban"></i></span><h2>No projects yet</h2><p>Create a project first; then assign its agents here.</p></div></div>
+        }
+        @foreach (var p in Model.Projects)
+        {
+            <div class="card mb-3" data-project="@p.Id">
+                <div class="card-header fw-semibold d-flex justify-content-between"><span>@p.Name</span><span class="small text-muted">@p.Agents.Count agent(s)</span></div>
+                <ul class="list-group list-group-flush">
+                    @foreach (var a in p.Agents)
+                    {
+                        <li class="list-group-item d-flex align-items-center gap-2">
+                            <i class="bi bi-person-badge" aria-hidden="true"></i>
+                            <span class="me-auto">@a.Name <span class="small text-muted">· since @a.Since.ToLocalTime().ToString("d MMM yyyy")</span></span>
+                            <form method="post" asp-page-handler="End" asp-route-id="@a.AssignmentId" asp-route-company="@Model.CompanyId">
+                                <button class="btn btn-sm btn-outline-danger" aria-label="Remove @a.Name from @p.Name">Remove</button>
+                            </form>
+                        </li>
+                    }
+                    @if (!p.Agents.Any())
+                    {
+                        <li class="list-group-item small text-muted">No agent: new chats and visits go to the company inbox.</li>
+                    }
+                </ul>
+                <div class="card-footer">
+                    <form method="post" asp-page-handler="Assign" asp-route-company="@Model.CompanyId" class="d-flex gap-2">
+                        <input type="hidden" name="ProjectId" value="@p.Id" />
+                        <label class="visually-hidden" for="assign-@p.Id">Staff member for @p.Name</label>
+                        <select class="form-select form-select-sm" id="assign-@p.Id" name="UserId">
+                            <option value="">Add an agent…</option>
+                            @foreach (var s in Model.Staff.Where(s => p.Agents.All(a => a.UserId != s.Id))) { <option value="@s.Id">@s.Name</option> }
+                        </select>
+                        <button class="btn btn-sm btn-primary">Assign</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="col-xl-5">
+        <div class="card">
+            <div class="card-header fw-semibold">Workload</div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th scope="col">Staff</th><th scope="col" class="text-end">Projects</th><th scope="col" class="text-end">Open chats</th><th scope="col" class="text-end">Open leads</th><th scope="col" class="text-end">Visits ahead</th></tr></thead>
+                    <tbody>
+                        @foreach (var s in Model.Staff)
+                        {
+                            <tr><td>@s.Name</td><td class="text-end">@s.Projects</td><td class="text-end">@s.OpenChats</td><td class="text-end">@s.OpenLeads</td><td class="text-end">@s.UpcomingVisits</td></tr>
+                        }
+                        @if (!Model.Staff.Any()) { <tr><td colspan="5" class="small text-muted">The company has no staff accounts yet. Add them under Users.</td></tr> }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

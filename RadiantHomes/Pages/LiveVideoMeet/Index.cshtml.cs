@@ -37,10 +37,30 @@ namespace RadiantHomes.Pages.LiveVideoMeet
         [BindProperty]
         public CallInput Input { get; set; } = new();
 
+        /// <summary>"Audio only": the call starts without the camera.</summary>
+        [BindProperty(SupportsGet = true)]
+        public int? Audio { get; set; }
+
         public ApartmentCard? About { get; private set; }
         public CallView? CallView { get; private set; }
         public bool VideoAvailable => _calls.IsAvailable;
         public bool LinkExpired { get; private set; }
+
+        /// <summary>The call link is valid but the call can't be entered (declined, missed, ended, another account).</summary>
+        public string? CallClosed { get; private set; }
+
+        /// <summary>What the visitor still needs before calling: "signin", "profile", "verify", or "ok" (KYC approved).</summary>
+        public string Eligibility { get; private set; } = "signin";
+        public string? KycStatus { get; private set; }
+
+        private async Task LoadEligibilityAsync()
+        {
+            if (User.Identity?.IsAuthenticated != true) { Eligibility = "signin"; return; }
+            var me = await _users.GetAsync(User);
+            if (me?.Profile is null) { Eligibility = "profile"; return; }
+            KycStatus = me.Profile.KycStatus;
+            Eligibility = await _calls.IsVerifiedCustomerAsync(me.Account.Id) ? "ok" : "verify";
+        }
 
         public sealed class CallInput
         {
@@ -66,7 +86,19 @@ namespace RadiantHomes.Pages.LiveVideoMeet
                 var ticket = _calls.Open(Call);
                 if (ticket is not null && _jaas.IsConfigured)
                 {
-                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? $"guest-{ticket.Room}";
+                    // The link only opens for the account that asked for the call.
+                    if (User.Identity?.IsAuthenticated != true) return Challenge();
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+                    var entry = await _calls.CustomerEnterAsync(ticket, userId);
+                    if (!entry.Allowed)
+                    {
+                        CallClosed = entry.Problem;
+                        await LoadAboutAsync();
+                        await LoadEligibilityAsync();
+                        await PrefillAsync();
+                        return Page();
+                    }
+                    var token = Uri.EscapeDataString(Call);
                     CallView = new CallView(
                         IsAgent: false,
                         Domain: JaasTokens.Domain,
@@ -76,20 +108,50 @@ namespace RadiantHomes.Pages.LiveVideoMeet
                         Heading: "Video call with Michu Homes",
                         Subheading: ticket.ApartmentTitle is null ? null : $"About \"{ticket.ApartmentTitle}\"",
                         DoneUrl: ticket.ApartmentId is Guid id ? $"/ApartmentHouses/Details?id={id}" : "/ApartmentHouses",
-                        DoneLabel: ticket.ApartmentId is null ? "Browse homes" : "Back to the home");
+                        DoneLabel: ticket.ApartmentId is null ? "Browse homes" : "Back to the home",
+                        EndUrl: entry.Log is null ? null : $"/LiveVideoMeet?handler=End&call={token}",
+                        StatusUrl: entry.Log is null ? null : $"/LiveVideoMeet?handler=Status&call={token}",
+                        AudioOnly: Audio == 1);
                     return Page();
                 }
                 LinkExpired = true;
             }
 
             await LoadAboutAsync();
+            await LoadEligibilityAsync();
             await PrefillAsync();
             return Page();
+        }
+
+        /// <summary>Polled by the waiting customer's page: a declined or missed call ends the wait.</summary>
+        public async Task<IActionResult> OnGetStatusAsync()
+        {
+            var ticket = _calls.Open(Call);
+            var log = ticket is null ? null : await _calls.StatusForCustomerAsync(ticket, User.FindFirstValue(ClaimTypes.NameIdentifier));
+            if (log is null) return NotFound();
+            return new JsonResult(new { status = log.Status, reason = log.Status == RadiantHomes.Models.Sales.CallStatuses.Rejected ? log.Reason : null });
+        }
+
+        /// <summary>The customer left the call (video-call.js).</summary>
+        public async Task<IActionResult> OnPostEndAsync()
+        {
+            var ticket = _calls.Open(Call);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (ticket is null || userId is null || ticket.UserId != userId) return NotFound();
+            var log = await _calls.FindAsync(ticket.Room);
+            if (log is not null) await _calls.EndAsync(log, byCustomer: true);
+            return new NoContentResult();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
             await LoadAboutAsync();
+            await LoadEligibilityAsync();
+            if (Eligibility != "ok")
+            {
+                ModelState.AddModelError(string.Empty, "Only signed-in customers with a verified identity can video call agents.");
+                return Page();
+            }
             if (!ModelState.IsValid) return Page();
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -108,6 +170,9 @@ namespace RadiantHomes.Pages.LiveVideoMeet
                     return Redirect(VideoCallService.CustomerPath(result.Token!));
                 case CallRequestOutcome.TooMany:
                     ModelState.AddModelError(string.Empty, "You have asked for several calls in a short time. Please wait a few minutes and try again, or call us.");
+                    return Page();
+                case CallRequestOutcome.NotVerified:
+                    ModelState.AddModelError(string.Empty, "Only signed-in customers with a verified identity can video call agents.");
                     return Page();
                 default:
                     ModelState.AddModelError(string.Empty, "Video calls are not available at the moment. Please call us or use the chat.");

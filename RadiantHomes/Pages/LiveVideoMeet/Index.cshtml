@@ -38,6 +38,14 @@
     return;
 }
 
+@if (Model.CallClosed is { } closed)
+{
+    <div class="alert alert-warning d-flex gap-2" role="alert" data-call-closed>
+        <i class="bi bi-telephone-x" aria-hidden="true"></i>
+        <div>@closed You can ask for a new call below, or <a class="alert-link" href="/Portal/Messages">send a message</a>.</div>
+    </div>
+}
+
 @if (Model.LinkExpired)
 {
     <div class="alert alert-warning d-flex gap-2" role="alert">
@@ -53,9 +61,31 @@
         <div>
             <strong>Video calls are not available at the moment.</strong>
             Please call us or write to us, we are happy to help.
-            @if (User.IsInRole(MichuHomesRoles.MichuAdmin))
+            @if ((await HttpContext.AccessAsync()).IsPlatform)
             {
                 <small class="d-block mt-1">For administrators: add the JaaS keys (Jaas:AppId, Jaas:ApiKeyId and Jaas:PrivateKey) to the server settings to turn video calls on.</small>
+            }
+        </div>
+    </div>
+}
+
+@if (Model.Eligibility != "ok")
+{
+    <div class="alert alert-info d-flex gap-2 align-items-start" role="status">
+        <i class="bi bi-shield-lock mt-1" aria-hidden="true"></i>
+        <div>
+            <strong>Video calls are for verified customers.</strong>
+            @switch (Model.Eligibility)
+            {
+                case "signin":
+                    <span>Please <a asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@(Request.Path + Request.QueryString)">sign in</a> or <a asp-area="Identity" asp-page="/Account/Register">create an account</a>, then verify your identity once.</span>
+                    break;
+                case "profile":
+                    <span>Please <a asp-page="/Portal/Profile">complete your profile</a>, then verify your identity.</span>
+                    break;
+                default:
+                    <span>Your identity verification is "@RadiantHomes.Models.Kyc.KycStatuses.Label(Model.KycStatus)". <a asp-page="/Portal/Kyc">Go to identity verification</a>.</span>
+                    break;
             }
         </div>
     </div>
@@ -106,7 +136,7 @@
                 </div>
 
                 <div class="mh-call-form-actions">
-                    <button type="submit" class="btn btn-accent btn-lg" disabled="@(!Model.VideoAvailable)">
+                    <button type="submit" class="btn btn-accent btn-lg" disabled="@(!Model.VideoAvailable || Model.Eligibility != "ok")">
                         <i class="bi bi-camera-video" aria-hidden="true"></i> Start the video call
                     </button>
                     <p class="form-text mb-0">Your details are only shared with the Michu Homes agents who answer the call.</p>

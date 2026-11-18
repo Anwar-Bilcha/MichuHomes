@@ -44,6 +44,9 @@ namespace RadiantHomes.Models
         public DateTime? ApprovedDate { get; set; }
         [Display(Name = "Profile status")]
         public string ProfileStatus { get; set; } = "Pending"; // Pending, Approved, Rejected
+        /// <summary>Identity verification (Models/Kyc): NotSubmitted, Pending, UnderReview, Approved, Rejected, ResubmissionRequired, Revoked.</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(30)]
+        public string KycStatus { get; set; } = RadiantHomes.Models.Kyc.KycStatuses.NotSubmitted;
 
         [Display(Name = "User account")]
         public AppUser CustomerUserAccount { get; set; }

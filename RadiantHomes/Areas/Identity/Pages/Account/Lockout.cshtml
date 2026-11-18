@@ -1,0 +1,18 @@
+@page
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@{
+    ViewData["Title"] = "Account locked";
+    ViewData["PageHeader"] = false;
+}
+
+<div class="mh-auth py-md-4">
+    <div class="card">
+        <div class="card-body text-center">
+            <span class="mh-empty-icon d-inline-flex mb-3" aria-hidden="true"><i class="bi bi-lock"></i></span>
+            <h1 class="h3 mb-2">@ViewData["Title"]</h1>
+            <p class="text-muted">This account can't sign in right now. It may have been deactivated by an administrator, or locked after too many attempts. Contact your administrator, or try again later.</p>
+            <a class="btn btn-outline-primary" asp-page="./Login">Back to sign in</a>
+        </div>
+    </div>
+</div>

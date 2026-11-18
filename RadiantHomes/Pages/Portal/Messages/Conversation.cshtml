@@ -1,0 +1,21 @@
+@page
+@model RadiantHomes.Pages.Portal.Messages.ConversationModel
+@{
+    ViewData["Title"] = "Messages";
+}
+
+@section Scripts {
+    <script src="~/lib/microsoft-signalr/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+}
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> All conversations</a>
+    @if (Model.Conversation.ApartmentHouseId is Guid homeId)
+    {
+        <a class="btn btn-sm btn-outline-secondary" asp-page="/Portal/Apartment" asp-route-id="@homeId"><i class="bi bi-house" aria-hidden="true"></i> The home</a>
+        <a class="btn btn-sm btn-outline-secondary" asp-page="/Portal/Visits/Request" asp-route-apartment="@homeId"><i class="bi bi-calendar-plus" aria-hidden="true"></i> Ask for a site visit</a>
+    }
+</div>
+
+<partial name="_ChatPanel" model="Model.Panel" />

@@ -49,7 +49,6 @@ namespace RadiantHomes.Services.CustomerPortal
         }
 
         /// <summary>People who use the portal as customers: not platform or company administrators.</summary>
-        public static bool IsCustomer(IList<string> roles) =>
-            !roles.Contains(MichuHomesRoles.MichuAdmin) && !roles.Contains(MichuHomesRoles.RealEstateAdmin);
+        public static bool IsCustomer(AppUser account) => account.AccountType == RadiantHomes.Models.Security.AccountType.Customer;
     }
 }

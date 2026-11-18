@@ -94,16 +94,7 @@
                     <input type="file" asp-for="LogoUrl" class="form-control" accept="image/*" />
                     <span asp-validation-for="LogoUrl" class="text-danger small"></span>
                 </div>
-                <div class="col-md-6">
-                    <label asp-for="HousingCompany.Status" class="form-label">Company Status</label>
-                    <select asp-for="HousingCompany.Status" class="form-select">
-                        <option value="">-- Select Status --</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Pending">Pending</option>
-                    </select>
-                    <span asp-validation-for="HousingCompany.Status" class="text-danger small"></span>
-                </div>
+                <div class="col-md-4">\n                    <span class="form-label d-block">Approval status</span>\n                    <div class="form-text mt-0">New companies wait for Michu Homes approval before their administrators can manage listings.</div>\n                </div>
                 <div class="col-md-6">
                     <label asp-for="HousingCompany.CompanyCategory" class="form-label">Company Category</label>
                     <select asp-for="HousingCompany.CompanyCategory" class="form-select">

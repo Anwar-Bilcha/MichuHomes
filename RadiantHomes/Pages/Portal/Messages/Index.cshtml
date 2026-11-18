@@ -1,0 +1,58 @@
+@page
+@model RadiantHomes.Pages.Portal.Messages.IndexModel
+@using RadiantHomes.Models.Sales
+@{
+    ViewData["Title"] = "Messages";
+}
+
+@if (!Model.Verified)
+{
+    <div class="alert alert-info d-flex gap-2" role="status">
+        <i class="bi bi-shield-check" aria-hidden="true"></i>
+        <div>Chatting with companies needs a verified identity. <a class="alert-link" asp-page="/Portal/Kyc">Verify your identity</a>; you can read your existing conversations meanwhile.</div>
+    </div>
+}
+
+@if (!Model.Items.Any())
+{
+    <div class="mh-empty">
+        <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-chat-dots"></i></span>
+        <h2>No conversations yet</h2>
+        <p>Open a home and choose "Message the company" to ask about it. Answers appear here.</p>
+        <a class="btn btn-primary" asp-page="/Portal/Browse"><i class="bi bi-search" aria-hidden="true"></i> Browse homes</a>
+    </div>
+}
+else
+{
+    <div class="card">
+        <ul class="mh-conv-list">
+            @foreach (var c in Model.Items)
+            {
+                <li>
+                    <a asp-page="./Conversation" asp-route-id="@c.Id">
+                        <span class="mh-icon-btn" aria-hidden="true"><i class="bi bi-buildings"></i></span>
+                        <span class="min-w-0">
+                            <span class="mh-conv-title d-block text-truncate">@c.Company</span>
+                            <span class="small text-muted d-block text-truncate">@c.Subject</span>
+                            @if (c.LastMessage is not null)
+                            {
+                                <span class="mh-conv-preview">@(c.LastFromMe ? "You: " : "")@c.LastMessage</span>
+                            }
+                        </span>
+                        <span class="mh-conv-side">
+                            @c.LastMessageOn.ToLocalTime().ToString("d MMM HH:mm")
+                            @if (c.Unread > 0)
+                            {
+                                <span class="badge rounded-pill text-bg-warning d-block mt-1">@c.Unread new</span>
+                            }
+                            @if (c.Status == ConversationStatuses.Closed)
+                            {
+                                <span class="badge text-bg-secondary d-block mt-1">Closed</span>
+                            }
+                        </span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+}

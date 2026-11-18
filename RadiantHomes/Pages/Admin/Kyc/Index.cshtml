@@ -1,0 +1,66 @@
+@page
+@model RadiantHomes.Pages.Admin.Kyc.IndexModel
+@using RadiantHomes.Models.Kyc
+@{
+    ViewData["Title"] = "Customer verification";
+    ViewData["Subtitle"] = "Identity verification (KYC) applications. Only verified customers can video call agents.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+<nav class="mh-segmented mb-3" aria-label="Verification status">
+    @foreach (var s in KycStatuses.Queue)
+    {
+        <a class="@(Model.Current == s ? "active" : null)" asp-page="./Index" asp-route-status="@s" aria-current="@(Model.Current == s ? "page" : null)">
+            @KycStatuses.Label(s) <span class="badge rounded-pill text-bg-light ms-1">@Model.Count(s)</span>
+        </a>
+    }
+</nav>
+
+<form method="get" class="mb-3" role="search">
+    <input type="hidden" name="status" value="@Model.Current" />
+    <div class="input-group">
+        <input class="form-control" name="q" value="@Model.Q" placeholder="Customer name, email or document number" aria-label="Search applications" />
+        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+    </div>
+</form>
+
+@if (!Model.Rows.Any())
+{
+    <div class="card">
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-shield-check"></i></span>
+            <h2>Nothing here</h2>
+            <p>New applications appear under "Submitted, waiting for review".</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Document</th>
+                        <th scope="col">Submitted</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        <tr>
+                            <td><div class="fw-semibold">@r.Customer</div><div class="small text-muted">@r.Email</div></td>
+                            <td>@KycDocumentTypes.Label(r.DocumentType)</td>
+                            <td class="text-nowrap">@r.SubmittedOn.ToLocalTime().ToString("d MMM yyyy HH:mm")</td>
+                            <td><span class="badge @KycStatuses.Badge(r.Status)">@KycStatuses.Label(r.Status)</span>@if (r.ReviewedBy is not null) { <div class="small text-muted">@r.ReviewedBy</div> }</td>
+                            <td class="text-end"><a class="btn btn-sm btn-primary" asp-page="./Review" asp-route-id="@r.Id" aria-label="Review @r.Customer"><i class="bi bi-clipboard-check" aria-hidden="true"></i> Review</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

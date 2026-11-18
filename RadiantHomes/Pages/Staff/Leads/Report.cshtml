@@ -1,0 +1,108 @@
+@page
+@model RadiantHomes.Pages.Staff.Leads.ReportModel
+@{
+    var r = Model.Report;
+    ViewData["Title"] = "Sales report";
+    ViewData["Subtitle"] = $"{r.From:d MMM yyyy} – {r.To:d MMM yyyy}" + (Model.Access.IsPlatform ? " · all companies" : "");
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var maxStage = Math.Max(1, r.ByStage.Select(s => s.Count).DefaultIfEmpty(0).Max());
+    var maxSource = Math.Max(1, r.BySource.Select(s => s.Count).DefaultIfEmpty(0).Max());
+}
+
+@section PageActions {
+    <a class="btn btn-outline-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Leads</a>
+}
+
+<form method="get" class="card card-body mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-6 col-md-3"><label class="form-label small" for="from">From</label><input class="form-control form-control-sm" type="date" id="from" name="from" value="@Model.From?.ToString("yyyy-MM-dd")" /></div>
+        <div class="col-6 col-md-3"><label class="form-label small" for="to">To</label><input class="form-control form-control-sm" type="date" id="to" name="to" value="@Model.To?.ToString("yyyy-MM-dd")" /></div>
+        <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">Show</button></div>
+    </div>
+</form>
+
+<div class="mh-stat-grid mb-3" data-report-stats>
+    <div class="mh-stat"><strong>@r.NewLeads</strong><span>New leads</span></div>
+    <div class="mh-stat"><strong>@r.OpenLeads</strong><span>Open leads now</span></div>
+    <div class="mh-stat"><strong>@r.Converted</strong><span>Converted (sold)</span></div>
+    <div class="mh-stat"><strong>@r.Lost</strong><span>Lost</span></div>
+    <div class="mh-stat"><strong>@(r.ConversionRate is double c ? c.ToString("P0") : "—")</strong><span>Conversion (won ÷ closed)</span></div>
+    <div class="mh-stat"><strong>@r.Sales</strong><span>Sales · @r.SalesValue.ToString("N0") total</span></div>
+    <div class="mh-stat"><strong>@r.VisitsCompleted / @r.VisitsRequested</strong><span>Visits done / requested · @r.VisitsNoShow no-show</span></div>
+    <div class="mh-stat"><strong>@r.CallsAnswered / @(r.CallsAnswered + r.CallsMissed)</strong><span>Video calls answered · @r.CallsMissed missed</span></div>
+    <div class="mh-stat"><strong>@r.Conversations</strong><span>New chats</span></div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">Pipeline (all leads by current stage)</div>
+            <table class="table table-sm mb-0 align-middle">
+                <tbody>
+                    @foreach (var s in r.ByStage)
+                    {
+                        <tr><th scope="row" class="fw-normal small">@s.Label</th><td style="width:55%"><div class="mh-bar" role="presentation"><span style="width:@(s.Count * 100 / maxStage)%"></span></div></td><td class="text-end small">@s.Count</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">Where new leads came from</div>
+            @if (!r.BySource.Any())
+            {
+                <div class="card-body small text-muted">No new leads in this period.</div>
+            }
+            else
+            {
+                <table class="table table-sm mb-0 align-middle">
+                    <tbody>
+                        @foreach (var s in r.BySource)
+                        {
+                            <tr><th scope="row" class="fw-normal small">@s.Label</th><td style="width:55%"><div class="mh-bar" role="presentation"><span style="width:@(s.Count * 100 / maxSource)%"></span></div></td><td class="text-end small">@s.Count</td></tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            <div class="card-footer small text-muted">Open leads by temperature: @string.Join(" · ", r.ByTemperature.Select(t => $"{t.Label} {t.Count}"))</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header fw-semibold">Agents</div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th scope="col">Agent</th><th scope="col" class="text-end">New leads</th><th scope="col" class="text-end">Open</th><th scope="col" class="text-end">Converted</th><th scope="col" class="text-end">Lost</th><th scope="col" class="text-end">Visits done</th><th scope="col" class="text-end">Sales</th><th scope="col" class="text-end">Sales value</th></tr></thead>
+            <tbody>
+                @foreach (var a in r.ByAgent)
+                {
+                    <tr><td>@a.Name</td><td class="text-end">@a.Leads</td><td class="text-end">@a.Open</td><td class="text-end">@a.Converted</td><td class="text-end">@a.Lost</td><td class="text-end">@a.VisitsDone</td><td class="text-end">@a.Sales</td><td class="text-end">@a.SalesValue.ToString("N0")</td></tr>
+                }
+                @if (!r.ByAgent.Any()) { <tr><td colspan="8" class="text-muted small">No activity in this period.</td></tr> }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-3">
+    @foreach (var (title, rows, danger) in new[] { ("Overdue follow-ups", r.Overdue, true), ("Follow-ups in the next 7 days", r.Upcoming, false) })
+    {
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header fw-semibold">@title (@rows.Count)</div>
+                <ul class="list-group list-group-flush small">
+                    @foreach (var f in rows)
+                    {
+                        <li class="list-group-item d-flex justify-content-between gap-2">
+                            <span><a asp-page="./Details" asp-route-id="@f.LeadId">@f.Name</a> <span class="text-muted">· @RadiantHomes.Models.Sales.LeadStages.Label(f.Stage)@(f.Agent is null ? "" : $" · {f.Agent}")</span></span>
+                            <span class="@(danger ? "text-danger" : "text-muted") text-nowrap">@f.Due.ToString("d MMM HH:mm")</span>
+                        </li>
+                    }
+                    @if (!rows.Any()) { <li class="list-group-item text-muted">Nothing here.</li> }
+                </ul>
+            </div>
+        </div>
+    }
+</div>

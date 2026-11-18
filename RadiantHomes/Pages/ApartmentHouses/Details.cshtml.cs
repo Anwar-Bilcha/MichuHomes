@@ -67,6 +67,10 @@ namespace RadiantHomes.Pages.ApartmentHouses
                 return NotFound();
             }
             var user = await _userManager.GetUserAsync(User);
+            if (!await RadiantHomes.Services.Properties.ApartmentVisibility.CanViewAsync(_context, await RadiantHomes.Services.Security.AccessExtensions.AccessAsync(HttpContext), apartmenthouse, user?.CustomerId))
+            {
+                return NotFound(); // not listed (waiting for approval, hidden, sold, or its company isn't approved)
+            }
 
             if (user?.CustomerId != null)
             {

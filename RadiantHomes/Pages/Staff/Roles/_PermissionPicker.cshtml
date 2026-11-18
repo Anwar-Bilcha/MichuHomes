@@ -1,0 +1,48 @@
+@model List<RadiantHomes.Pages.Staff.Roles.PickerItem>
+@* Permission checkboxes grouped by module, with "select all" per module. Disabled boxes that are ticked are re-posted. *@
+<div class="row g-3">
+    @foreach (var group in Model.GroupBy(p => p.Module))
+    {
+        var groupId = "mod-" + group.Key.ToLowerInvariant().Replace(' ', '-');
+        <div class="col-12 col-lg-6">
+            <fieldset class="border rounded p-3 h-100" data-perm-group>
+                <legend class="float-none w-auto px-1 fs-6 fw-semibold mb-1">
+                    @group.Key
+                </legend>
+                @if (group.Any(p => p.Enabled))
+                {
+                    <div class="form-check form-check-inline small mb-2">
+                        <input class="form-check-input" type="checkbox" id="@groupId-all" data-perm-all />
+                        <label class="form-check-label text-muted" for="@groupId-all">Select all</label>
+                    </div>
+                }
+                @foreach (var p in group)
+                {
+                    var id = "perm-" + p.Key.Replace('.', '-');
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="Input.Permissions" value="@p.Key" id="@id" checked="@p.Selected" disabled="@(!p.Enabled)" data-perm />
+                        @if (!p.Enabled && p.Selected)
+                        {
+                            <input type="hidden" name="Input.Permissions" value="@p.Key" />
+                        }
+                        <label class="form-check-label" for="@id">
+                            @p.Name
+                            <span class="d-block small text-muted">@p.Description <code class="ms-1">@p.Key</code></span>
+                        </label>
+                    </div>
+                }
+            </fieldset>
+        </div>
+    }
+</div>
+<script>
+    document.querySelectorAll('[data-perm-group]').forEach(function (group) {
+        var all = group.querySelector('[data-perm-all]');
+        if (!all) return;
+        var boxes = Array.prototype.filter.call(group.querySelectorAll('[data-perm]'), function (b) { return !b.disabled; });
+        var sync = function () { all.checked = boxes.length > 0 && boxes.every(function (b) { return b.checked; }); };
+        all.addEventListener('change', function () { boxes.forEach(function (b) { b.checked = all.checked; }); });
+        boxes.forEach(function (b) { b.addEventListener('change', sync); });
+        sync();
+    });
+</script>

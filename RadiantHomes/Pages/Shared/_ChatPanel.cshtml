@@ -1,0 +1,55 @@
+@model RadiantHomes.Pages.Shared.ChatPanel
+@*
+    A chat conversation (customer portal and staff inbox). The messages and the form are plain HTML, so the page
+    works without JavaScript; wwwroot/js/chat.js makes it live (SignalR) and marks messages read.
+*@
+<section class="mh-chat" data-chat data-conversation="@Model.ConversationId" data-me="@(Model.MeIsCustomer ? "customer" : "staff")"
+         data-poll-url="@Model.PollUrl" data-text-read="Read" data-text-sent="Sent" data-live="off" aria-labelledby="chatTitle">
+    <header class="mh-chat-head">
+        <div class="min-w-0">
+            <h2 id="chatTitle" class="text-truncate">@Model.Title</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.Subtitle))
+            {
+                <div class="small text-muted text-truncate">@Model.Subtitle</div>
+            }
+        </div>
+        <span class="mh-chat-live" aria-hidden="true">Live</span>
+    </header>
+
+    <ol class="mh-chat-list" data-chat-list aria-label="Messages" aria-live="polite">
+        @if (!Model.Messages.Any())
+        {
+            <li class="mh-chat-empty" data-chat-empty>No messages yet.</li>
+        }
+        @foreach (var m in Model.Messages)
+        {
+            var mine = m.FromCustomer == Model.MeIsCustomer;
+            <li class="mh-msg @(mine ? "mh-msg-mine" : null)" data-id="@m.Id" data-client="@m.ClientMessageId" data-from-customer="@(m.FromCustomer ? "true" : "false")" data-read-state="@(m.Read ? "read" : "sent")">
+                <div class="mh-msg-body">@m.Body</div>
+                <div class="mh-msg-meta">
+                    <span>@m.SenderName · @m.SentOn.ToLocalTime().ToString("d MMM HH:mm")</span>
+                    @if (mine)
+                    {
+                        <i class="bi bi-check2-all" data-read aria-label="@(m.Read ? "Read" : "Sent")"></i>
+                    }
+                </div>
+            </li>
+        }
+    </ol>
+
+    <div class="mh-chat-error" data-chat-error role="alert" hidden></div>
+
+    @if (Model.CannotSend is { } why)
+    {
+        <div class="p-3 border-top small text-muted" data-chat-closed><i class="bi bi-info-circle" aria-hidden="true"></i> @why</div>
+    }
+    else
+    {
+        <form class="mh-chat-form" method="post" action="@Model.PostUrl" asp-antiforgery="true" data-chat-form>
+            <input type="hidden" name="ClientMessageId" value="@Guid.NewGuid()" />
+            <label for="chatBody" class="visually-hidden">Message</label>
+            <textarea id="chatBody" name="Body" class="form-control" rows="1" maxlength="@RadiantHomes.Services.Sales.ChatService.MaxLength" required placeholder="Write a message…"></textarea>
+            <button type="submit" class="btn btn-primary" data-chat-send><i class="bi bi-send" aria-hidden="true"></i><span class="visually-hidden">Send</span></button>
+        </form>
+    }
+</section>

@@ -20,7 +20,7 @@ namespace RadiantHomes.Pages.Portal
             if (Me.CustomerId is not Guid customerId) return Page();
 
             var statuses = ShowPast
-                ? new[] { HouseReserveStatuses.Cancelled, HouseReserveStatuses.Closed }
+                ? new[] { HouseReserveStatuses.Cancelled, HouseReserveStatuses.Closed, HouseReserveStatuses.Rejected, HouseReserveStatuses.Expired, HouseReserveStatuses.Reversed }
                 : ReservationService.Active;
             Items = await Service<ReservationService>().ForCustomerAsync(customerId, statuses);
             var cards = Service<ApartmentCatalog>().ToCards(Items.Select(t => t.ApartmentHouse).Where(a => a != null));

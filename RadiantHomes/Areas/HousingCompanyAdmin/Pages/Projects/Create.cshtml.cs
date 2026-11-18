@@ -48,8 +48,9 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
 
-            bool isSuperAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.MichuAdmin);
-            bool isRealEstateAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.RealEstateAdmin);
+            var accessScope = await RadiantHomes.Services.AdminServices.CompanyScope.ForAsync(User, _context);
+            bool isSuperAdmin = accessScope.IsMichuAdmin;          // platform staff: any company
+            bool isRealEstateAdmin = accessScope.IsRestricted;     // company staff: own company
 
             if (isSuperAdmin)
             {
@@ -131,8 +132,9 @@ namespace RadiantHomes.Areas.HousingCompanyAdmin.Pages.Projects
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
             }
 
-            bool isSuperAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.MichuAdmin);
-            bool isRealEstateAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.RealEstateAdmin);
+            var accessScope = await RadiantHomes.Services.AdminServices.CompanyScope.ForAsync(User, _context);
+            bool isSuperAdmin = accessScope.IsMichuAdmin;          // platform staff: any company
+            bool isRealEstateAdmin = accessScope.IsRestricted;     // company staff: own company
 
             ShowCompanyDropdown = isSuperAdmin; // Ensure UI state is correct on postback
 

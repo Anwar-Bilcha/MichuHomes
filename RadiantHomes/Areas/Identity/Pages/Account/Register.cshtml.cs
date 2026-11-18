@@ -3,6 +3,7 @@
 #nullable disable
 
 using System;
+using RadiantHomes.Services.Security;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -27,14 +28,6 @@ using RadiantHomes.Services.CustomerPortal;
 
 namespace RadiantHomes.Areas.Identity.Pages.Account
 {
-    public class DummyEmailSender : IEmailSender
-    {
-        public Task SendEmailAsync(string email, string subject, string htmlMessage)
-        {
-            Console.WriteLine($"Sending Email to {email}: {subject}");
-            return Task.CompletedTask;
-        }
-    }
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<AppUser> _signInManager;
@@ -200,7 +193,12 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
                 }
                 if (CompanyId.HasValue)
                 {
+                    // A company's administrator (onboarding): company staff, named after their pre-created profile.
                     user.HousingCompanyId = CompanyId.Value;
+                    user.AccountType = RadiantHomes.Models.Security.AccountType.CompanyStaff;
+                    user.FullName = CustomerId.HasValue
+                        ? await _context.UserProfiles.Where(p => p.Id == CustomerId.Value).Select(p => (p.FirstName + " " + p.LastName).Trim()).FirstOrDefaultAsync()
+                        : null;
                 }
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -212,10 +210,13 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
                     _logger.LogInformation("User created a new account with password.");
                     if (CompanyId.HasValue)
                     {
-                        await _userManager.AddToRoleAsync(user, MichuHomesRoles.RealEstateAdmin);
+                        await AssignCompanySuperAdminAsync(user, CompanyId.Value);
                     }
-                    await _userManager.AddToRoleAsync(user, MichuHomesRoles.Buyer);
-                    await _userManager.AddToRoleAsync(user, MichuHomesRoles.IndividualHouseOwner);
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, MichuHomesRoles.Buyer);
+                        await _userManager.AddToRoleAsync(user, MichuHomesRoles.IndividualHouseOwner);
+                    }
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -223,14 +224,11 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
                         pageHandler: null,
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
-
-                    Console.WriteLine("The Call back url at this point is "+callbackUrl);
                     if (string.IsNullOrEmpty(callbackUrl))
                     {
                         throw new InvalidOperationException("callbackUrl is null or empty.");
                     }
                     _logger.LogInformation("UserId: {UserId}", userId);
-                    _logger.LogInformation("Email confirmation token: {Code}", code);
                     _logger.LogInformation("ReturnUrl: {ReturnUrl}", returnUrl);
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
@@ -298,8 +296,9 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
             return null;
         }
 
-        // Registering with a company grants the Real Estate Admin role for that company, so only a
-        // Michu Admin (any company) or that company's own Real Estate Admin may do it.
+        // Registering with a company creates that company's administrator (Company Super Admin): part of onboarding,
+        // so only platform staff who onboard companies or manage users may do it. Company staff add colleagues on
+        // Staff/Users, where they can only give roles within their own permissions.
         private async Task<bool> CanAssignCompanyAsync(Guid companyId)
         {
             if (User.Identity?.IsAuthenticated != true ||
@@ -307,31 +306,26 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
             {
                 return false;
             }
-            if (User.IsInRole(MichuHomesRoles.MichuAdmin))
-            {
-                return true;
-            }
-            if (User.IsInRole(MichuHomesRoles.RealEstateAdmin))
-            {
-                var currentUser = await _userManager.GetUserAsync(User);
-                return currentUser?.HousingCompanyId == companyId;
-            }
-            return false;
+            var access = await HttpContext.AccessAsync();
+            return access.IsPlatform && access.HasAny(Perm.CompaniesCreate, Perm.UsersManage);
+        }
+
+        private async Task AssignCompanySuperAdminAsync(AppUser user, Guid companyId)
+        {
+            var role = await _context.AccessRoles.FirstOrDefaultAsync(r => r.CompanyId == companyId && r.IsSystem && r.Name == PermissionCatalog.CompanySuperAdminRoleName)
+                       ?? AccessControlSeeder.NewCompanySuperAdmin(_context, companyId);
+            _context.UserAccessRoles.Add(new RadiantHomes.Models.Security.UserAccessRole { UserId = user.Id, RoleId = role.Id, AssignedBy = User.Identity?.Name, AssignedOn = DateTime.UtcNow });
+            HttpContext.RequestServices.GetRequiredService<AuditService>().Add(AuditCategories.Users, "UserCreated",
+                $"Company administrator {user.FullName ?? user.Email} ({user.Email}) created with role {role.Name}.", companyId, nameof(AppUser), user.Id);
+            await _context.SaveChangesAsync();
+            AccessControlService.Invalidate();
         }
 
         // Options for the AdminRegister company / customer pickers.
         private async Task LoadSelectListsAsync()
         {
+            // Only platform staff reach this (AdminRegister needs companies.create).
             var companies = _context.HousingCompanies.AsQueryable();
-            if (!User.IsInRole(MichuHomesRoles.MichuAdmin))
-            {
-                Guid? ownCompanyId = null;
-                if (User.IsInRole(MichuHomesRoles.RealEstateAdmin))
-                {
-                    ownCompanyId = (await _userManager.GetUserAsync(User))?.HousingCompanyId;
-                }
-                companies = companies.Where(c => ownCompanyId != null && c.CompanyId == ownCompanyId);
-            }
             ViewData["Companies"] = new SelectList(await companies.OrderBy(c => c.Name).ToListAsync(), "CompanyId", "Name");
 
             // Approved profiles that don't have an account yet.

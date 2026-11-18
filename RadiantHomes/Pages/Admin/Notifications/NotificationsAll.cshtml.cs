@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using RadiantHomes.Services.Security;
 using RadiantHomes.DAL;
 using RadiantHomes.Models;
 using RadiantHomes.Services.NotificationService;
@@ -29,7 +30,7 @@ namespace RadiantHomes.Pages.Admin.Notifications
 
         public async Task OnGetAsync()
         {
-            if (User.IsInRole(MichuHomesRoles.MichuAdmin))
+            if ((await HttpContext.AccessAsync()).IsPlatform)
             {
                 // Michu Admins see every notification (all companies, read and unread)
                 Notifications = await _notificationService.GetForMichuAdminAsync();

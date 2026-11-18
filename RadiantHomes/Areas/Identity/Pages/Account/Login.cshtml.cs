@@ -135,7 +135,7 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
                     if (returnUrl == Url.Content("~/"))
                     {
                         var account = await _signInManager.UserManager.FindByNameAsync(Input.Email);
-                        if (account != null && RadiantHomes.Services.CustomerPortal.PortalUsers.IsCustomer(await _signInManager.UserManager.GetRolesAsync(account)))
+                        if (account != null && RadiantHomes.Services.CustomerPortal.PortalUsers.IsCustomer(account))
                         {
                             returnUrl = Url.Content("~/Portal");
                         }

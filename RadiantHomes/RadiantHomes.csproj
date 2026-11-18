@@ -63,4 +63,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="RadiantHomes.Tests" />
+  </ItemGroup>
+
 </Project>

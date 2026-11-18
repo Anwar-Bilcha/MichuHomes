@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using RadiantHomes.Services.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -66,7 +67,7 @@ namespace RadiantHomes.Pages.HouseOwner
             TempData.Keep("ErrorMessage");
 
             // Check if current user is DinarAdmin AND parameters are provided for the special flow
-            if (User.IsInRole(MichuHomesRoles.MichuAdmin) && UserId.HasValue && CompanyId.HasValue)
+            if (User.HasPermission(Perm.CompaniesCreate) && UserId.HasValue && CompanyId.HasValue)
             {
                 IsDinarAdminPrecreationMode = true;
 
@@ -119,7 +120,7 @@ namespace RadiantHomes.Pages.HouseOwner
         public async Task<IActionResult> OnPostAsync()
         {
             // Re-check the Dinar Admin pre-creation mode on POST for security and consistent behavior
-            IsDinarAdminPrecreationMode = User.IsInRole(MichuHomesRoles.MichuAdmin) && UserId.HasValue && CompanyId.HasValue;
+            IsDinarAdminPrecreationMode = User.HasPermission(Perm.CompaniesCreate) && UserId.HasValue && CompanyId.HasValue;
 
             // Reject unsupported or oversized uploads before anything is saved.
             string? uploadField = null, uploadMessage = null;

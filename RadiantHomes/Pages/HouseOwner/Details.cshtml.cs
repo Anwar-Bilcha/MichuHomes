@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using RadiantHomes.Services.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -39,19 +40,14 @@ namespace RadiantHomes.Pages.HouseOwner
                 return NotFound();
             }
 
-            // Profiles hold personal data: Michu admins see all, real-estate admins see their
-            // company's profiles, everyone else only their own.
-            if (!User.IsInRole(MichuHomesRoles.MichuAdmin))
+            // Profiles hold personal data: the owner, or staff with customers.view (platform: any profile;
+            // company staff: their own company's profiles).
+            var access = await HttpContext.AccessAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var isOwnProfile = user?.CustomerId == Customer.Id;
+            if (!isOwnProfile && !access.Can(Perm.CustomersView, Customer.CompanyId))
             {
-                var user = await _userManager.GetUserAsync(User);
-                var isOwnProfile = user?.CustomerId == Customer.Id;
-                var isOwnCompanyAdmin = User.IsInRole(MichuHomesRoles.RealEstateAdmin)
-                    && Customer.CompanyId != null
-                    && Customer.CompanyId == user?.HousingCompanyId;
-                if (!isOwnProfile && !isOwnCompanyAdmin)
-                {
-                    return Forbid();
-                }
+                return Forbid();
             }
 
             return Page();

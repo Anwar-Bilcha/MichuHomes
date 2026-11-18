@@ -42,6 +42,14 @@ namespace RadiantHomes.Pages.Buildings
 
             if (building is not null)
             {
+                // Visitors see only listed apartments, and nothing of a company that isn't approved; the owning company
+                // and listing reviewers see everything.
+                var viewer = await RadiantHomes.Services.Security.AccessExtensions.AccessAsync(HttpContext);
+                if (!RadiantHomes.Services.Properties.ApartmentVisibility.CanManage(viewer, building.Project?.HousingCompanyId))
+                {
+                    if (building.Project?.Company?.Status != RadiantHomes.Models.Security.CompanyStatuses.Approved) return NotFound();
+                    building.Houses = building.Houses.Where(h => h.IsAvailable && string.Equals(h.Status, "Approved", StringComparison.OrdinalIgnoreCase)).ToList();
+                }
                 Building = building;
                 //var CompanyName = Building.Project.Company.Name;
                 //Configurations.Initialize(_env);

@@ -1,0 +1,91 @@
+@page
+@model RadiantHomes.Pages.Staff.Inbox.ConversationModel
+@using RadiantHomes.Models.Sales
+@{
+    ViewData["Title"] = "Conversation";
+    ViewData["PageHeader"] = false;
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var c = Model.Conversation;
+}
+
+@section Scripts {
+    <script src="~/lib/microsoft-signalr/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-secondary" asp-page="./Index"><i class="bi bi-arrow-left" aria-hidden="true"></i> Inbox</a>
+    <h1 class="h5 mb-0 ms-1">@c.Customer.FirstName @c.Customer.LastName</h1>
+    @if (Model.CustomerVerified)
+    {
+        <span class="badge text-bg-success"><i class="bi bi-shield-check" aria-hidden="true"></i> Verified customer</span>
+    }
+    @if (c.Status == ConversationStatuses.Closed)
+    {
+        <span class="badge text-bg-secondary">Closed</span>
+    }
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <partial name="_ChatPanel" model="Model.Panel" />
+    </div>
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-body small">
+                <dl class="mb-0">
+                    <dt>About</dt>
+                    <dd>
+                        @if (c.ApartmentHouseId is Guid homeId)
+                        {
+                            <a href="/ApartmentHouses/Details?id=@homeId" target="_blank" rel="noopener">@c.Subject <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
+                        }
+                        else { @c.Subject }
+                        @if (c.Project is not null) { <div class="text-muted">@c.Project.ProjectName</div> }
+                    </dd>
+                    @if (Model.Access.IsPlatform) { <dt>Company</dt><dd>@c.Company.Name</dd> }
+                    <dt>Phone</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(c.Customer.PhoneNumber) ? "—" : c.Customer.PhoneNumber)</dd>
+                    <dt>Agent</dt>
+                    <dd>@(Model.AgentName ?? "Unassigned (company inbox)")</dd>
+                    <dt>Started</dt>
+                    <dd>@c.CreatedOn.ToLocalTime().ToString("d MMM yyyy HH:mm")</dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (c.LeadId is Guid leadId && Model.Access.Has(Perm.LeadsView))
+        {
+            <a class="btn btn-outline-primary w-100 mb-3" asp-page="/Staff/Leads/Details" asp-route-id="@leadId"><i class="bi bi-person-lines-fill" aria-hidden="true"></i> Open the customer's lead</a>
+        }
+
+        @if (Model.Access.Has(Perm.ChatAssign))
+        {
+            <form method="post" asp-page-handler="Assign" asp-route-id="@c.Id" class="card card-body mb-3">
+                <label class="form-label small fw-semibold" for="agentPick">Assign to</label>
+                <select class="form-select form-select-sm mb-2" id="agentPick" name="AgentUserId">
+                    <option value="">Company inbox (nobody)</option>
+                    @foreach (var s in Model.Staff)
+                    {
+                        <option value="@s.Id" selected="@(s.Id == c.AgentUserId)">@s.Name@(s.ProjectAgent ? " · project agent" : "")</option>
+                    }
+                </select>
+                <button class="btn btn-sm btn-primary">Assign</button>
+            </form>
+        }
+
+        @if (Model.Access.Has(Perm.ChatReply))
+        {
+            <form method="post" asp-route-id="@c.Id">
+                @if (c.Status == ConversationStatuses.Open)
+                {
+                    <button class="btn btn-outline-secondary w-100" asp-page-handler="Close" asp-route-id="@c.Id"><i class="bi bi-archive" aria-hidden="true"></i> Close conversation</button>
+                }
+                else
+                {
+                    <button class="btn btn-outline-secondary w-100" asp-page-handler="Reopen" asp-route-id="@c.Id"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reopen</button>
+                }
+            </form>
+        }
+    </div>
+</div>

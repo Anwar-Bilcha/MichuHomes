@@ -34,7 +34,7 @@ namespace RadiantHomes.Pages.RealEstates.OnBoarding.FinancialDetails
         public SelectList? CompanySelectList { get; set; }
         public string CompanyName { get; set; } = string.Empty;
         private bool IsRealEstateAdmin { get; set; }
-        private bool IsSuperAdmin { get; set; }
+        public bool IsSuperAdmin { get; private set; } // platform staff (pick any company)
 
         public async Task<IActionResult> OnGetAsync(Guid? companyId)
         {
@@ -42,8 +42,8 @@ namespace RadiantHomes.Pages.RealEstates.OnBoarding.FinancialDetails
             if (currentUser == null)
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            IsRealEstateAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.RealEstateAdmin);
-            IsSuperAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.MichuAdmin);
+            IsRealEstateAdmin = (await RadiantHomes.Services.AdminServices.CompanyScope.ForAsync(User, _context)).IsRestricted;
+            IsSuperAdmin = (await RadiantHomes.Services.AdminServices.CompanyScope.ForAsync(User, _context)).IsMichuAdmin;
 
             if (!IsRealEstateAdmin && !IsSuperAdmin)
                 return Forbid();
@@ -92,8 +92,8 @@ namespace RadiantHomes.Pages.RealEstates.OnBoarding.FinancialDetails
             if (currentUser == null)
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            IsRealEstateAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.RealEstateAdmin);
-            IsSuperAdmin = await _userManager.IsInRoleAsync(currentUser, MichuHomesRoles.MichuAdmin);
+            IsRealEstateAdmin = (await RadiantHomes.Services.AdminServices.CompanyScope.ForAsync(User, _context)).IsRestricted;
+            IsSuperAdmin = (await RadiantHomes.Services.AdminServices.CompanyScope.ForAsync(User, _context)).IsMichuAdmin;
 
             if (!IsRealEstateAdmin && !IsSuperAdmin)
                 return Forbid();

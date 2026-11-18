@@ -1,0 +1,40 @@
+@page
+@model RadiantHomes.Pages.Portal.Visits.RequestModel
+@using RadiantHomes.Models.Sales
+@using RadiantHomes.Services.Sales
+@{
+    ViewData["Title"] = "Ask for a site visit";
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<div class="card" style="max-width: 40rem">
+    <div class="card-body">
+        <p class="text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> <strong>@Model.About</strong> · @Model.Company</p>
+        <form method="post" asp-route-apartment="@Model.Apartment" asp-route-project="@Model.Project">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <label asp-for="Date" class="form-label"></label>
+                    <input asp-for="Date" class="form-control" type="date" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" max="@DateTime.Today.AddDays(SiteVisitService.MaxDaysAhead).ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="Date" class="text-danger small"></span>
+                </div>
+                <div class="col-sm-6">
+                    <label asp-for="Time" class="form-label"></label>
+                    <select asp-for="Time" class="form-select">
+                        @foreach (var slot in VisitSlots.All) { <option value="@slot">@slot</option> }
+                    </select>
+                    <span asp-validation-for="Time" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Notes" class="form-label"></label>
+                    <textarea asp-for="Notes" class="form-control" rows="3" maxlength="500"></textarea>
+                </div>
+            </div>
+            <p class="form-text mt-2">The company confirms the exact time and who will meet you; you'll get a notification. You can change or cancel it under My site visits.</p>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-calendar-plus" aria-hidden="true"></i> Send request</button>
+        </form>
+    </div>
+</div>

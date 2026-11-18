@@ -7,13 +7,14 @@
     Layout = "~/Pages/Shared/_Layout.cshtml";
     var hasRows = Model.CustomerTestimonial is not null && Model.CustomerTestimonial.Any();
     // Visitors can browse; creating, editing and deleting are for administrators only.
-    var canManage = User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.MichuAdmin) || User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.RealEstateAdmin);
+    var access = await HttpContext.AccessAsync();
+    var canManage = access.Has(Perm.TestimonialsManage);
 }
 
 @if (canManage)
 {
     @section PageActions {
-        <a class="btn btn-primary" asp-page="Create">
+        <a mh-permission="testimonials.manage" class="btn btn-primary" asp-page="Create">
             <i class="bi bi-plus-lg" aria-hidden="true"></i> New testimonial
         </a>
     }
@@ -32,7 +33,7 @@
             <p>Customer testimonials appear here once they are added.</p>
             @if (canManage)
             {
-                <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New testimonial</a>
+                <a mh-permission="testimonials.manage" class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New testimonial</a>
             }
         </div>
     }
@@ -76,8 +77,8 @@
                                     <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@item.Id" title="View details" aria-label="View details"><i class="bi bi-eye" aria-hidden="true"></i></a>
                                     @if (canManage)
                                     {
-                                        <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
-                                        <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                        <a mh-permission="testimonials.manage" class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                        <a mh-permission="testimonials.manage" class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
                                     }
                                 </div>
                             </td>

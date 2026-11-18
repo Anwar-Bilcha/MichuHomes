@@ -1,0 +1,73 @@
+@page
+@model RadiantHomes.Pages.Admin.Companies.IndexModel
+@using RadiantHomes.Models.Security
+@{
+    ViewData["Title"] = "Company approvals";
+    ViewData["Subtitle"] = "Review real estate companies. Only approved companies can use company administration and appear to customers.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var tabs = new[] { CompanyStatuses.Pending, CompanyStatuses.InfoRequested, CompanyStatuses.Approved, CompanyStatuses.Rejected, CompanyStatuses.Suspended };
+}
+
+<nav class="mh-segmented mb-3" aria-label="Company status">
+    @foreach (var s in tabs)
+    {
+        <a class="@(Model.Current == s ? "active" : null)" asp-page="./Index" asp-route-status="@s" aria-current="@(Model.Current == s ? "page" : null)">
+            @CompanyStatuses.Label(s) <span class="badge rounded-pill text-bg-light ms-1">@Model.Count(s)</span>
+        </a>
+    }
+    <a class="@(Model.Current == "all" ? "active" : null)" asp-page="./Index" asp-route-status="all" aria-current="@(Model.Current == "all" ? "page" : null)">All</a>
+</nav>
+
+<form method="get" class="mb-3" role="search">
+    <input type="hidden" name="status" value="@Model.Current" />
+    <div class="input-group">
+        <input class="form-control" name="q" value="@Model.Q" placeholder="Company name, licence number or email" aria-label="Search companies" />
+        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+    </div>
+</form>
+
+@if (!Model.Rows.Any())
+{
+    <div class="card">
+        <div class="mh-empty">
+            <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-patch-check"></i></span>
+            <h2>No companies here</h2>
+            <p>Companies waiting for review appear under "Waiting for approval".</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Company</th>
+                        <th scope="col">Contact</th>
+                        <th scope="col" class="text-center">Staff</th>
+                        <th scope="col" class="text-center">Listed homes</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.Rows)
+                    {
+                        <tr>
+                            <td><div class="fw-semibold">@c.Name</div><div class="small text-muted">Licence @(string.IsNullOrWhiteSpace(c.License) ? "—" : c.License)</div></td>
+                            <td class="small">@c.Email<div class="text-muted">@c.Phone</div></td>
+                            <td class="text-center">@c.Staff</td>
+                            <td class="text-center">@c.Listed</td>
+                            <td>
+                                <span class="badge @CompanyStatuses.Badge(c.Status)">@CompanyStatuses.Label(c.Status)</span>
+                                @if (c.Since is DateTime since) { <div class="small text-muted">since @since.ToLocalTime().ToString("d MMM yyyy")</div> }
+                            </td>
+                            <td class="text-end"><a class="btn btn-sm btn-primary" asp-page="./Details" asp-route-id="@c.Id" aria-label="Review @c.Name"><i class="bi bi-clipboard-check" aria-hidden="true"></i> Review</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

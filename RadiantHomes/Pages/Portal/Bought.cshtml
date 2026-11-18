@@ -36,10 +36,22 @@
                 <partial name="_ReservationStatus" model="t.Status" />
                 <a class="mh-rcard-title" asp-page="/Portal/Apartment" asp-route-id="@t.ApartmentHouseId">@a?.Title</a>
                 <span class="mh-rcard-meta">@(string.Join(" · ", new[] { a?.Building?.Project?.ProjectName, a?.HouseAddress?.SubCity, a?.HouseAddress?.City }.Where(s => !string.IsNullOrWhiteSpace(s))))</span>
-                <span class="mh-rcard-meta">
-                    @(a is { SalePrice: > 0 } ? ApartmentHouseForm.Price(a.SalePrice, a.Currency) : "Price not listed") ·
-                    @($"Bought on {(t.UpdatedOn ?? t.TransactionDate):d MMM yyyy}")
+                <span class="mh-rcard-meta" data-price-paid>
+                    @if (t.AgreedPrice is double paid)
+                    {
+                        @($"Price paid: {ApartmentHouseForm.Price(paid, a?.Currency)}")
+                        if (t.Discount is double discount && discount > 0) { @($" (discount {discount:N0})") }
+                    }
+                    else
+                    {
+                        @(a is { SalePrice: > 0 } ? ApartmentHouseForm.Price(a.SalePrice, a.Currency) : "Price not listed")
+                    }
+                    · @($"Bought on {(t.SoldOn ?? t.UpdatedOn ?? t.TransactionDate):d MMM yyyy}")
                 </span>
+                @if (t.PaymentStatus is string payment)
+                {
+                    <span class="mh-rcard-meta" data-payment><i class="bi bi-cash-coin" aria-hidden="true"></i> Payment: @RadiantHomes.Models.Sales.PaymentStatuses.Label(payment)</span>
+                }
                 @if (contact is not null)
                 {
                     <span class="mh-rcard-note">

@@ -1,0 +1,93 @@
+@page
+@model RadiantHomes.Pages.Staff.Users.CreateModel
+@{
+    ViewData["Title"] = "New user";
+    ViewData["Subtitle"] = "Create a staff account and choose what the person can do through their roles.";
+    ViewData["PageWidth"] = "narrow";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+@if (Model.Access.IsPlatform)
+{
+    <form method="get" class="card card-body mb-3">
+        <label class="form-label" for="company">The new user works for</label>
+        <select class="form-select" id="company" name="company" asp-items="@(new SelectList(Model.CompanyOptions, "Value", "Text", Model.Company?.ToString() ?? ""))" onchange="this.form.submit()"></select>
+        <div class="form-text">Platform staff manage Michu Homes; company staff only see and manage their own company.</div>
+        <noscript><button class="btn btn-outline-primary btn-sm mt-2" type="submit">Change</button></noscript>
+    </form>
+}
+
+<form method="post" class="card">
+    <div class="card-body">
+        <input type="hidden" asp-for="Company" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        <p class="text-muted small mb-3"><i class="bi bi-building" aria-hidden="true"></i> @Model.DomainLabel</p>
+
+        <div class="mb-3">
+            <label asp-for="Input.FullName" class="form-label"></label>
+            <input asp-for="Input.FullName" class="form-control" autocomplete="off" />
+            <span asp-validation-for="Input.FullName" class="text-danger"></span>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-md-7">
+                <label asp-for="Input.Email" class="form-label"></label>
+                <input asp-for="Input.Email" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+            <div class="col-md-5">
+                <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                <input asp-for="Input.PhoneNumber" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+            </div>
+        </div>
+
+        <fieldset class="mb-3">
+            <legend class="form-label fs-6">Roles</legend>
+            @if (!Model.Roles.Any())
+            {
+                <p class="text-muted small">There are no roles yet. The account is created without access; add roles later.</p>
+            }
+            @foreach (var r in Model.Roles)
+            {
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="checkbox" name="Input.RoleIds" value="@r.Id" id="role-@r.Id"
+                           checked="@(Model.Input.RoleIds.Contains(r.Id))" disabled="@(!r.CanGive)" />
+                    <label class="form-check-label" for="role-@r.Id">
+                        <span class="fw-semibold">@r.Name</span>
+                        @if (r.IsSystem) { <span class="badge text-bg-light border ms-1">Built-in</span> }
+                        @if (!r.Active) { <span class="badge text-bg-secondary ms-1">Inactive</span> }
+                        <span class="text-muted small">· @r.PermissionCount permissions</span>
+                        @if (!r.CanGive) { <span class="text-muted small d-block">You can't give this role: it has permissions you don't have.</span> }
+                        @if (!string.IsNullOrWhiteSpace(r.Description)) { <span class="text-muted small d-block">@r.Description</span> }
+                    </label>
+                </div>
+            }
+        </fieldset>
+
+        <fieldset class="mb-3">
+            <legend class="form-label fs-6">Password</legend>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" asp-for="Input.Setup" value="invite" id="setup-invite" disabled="@(!Model.CanEmail)" />
+                <label class="form-check-label" for="setup-invite">Email an invitation to choose a password @if (!Model.CanEmail) { <span class="text-muted small">(emails aren't set up on this server)</span> }</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" asp-for="Input.Setup" value="password" id="setup-password" />
+                <label class="form-check-label" for="setup-password">Set a first password and give it to the person</label>
+            </div>
+            <div class="mt-2">
+                <label asp-for="Input.Password" class="form-label visually-hidden"></label>
+                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" placeholder="First password" />
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+                <div class="form-text">At least 6 characters with an upper-case letter, a lower-case letter, a digit and a symbol.</div>
+            </div>
+        </fieldset>
+    </div>
+    <div class="card-footer d-flex justify-content-end gap-2">
+        <a class="btn btn-secondary" asp-page="./Index">Cancel</a>
+        <button class="btn btn-primary" type="submit"><i class="bi bi-person-plus" aria-hidden="true"></i> Create account</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

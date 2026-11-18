@@ -5,7 +5,10 @@
 *@
 <section class="mh-call" data-call data-role="@(Model.IsAgent ? "agent" : "customer")"
          data-domain="@Model.Domain" data-script="@Model.ScriptUrl" data-room="@Model.RoomPath" data-jwt="@Model.Jwt"
+         data-end-url="@Model.EndUrl" data-status-url="@Model.StatusUrl" data-audio-only="@(Model.AudioOnly ? "true" : "false")"
          aria-labelledby="callHeading">
+    @* The token lets video-call.js tell the server that this side left (the call log is closed). *@
+    <form data-call-token hidden method="post" action="@Model.EndUrl">@Html.AntiForgeryToken()</form>
     <div class="mh-call-bar">
         <span class="mh-call-bar-icon" aria-hidden="true"><i class="bi bi-camera-video-fill"></i></span>
         <div class="min-w-0">
@@ -34,6 +37,33 @@
                 <p class="mh-call-sub">@Model.Subheading</p>
             }
         </div>
+        @{
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(Context.Request.QueryString.Value);
+            var withoutAudio = string.Join("&", query.Where(q => q.Key != "audio").Select(q => $"{q.Key}={Uri.EscapeDataString(q.Value.ToString())}"));
+            var toggleUrl = $"{Context.Request.Path}?{withoutAudio}{(Model.AudioOnly ? "" : (withoutAudio.Length > 0 ? "&" : "") + "audio=1")}";
+        }
+        <a class="btn btn-sm btn-outline-light ms-auto text-nowrap" href="@toggleUrl" data-call-audio-toggle>
+            @if (Model.AudioOnly)
+            {
+                <i class="bi bi-camera-video" aria-hidden="true"></i> <span>Use camera</span>
+            }
+            else
+            {
+                <i class="bi bi-mic" aria-hidden="true"></i> <span>Audio only</span>
+            }
+        </a>
+    </div>
+
+    <div class="alert alert-warning m-2 mb-0 py-2 small d-flex gap-2 align-items-start" data-call-device role="alert" hidden>
+        <i class="bi bi-camera-video-off" aria-hidden="true"></i>
+        <div>
+            <span data-call-device-kind="camera" hidden>Your camera can't be used (it may be blocked or used by another app). You can continue with audio only.</span>
+            <span data-call-device-kind="mic" hidden>Your microphone can't be used. Check your browser's permission for this site and that a microphone is connected.</span>
+            @if (!Model.AudioOnly)
+            {
+                <a class="alert-link ms-1" href="@toggleUrl" data-call-device-audio>Continue with audio only</a>
+            }
+        </div>
     </div>
 
     @if (!Model.IsAgent)
@@ -58,6 +88,28 @@
             <p>Please check your internet connection and try again. You can also call us on <a href="tel:+251900000000">+251-900-000-000</a>.</p>
             <a class="btn btn-accent" href="@Context.Request.Path@Context.Request.QueryString"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Try again</a>
         </div>
+
+        @if (!Model.IsAgent)
+        {
+            <div class="mh-call-panel" data-call-panel="declined" hidden>
+                <span class="mh-call-panel-icon" aria-hidden="true"><i class="bi bi-telephone-x"></i></span>
+                <h2>An agent couldn't take your call</h2>
+                <p data-call-reason></p>
+                <div class="mh-call-panel-actions">
+                    <a class="btn btn-accent" href="/Portal/Messages">Send a message instead</a>
+                    <a class="btn btn-outline-light" href="@Model.DoneUrl">@Model.DoneLabel</a>
+                </div>
+            </div>
+            <div class="mh-call-panel" data-call-panel="missed" hidden>
+                <span class="mh-call-panel-icon" aria-hidden="true"><i class="bi bi-telephone-minus"></i></span>
+                <h2>No agent could answer in time</h2>
+                <p>We told the company about your call; they may call you back. You can also send them a message or try again later.</p>
+                <div class="mh-call-panel-actions">
+                    <a class="btn btn-accent" href="/LiveVideoMeet">Ask for a new call</a>
+                    <a class="btn btn-outline-light" href="/Portal/Messages">Send a message</a>
+                </div>
+            </div>
+        }
 
         <div class="mh-call-panel" data-call-panel="ended" hidden>
             <span class="mh-call-panel-icon" aria-hidden="true"><i class="bi bi-check2-circle"></i></span>

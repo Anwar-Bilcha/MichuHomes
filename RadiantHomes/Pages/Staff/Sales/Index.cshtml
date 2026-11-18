@@ -1,0 +1,103 @@
+@page
+@model RadiantHomes.Pages.Staff.Sales.IndexModel
+@using RadiantHomes.Models.Sales
+@using RadiantHomes.Pages.ApartmentHouses
+@{
+    ViewData["Title"] = "Sales";
+    ViewData["Subtitle"] = $"{Model.Count("sold")} sold · {Model.SoldValue:N0} in agreed prices. Record a sale from an approved reservation; reversing one lists the home again.";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    var tabs = new[] { ("sold", "Sold", Model.Count("sold")), ("ready", "Ready to record", Model.Count("ready")), ("reversed", "Reversed", Model.Count("reversed")), ("all", "All", -1) };
+    var canRecord = Model.Access.Has(Perm.SalesRecord);
+    var canReverse = Model.Access.Has(Perm.SalesReverse);
+}
+
+<nav class="mh-segmented mb-3" aria-label="Sales">
+    @foreach (var (key, label, count) in tabs)
+    {
+        <a class="@(Model.Current == key ? "active" : null)" asp-page="./Index" asp-route-show="@key" aria-current="@(Model.Current == key ? "page" : null)">
+            @label @if (count >= 0) { <span class="badge rounded-pill text-bg-light ms-1">@count</span> }
+        </a>
+    }
+</nav>
+
+@if (!Model.Items.Any())
+{
+    <div class="card"><div class="mh-empty"><span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-key"></i></span><h2>Nothing here</h2><p>Approved reservations can be recorded as sales.</p></div></div>
+}
+else
+{
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead><tr><th scope="col">Home</th><th scope="col">Buyer</th><th scope="col">Price</th><th scope="col">Sold</th><th scope="col">Payment</th><th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th></tr></thead>
+                <tbody>
+                    @foreach (var t in Model.Items)
+                    {
+                        var home = t.ApartmentHouse;
+                        <tr data-sale="@t.Reference">
+                            <td>
+                                <div class="fw-semibold">@home?.Title</div>
+                                <div class="small text-muted"><span translate="no">@t.Reference</span> · @home?.Building?.Project?.ProjectName@(Model.Access.IsPlatform ? $" · {home?.Building?.Project?.Company?.Name}" : "")</div>
+                            </td>
+                            <td class="small">@t.Receiver?.FirstName @t.Receiver?.LastName<div class="text-muted">@t.Receiver?.PhoneNumber</div></td>
+                            <td class="small text-nowrap">
+                                @if (t.AgreedPrice is double price)
+                                {
+                                    <div>@ApartmentHouseForm.Price(price, home?.Currency)</div>
+                                    if (t.Discount is double d && d > 0) { <div class="text-muted">discount @d.ToString("N0")</div> }
+                                }
+                                else { <span>@ApartmentHouseForm.Price(home?.SalePrice ?? 0, home?.Currency) <span class="text-muted">(listed)</span></span> }
+                            </td>
+                            <td class="small">
+                                @if (t.Status == HouseReserveStatuses.Approved) { <span class="badge text-bg-info">Approved reservation</span> }
+                                else if (t.Status == HouseReserveStatuses.Reversed) { <span class="badge text-bg-danger">Reversed</span><div class="text-muted">@t.ReversalReason</div> }
+                                else
+                                {
+                                    <div>@t.SoldOn?.ToString("d MMM yyyy")</div>
+                                    <div class="text-muted">@(t.SoldByUserId is string a && Model.Names.TryGetValue(a, out var n) ? n : "")</div>
+                                }
+                            </td>
+                            <td class="small">
+                                @if (t.Status == HouseReserveStatuses.Completed)
+                                {
+                                    if (canRecord)
+                                    {
+                                        <form method="post" asp-page-handler="Payment" asp-route-id="@t.Id" asp-route-show="@Model.Show" class="d-flex gap-1">
+                                            <select class="form-select form-select-sm" name="PaymentStatus" aria-label="Payment status of @t.Reference">
+                                                @foreach (var p in PaymentStatuses.All) { <option value="@p" selected="@(t.PaymentStatus == p)">@PaymentStatuses.Label(p)</option> }
+                                            </select>
+                                            <button class="btn btn-sm btn-outline-primary">Save</button>
+                                        </form>
+                                    }
+                                    else { @PaymentStatuses.Label(t.PaymentStatus ?? "Unpaid") }
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex flex-wrap gap-1 justify-content-end">
+                                    @if (t.Status == HouseReserveStatuses.Approved && canRecord)
+                                    {
+                                        <a class="btn btn-sm btn-success" asp-page="./Record" asp-route-id="@t.Id"><i class="bi bi-key" aria-hidden="true"></i> Record sale</a>
+                                    }
+                                    @if (t.AgreementFileName is not null && (canRecord || canReverse))
+                                    {
+                                        <a class="btn btn-sm btn-outline-secondary" asp-page-handler="Agreement" asp-route-id="@t.Id"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Agreement</a>
+                                    }
+                                    @if (t.Status == HouseReserveStatuses.Completed && canReverse)
+                                    {
+                                        <details>
+                                            <summary class="btn btn-sm btn-outline-danger">Reverse</summary>
+                                            <form method="post" asp-page-handler="Reverse" asp-route-id="@t.Id" asp-route-show="@Model.Show" class="mt-1 d-flex gap-1">
+                                                <input class="form-control form-control-sm" name="Reason" maxlength="500" required placeholder="Reason" aria-label="Reason for reversing @t.Reference" />
+                                                <button class="btn btn-sm btn-danger">Reverse</button>
+                                            </form>
+                                        </details>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

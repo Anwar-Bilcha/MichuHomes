@@ -5,7 +5,8 @@
     ViewData["Title"] = "Buildings";
     var hasRows = Model.Building is not null && Model.Building.Any();
     // Visitors can browse; creating, editing and deleting are for administrators only.
-    var canManage = User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.MichuAdmin) || User.IsInRole(RadiantHomes.DAL.MichuHomesRoles.RealEstateAdmin);
+    var access = await HttpContext.AccessAsync();
+    var canManage = access.HasAny(Perm.BuildingsCreate, Perm.BuildingsUpdate, Perm.BuildingsDelete);
     // Visitors (e.g. from a public project page) get the public layout rather than the admin sidebar.
     Layout = canManage ? "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml" : "~/Pages/Shared/_Layout.cshtml";
 }
@@ -13,7 +14,7 @@
 @if (canManage)
 {
     @section PageActions {
-        <a class="btn btn-primary" asp-page="Create">
+        <a mh-permission="buildings.create" class="btn btn-primary" asp-page="Create">
             <i class="bi bi-plus-lg" aria-hidden="true"></i> New building
         </a>
     }
@@ -34,7 +35,7 @@
             <p>Buildings appear here once they are added to a project.</p>
             @if (canManage)
             {
-                <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New building</a>
+                <a mh-permission="buildings.create" class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New building</a>
             }
         </div>
     }
@@ -74,8 +75,8 @@
                                     <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@item.Id" title="View details" aria-label="View details"><i class="bi bi-eye" aria-hidden="true"></i></a>
                                     @if (canManage)
                                     {
-                                        <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
-                                        <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                        <a mh-permission="buildings.update" class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@item.Id" title="Edit" aria-label="Edit"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                        <a mh-permission="buildings.delete" class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@item.Id" title="Delete" aria-label="Delete"><i class="bi bi-trash" aria-hidden="true"></i></a>
                                     }
                                 </div>
                             </td>

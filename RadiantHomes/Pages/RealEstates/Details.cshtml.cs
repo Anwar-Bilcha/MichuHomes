@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using RadiantHomes.Services.Security;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +47,12 @@ namespace RadiantHomes.Pages.RealEstates
                 .FirstOrDefaultAsync(m => m.CompanyId == id);
 
             if (housingCompany is null)
+            {
+                return NotFound();
+            }
+            var viewer = await HttpContext.AccessAsync();
+            if (housingCompany.Status != RadiantHomes.Models.Security.CompanyStatuses.Approved
+                && !viewer.Has(Perm.CompaniesView) && viewer.CompanyId != housingCompany.CompanyId)
             {
                 return NotFound();
             }

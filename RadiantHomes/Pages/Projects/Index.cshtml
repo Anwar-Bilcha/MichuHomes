@@ -6,14 +6,15 @@
     ViewData["Title"] = "Projects";
     // The list is public (navbar "Projects"); creating, editing and deleting are for administrators only,
     // so visitors get the public layout instead of the admin sidebar.
-    var canManage = User.IsInRole(MichuHomesRoles.MichuAdmin) || User.IsInRole(MichuHomesRoles.RealEstateAdmin);
+    var access = await HttpContext.AccessAsync();
+    var canManage = access.HasAny(Perm.ProjectsCreate, Perm.ProjectsUpdate, Perm.ProjectsDelete);
     Layout = canManage ? "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml" : "~/Pages/Shared/_Layout.cshtml";
 }
 
 @if (canManage)
 {
     @section PageActions {
-        <a class="btn btn-primary" asp-page="Create">
+        <a mh-permission="projects.create" class="btn btn-primary" asp-page="Create">
             <i class="bi bi-plus-lg" aria-hidden="true"></i> New project
         </a>
     }
@@ -56,8 +57,8 @@
                                     <a class="btn btn-sm btn-outline-secondary btn-icon" asp-page="./Details" asp-route-id="@project.ProjectId" title="View details" aria-label="View details of @project.ProjectName"><i class="bi bi-eye" aria-hidden="true"></i></a>
                                     @if (canManage)
                                     {
-                                        <a class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@project.ProjectId" title="Edit" aria-label="Edit @project.ProjectName"><i class="bi bi-pencil" aria-hidden="true"></i></a>
-                                        <a class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@project.ProjectId" title="Delete" aria-label="Delete @project.ProjectName"><i class="bi bi-trash" aria-hidden="true"></i></a>
+                                        <a mh-permission="projects.update" class="btn btn-sm btn-outline-primary btn-icon" asp-page="./Edit" asp-route-id="@project.ProjectId" title="Edit" aria-label="Edit @project.ProjectName"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                        <a mh-permission="projects.delete" class="btn btn-sm btn-outline-danger btn-icon" asp-page="./Delete" asp-route-id="@project.ProjectId" title="Delete" aria-label="Delete @project.ProjectName"><i class="bi bi-trash" aria-hidden="true"></i></a>
                                     }
                                 </div>
                             </td>
@@ -79,7 +80,7 @@
             <p>Housing projects appear here, with their buildings and apartments.</p>
             @if (canManage)
             {
-                <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New project</a>
+                <a mh-permission="projects.create" class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> New project</a>
             }
         </div>
     }

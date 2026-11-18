@@ -18,6 +18,13 @@ namespace RadiantHomes.Models
         public Guid? HousingCompanyId { get; set; }
         [ForeignKey(nameof(HousingCompanyId))]
         public virtual HousingCompany? Company { get; set; }
+
+        /// <summary>Customer, platform staff or company staff (Models/Security/AccessControl.cs). Company staff have a HousingCompanyId.</summary>
+        public Security.AccountType AccountType { get; set; } = Security.AccountType.Customer;
+
+        /// <summary>Staff member's name (customers keep theirs on the Customer profile).</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(150)]
+        public string? FullName { get; set; }
     }
    
 }

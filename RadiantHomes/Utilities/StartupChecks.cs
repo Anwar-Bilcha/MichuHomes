@@ -15,6 +15,7 @@ namespace RadiantHomes.Utilities
             ("SMS (Twilio)", new[] { "Twilio:AccountSid", "Twilio:AuthToken", "Twilio:FromPhoneNumber" }),
             ("Payments (Chapa)", new[] { "Chapa:SecretKey" }),
             ("Video calls (JaaS)", new[] { "Jaas:AppId", "Jaas:ApiKeyId" }),
+            ("Account emails (password reset, invitations)", new[] { "Email:Host", "Email:FromAddress" }),
         };
 
         public static void LogMissingSettings(IConfiguration configuration, ILogger logger)

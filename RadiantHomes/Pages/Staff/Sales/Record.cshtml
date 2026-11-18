@@ -1,0 +1,68 @@
+@page
+@model RadiantHomes.Pages.Staff.Sales.RecordModel
+@using RadiantHomes.Models.Sales
+@using RadiantHomes.Pages.ApartmentHouses
+@{
+    var s = Model.Sale;
+    var home = s.ApartmentHouse;
+    ViewData["Title"] = "Record the sale";
+    ViewData["Subtitle"] = $"{home.Title} · reservation {s.Reference}";
+    ViewData["PageWidth"] = "narrow";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<div class="card mb-3">
+    <div class="card-body small">
+        <div><strong>Buyer:</strong> @s.Receiver?.FirstName @s.Receiver?.LastName · @s.Receiver?.PhoneNumber</div>
+        <div><strong>Listed price:</strong> @ApartmentHouseForm.Price(home.SalePrice, home.Currency) · <strong>Reserved:</strong> @s.TransactionDate.ToString("d MMM yyyy")</div>
+        <div><strong>Project:</strong> @home.Building?.Project?.ProjectName · @home.Building?.Project?.Company?.Name</div>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" asp-route-id="@s.Id" class="card card-body">
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+    <div class="row g-3">
+        <div class="col-sm-6">
+            <label asp-for="AgreedPrice" class="form-label"></label>
+            <div class="input-group">
+                <input asp-for="AgreedPrice" class="form-control" type="number" min="1" step="any" />
+                <span class="input-group-text">@(home.Currency ?? "ETB")</span>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <label asp-for="Discount" class="form-label"></label>
+            <input asp-for="Discount" class="form-control" type="number" min="0" step="any" />
+        </div>
+        <div class="col-sm-6">
+            <label asp-for="SoldOn" class="form-label"></label>
+            <input asp-for="SoldOn" class="form-control" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-sm-6">
+            <label asp-for="SoldByUserId" class="form-label"></label>
+            <select asp-for="SoldByUserId" class="form-select">
+                <option value="">—</option>
+                @foreach (var st in Model.Staff) { <option value="@st.Id">@st.Name</option> }
+            </select>
+        </div>
+        <div class="col-sm-6">
+            <label asp-for="PaymentStatus" class="form-label"></label>
+            <select asp-for="PaymentStatus" class="form-select">
+                @foreach (var p in PaymentStatuses.All) { <option value="@p">@PaymentStatuses.Label(p)</option> }
+            </select>
+        </div>
+        <div class="col-12">
+            <label asp-for="Agreement" class="form-label"></label>
+            <input asp-for="Agreement" class="form-control" type="file" accept=".pdf,.jpg,.jpeg,.png" />
+            <div class="form-text">Kept privately; only staff who manage sales can open it.</div>
+        </div>
+    </div>
+    <div class="alert alert-light border small mt-3 mb-0">Recording the sale marks the home as sold, tells the buyer and converts their lead. A recorded sale can only be undone by reversing it (with a reason).</div>
+    <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-success"><i class="bi bi-key" aria-hidden="true"></i> Record sale</button>
+        <a class="btn btn-outline-secondary" asp-area="HousingCompanyAdmin" asp-page="/Reservations/Index">Cancel</a>
+    </div>
+</form>

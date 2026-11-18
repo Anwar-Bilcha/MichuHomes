@@ -1,0 +1,116 @@
+@page
+@model RadiantHomes.Pages.Admin.Kyc.ReviewModel
+@using RadiantHomes.Models.Kyc
+@using RadiantHomes.Services.Kyc
+@{
+    var a = Model.Application;
+    var c = a.Customer;
+    ViewData["Title"] = $"{c.FirstName} {c.LastName}";
+    ViewData["Subtitle"] = "Identity verification review";
+    Layout = "~/Pages/Shared/_HousingCompanyAdminLayout.cshtml";
+    string Label(KycAction x) => x switch
+    {
+        KycAction.StartReview => "Start review",
+        KycAction.Approve => "Approve",
+        KycAction.Reject => "Reject",
+        KycAction.RequestResubmission => "Ask to resubmit",
+        _ => "Revoke verification",
+    };
+    string Variant(KycAction x) => x switch
+    {
+        KycAction.Approve => "btn-success",
+        KycAction.Reject or KycAction.Revoke => "btn-outline-danger",
+        _ => "btn-outline-primary",
+    };
+    var nameMatches = string.Equals($"{c.FirstName} {c.LastName}".Trim(), a.FullNameOnDocument, StringComparison.OrdinalIgnoreCase);
+}
+
+@section PageActions {
+    <span class="badge fs-6 @KycStatuses.Badge(a.Status)">@KycStatuses.Label(a.Status)</span>
+}
+
+@if (!Model.IsLatest)
+{
+    <div class="alert alert-info" role="status">The customer has submitted a newer application. This one is kept for the record.</div>
+}
+
+<div class="row g-3">
+    <div class="col-12 col-xl-7">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold"><i class="bi bi-person-vcard" aria-hidden="true"></i> Details</div>
+            <div class="card-body">
+                <dl class="row small mb-0">
+                    <dt class="col-sm-4">Name on profile</dt><dd class="col-sm-8">@c.FirstName @c.LastName</dd>
+                    <dt class="col-sm-4">Name on document</dt><dd class="col-sm-8">@a.FullNameOnDocument @if (!nameMatches) { <span class="badge text-bg-warning ms-1">Differs from profile</span> }</dd>
+                    <dt class="col-sm-4">Document</dt><dd class="col-sm-8">@KycDocumentTypes.Label(a.DocumentType) · <span translate="no">@a.DocumentNumber</span></dd>
+                    <dt class="col-sm-4">Date of birth</dt><dd class="col-sm-8">@a.DateOfBirth.ToString("d MMM yyyy")</dd>
+                    <dt class="col-sm-4">Document expires</dt><dd class="col-sm-8">@(a.DocumentExpiresOn?.ToString("d MMM yyyy") ?? "Not given")</dd>
+                    <dt class="col-sm-4">Contact</dt><dd class="col-sm-8">@c.Email @(string.IsNullOrWhiteSpace(c.PhoneNumber) ? "" : "· " + c.PhoneNumber)</dd>
+                    <dt class="col-sm-4">Submitted</dt><dd class="col-sm-8">@a.SubmittedOn.ToLocalTime().ToString("d MMM yyyy HH:mm") @if (Model.EarlierApplications > 0) { <span class="text-muted">(@Model.EarlierApplications earlier application(s))</span> }</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header fw-semibold"><i class="bi bi-file-earmark-lock" aria-hidden="true"></i> Documents</div>
+            <div class="card-body">
+                <p class="small text-muted">Opening a document is recorded in the audit log.</p>
+                <div class="row g-3">
+                    @foreach (var d in a.Documents.OrderBy(d => d.Kind == KycDocumentKinds.Front ? 0 : d.Kind == KycDocumentKinds.Back ? 1 : 2))
+                    {
+                        <div class="col-md-4">
+                            <div class="border rounded p-2 h-100 text-center">
+                                <div class="small fw-semibold mb-2">@KycDocumentKinds.Label(d.Kind)</div>
+                                <a class="btn btn-sm btn-outline-primary" asp-page-handler="Document" asp-route-id="@a.Id" asp-route-documentId="@d.Id" target="_blank" rel="noopener">
+                                    <i class="bi bi-eye" aria-hidden="true"></i> Open @(d.ContentType == "application/pdf" ? "PDF" : "image")
+                                </a>
+                                <div class="small text-muted mt-1">@(d.SizeBytes / 1024) KB</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <div class="card mb-3">
+            <div class="card-header fw-semibold"><i class="bi bi-clipboard-check" aria-hidden="true"></i> Decision</div>
+            <div class="card-body">
+                @if (!Model.Actions.Any())
+                {
+                    <p class="small text-muted mb-0">No action is available for this application, or you don't have the permission for it.</p>
+                }
+                else
+                {
+                    <form method="post">
+                        <label class="form-label" for="reason">Reason or message to the customer</label>
+                        <textarea class="form-control mb-1" id="reason" name="Reason" rows="3" maxlength="1000"></textarea>
+                        <div class="form-text mb-3">Required to reject, ask for resubmission or revoke. The customer sees it.</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var action in Model.Actions)
+                            {
+                                <button type="submit" class="btn @Variant(action)" asp-page-handler="@action.ToString()" asp-route-id="@a.Id">@Label(action)</button>
+                            }
+                        </div>
+                    </form>
+                }
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header fw-semibold"><i class="bi bi-clock-history" aria-hidden="true"></i> History</div>
+            <div class="card-body">
+                <ol class="list-unstyled mb-0 small">
+                    @foreach (var h in a.History.OrderByDescending(h => h.ChangedOn))
+                    {
+                        <li class="mb-2">
+                            <span class="badge @KycStatuses.Badge(h.ToStatus)">@KycStatuses.Label(h.ToStatus)</span>
+                            <span class="text-muted">@h.ChangedOn.ToLocalTime().ToString("d MMM yyyy HH:mm") · @(h.ChangedByName ?? "System")</span>
+                            @if (!string.IsNullOrWhiteSpace(h.Reason)) { <div>@h.Reason</div> }
+                        </li>
+                    }
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>

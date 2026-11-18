@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using RadiantHomes.Services.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -34,16 +35,11 @@ namespace RadiantHomes.Pages.HouseOwner
             var customer = await _context.UserProfiles.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId);
             if (customer is null || string.IsNullOrWhiteSpace(customer.IdCardFileUrl)) return NotFound();
 
-            // Michu admins: any profile. Real estate admins: profiles of their own company. Everyone else: their own.
-            if (!User.IsInRole(DAL.MichuHomesRoles.MichuAdmin))
-            {
-                var user = await _userManager.GetUserAsync(User);
-                var isOwnProfile = user?.CustomerId == customerId;
-                var isOwnCompanyAdmin = User.IsInRole(DAL.MichuHomesRoles.RealEstateAdmin)
-                    && customer.CompanyId != null
-                    && customer.CompanyId == user?.HousingCompanyId;
-                if (!isOwnProfile && !isOwnCompanyAdmin) return Forbid();
-            }
+            // The owner, or staff with customers.documents.view (platform: any profile; company staff: their company's).
+            var access = await HttpContext.AccessAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var isOwnProfile = user?.CustomerId == customerId;
+            if (!isOwnProfile && !access.Can(Perm.CustomerDocumentsView, customer.CompanyId)) return Forbid();
 
             // Only files under wwwroot/uploads/ids/ are served, and the resolved path must stay inside it.
             var url = customer.IdCardFileUrl.Replace('\\', '/');

@@ -12,7 +12,7 @@ namespace RadiantHomes.Areas.Identity.Pages.Account
     // AdminRegister reuses the Register handlers (company / customer linking lives there) but is
     // only for admins: it lists companies and approved customer profiles, and registering with a
     // company grants the Real Estate Admin role.
-    [Authorize(Roles = MichuHomesRoles.MichuAdmin + "," + MichuHomesRoles.RealEstateAdmin)]
+    [Authorize(Policy = RadiantHomes.Services.Security.PermissionPolicy.Prefix + RadiantHomes.Services.Security.Perm.CompaniesCreate)] // onboarding a company's administrator
     public class AdminRegisterModel : RegisterModel
     {
         public AdminRegisterModel(

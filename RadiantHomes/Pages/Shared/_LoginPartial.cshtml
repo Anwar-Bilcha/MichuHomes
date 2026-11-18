@@ -3,6 +3,7 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using RadiantHomes.DAL
 @using RadiantHomes.Services
+@using RadiantHomes.Services.Security
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
 @inject ICustomerService customerService
@@ -14,8 +15,9 @@
     var photoUrl = string.IsNullOrWhiteSpace(customer?.CustomerPhotoUrl) ? "/images/default-profile.png" : customer!.CustomerPhotoUrl;
     var fullName = $"{customer?.FirstName} {customer?.LastName}".Trim();
     var displayName = string.IsNullOrEmpty(fullName) ? User.Identity?.Name : fullName;
-    var isMichuAdmin = User.IsInRole(MichuHomesRoles.MichuAdmin);
-    var isCompanyAdmin = User.IsInRole(MichuHomesRoles.RealEstateAdmin);
+    if (!string.IsNullOrWhiteSpace(user?.FullName)) { displayName = user!.FullName; }
+    var access = await Context.AccessAsync(); // permission-based (Services/Security)
+    var isStaff = access.IsPlatform || access.IsCompanyStaff;
 
     <div class="dropdown">
         <button class="mh-profile-toggle dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Account menu for @displayName">
@@ -30,15 +32,19 @@
                 }
             </li>
             <li><hr class="dropdown-divider" /></li>
-            @if (!isMichuAdmin && !isCompanyAdmin)
+            @if (!isStaff)
             {
                 <li><a class="dropdown-item" asp-area="" asp-page="/Portal/Index"><i class="bi bi-house-heart me-2" aria-hidden="true"></i>My Michu Homes</a></li>
             }
-            @if (isMichuAdmin)
+            @if (access.Has(Perm.PlatformDashboardView))
             {
                 <li><a class="dropdown-item" asp-area="" asp-page="/Admin/Dashboard/AdminDashboard"><i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Admin dashboard</a></li>
             }
-            @if (isCompanyAdmin || isMichuAdmin)
+            @if (access.IsCompanyStaff)
+            {
+                <li><a class="dropdown-item" asp-area="HousingCompanyAdmin" asp-page="/Index"><i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Company dashboard</a></li>
+            }
+            @if (access.HasAny(Perm.ProjectsCreate, Perm.ProjectsUpdate, Perm.ProjectsDelete))
             {
                 <li><a class="dropdown-item" asp-area="" asp-page="/Projects/Index"><i class="bi bi-kanban me-2" aria-hidden="true"></i>Manage projects</a></li>
             }

@@ -17,32 +17,37 @@
 
 @* Wide screens: the call with the caller's details beside it; smaller screens: the details as a strip above it. *@
 <div class="@(Model.CallView is null ? null : "mh-call-agent")">
-    @if (Model.Ticket is { } ticket)
+    @if (Model.Log is not null || Model.Ticket is not null)
     {
+        var name = Model.Log?.CustomerName ?? Model.Ticket!.Name;
+        var phone = Model.Log?.CustomerPhone ?? Model.Ticket?.Phone;
+        var apartmentId = Model.Log?.ApartmentHouseId ?? Model.Ticket?.ApartmentId;
+        var topic = Model.Log?.Topic ?? Model.Ticket?.Topic;
+        var asked = Model.Log?.RequestedOn ?? Model.Ticket!.CreatedUtc;
         <dl class="mh-call-caller" aria-label="Caller">
             <div>
                 <dt>Customer</dt>
-                <dd>@ticket.Name</dd>
+                <dd>@name</dd>
             </div>
             <div>
                 <dt>Phone</dt>
                 <dd>
-                    @if (string.IsNullOrWhiteSpace(ticket.Phone))
+                    @if (string.IsNullOrWhiteSpace(phone))
                     {
                         <span class="text-muted">Not given</span>
                     }
                     else
                     {
-                        <a href="tel:@ticket.Phone" translate="no">@ticket.Phone</a>
+                        <a href="tel:@phone" translate="no">@phone</a>
                     }
                 </dd>
             </div>
             <div>
                 <dt>Regarding</dt>
                 <dd>
-                    @if (ticket.ApartmentId is Guid apartmentId)
+                    @if (apartmentId is Guid homeId)
                     {
-                        <a href="/ApartmentHouses/Details?id=@apartmentId" target="_blank" rel="noopener">@ticket.ApartmentTitle <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
+                        <a href="/ApartmentHouses/Details?id=@homeId" target="_blank" rel="noopener">The home <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
                     }
                     else
                     {
@@ -52,13 +57,13 @@
             </div>
             <div>
                 <dt>Asked</dt>
-                <dd>@ticket.CreatedUtc.ToLocalTime().ToString("d MMM yyyy, HH:mm")</dd>
+                <dd>@asked.ToLocalTime().ToString("d MMM yyyy, HH:mm")</dd>
             </div>
-            @if (!string.IsNullOrWhiteSpace(ticket.Topic))
+            @if (!string.IsNullOrWhiteSpace(topic))
             {
                 <div class="mh-call-caller-wide">
                     <dt>Topic</dt>
-                    <dd>@ticket.Topic</dd>
+                    <dd>@topic</dd>
                 </div>
             }
         </dl>
@@ -74,7 +79,7 @@
             <span class="mh-empty-icon" aria-hidden="true"><i class="bi bi-camera-video-off"></i></span>
             <h2>The call can't be opened</h2>
             <p>@Model.Problem</p>
-            <a class="btn btn-secondary" asp-page="/Admin/Notifications/NotificationsAll">Back to notifications</a>
+            <a class="btn btn-secondary" asp-page="/Staff/Calls/Index">Back to calls</a>
         </div>
     }
 </div>
